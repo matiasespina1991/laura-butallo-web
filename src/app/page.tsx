@@ -10,6 +10,8 @@ import NextImage from 'next/image';
 import { Box, Stack, Modal, IconButton, Skeleton } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { useSwipeable } from 'react-swipeable';
+import Draggable from 'react-draggable';
 
 export default function Home() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
@@ -17,6 +19,8 @@ export default function Home() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
+  const [lightboxImageIsDragging, setLightboxImageIsDragging] =
+    useState<boolean>(false);
 
   useEffect(() => {
     async function loadArtworks() {
@@ -26,6 +30,12 @@ export default function Home() {
     }
     loadArtworks();
   }, []);
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleNextImage(),
+    onSwipedRight: () => handlePrevImage(),
+    // trackMouse: true,
+  });
 
   useEffect(() => {
     if (lightboxOpen) {
@@ -210,6 +220,7 @@ export default function Home() {
                 justifyContent: 'center',
                 zIndex: 900,
                 backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                WebkitBackdropFilter: 'blur(2px) saturate(0)',
                 backdropFilter: 'blur(2px) saturate(0)',
               }}
             >
@@ -220,6 +231,8 @@ export default function Home() {
                   color: 'white',
                   zIndex: 1000,
                   transform: 'scale(1.5)',
+                  opacity: lightboxImageIsDragging ? 0 : 1,
+                  transition: 'opacity 0.3s',
                   '@media (max-width: 600px)': {
                     transform: 'scale(1)',
                   },
@@ -249,20 +262,34 @@ export default function Home() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
+                    {...swipeHandlers}
                   >
-                    <NextImage
-                      src={artworks[activeImageIndex]?.image_url || ''}
-                      alt="Fullscreen Image"
-                      width={1200}
-                      height={1200}
-                      style={{
-                        position: 'relative',
-                        maxWidth: '90vw',
-                        maxHeight: '90vh',
-                        objectFit: 'contain',
-                        padding: '3rem 0',
+                    <Draggable
+                      position={{ x: 0, y: 0 }}
+                      axis="x"
+                      onDrag={() => setLightboxImageIsDragging(true)}
+                      onStop={() => setLightboxImageIsDragging(false)}
+                      bounds={{
+                        left: -240,
+                        right: 240,
                       }}
-                    />
+                    >
+                      <NextImage
+                        src={artworks[activeImageIndex]?.image_url || ''}
+                        alt="Fullscreen Image"
+                        width={1200}
+                        height={1200}
+                        style={{
+                          opacity: lightboxImageIsDragging ? 0.5 : 1,
+                          position: 'relative',
+                          maxWidth: '90vw',
+                          maxHeight: '90vh',
+                          objectFit: 'contain',
+                          padding: '3rem 0',
+                          transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
+                        }}
+                      />
+                    </Draggable>
                   </motion.div>
                 </AnimatePresence>
               </Box>
@@ -273,6 +300,8 @@ export default function Home() {
                   right: '1rem',
                   color: 'white',
                   zIndex: 1000,
+                  opacity: lightboxImageIsDragging ? 0 : 1,
+                  transition: 'opacity 0.3s',
                   transform: 'scale(1.5)',
                   '@media (max-width: 600px)': {
                     transform: 'scale(1)',

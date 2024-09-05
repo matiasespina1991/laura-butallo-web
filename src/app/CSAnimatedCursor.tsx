@@ -18,7 +18,7 @@ export default function CSAnimatedCursor() {
           innerScale={1}
           outerScale={2}
           outerAlpha={0}
-          trailingSpeed={8}
+          trailingSpeed={5}
           innerStyle={{
             backgroundColor: 'white',
             filter: 'opacity(0.9)',
