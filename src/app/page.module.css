@@ -1,0 +1,76 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 2rem;
+  min-height: 160vh;
+}
+
+.singleArtworkPage {
+  padding: 0rem 1rem;
+}
+
+.code {
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.carousel {
+  display: flex;
+
+  flex-direction: column;
+  gap: 8rem;
+  width: 100%;
+}
+
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.artworkContainer {
+  z-index: 0;
+  height: 100%;
+  flex: 0 0 auto;
+  transition: 0.8s;
+  position: relative;
+
+  transform: none !important;
+}
+
+.artworkContainer:hover {
+  cursor: pointer;
+}
+
+.artworkImage {
+  height: 100%;
+}
+
+.artworkImageWrapper {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  height: 32rem;
+}
+
+.backButton {
+  transition: 0.3s;
+}
+
+.backButton:hover {
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.86);
+  color: white;
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 1.7rem 1rem;
+  }
+  .carousel {
+    gap: 1rem;
+  }
+
+  .artworkImageWrapper {
+    height: 28rem;
+  }
+}

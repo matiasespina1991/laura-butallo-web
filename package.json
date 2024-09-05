@@ -1,0 +1,39 @@
+{
+  "name": "sofia-vaccaro-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^5.16.7",
+    "@mui/material": "^5.16.7",
+    "firebase": "^10.12.5",
+    "framer-motion": "^11.3.24",
+    "next": "14.2.5",
+    "react": "^18",
+    "react-animated-cursor": "^2.11.2",
+    "react-dom": "^18",
+    "react-indiana-drag-scroll": "^3.0.3-alpha",
+    "react-swipeable": "^7.0.1",
+    "react18-image-magnifier": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/react-image-magnifiers": "^1.3.5",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5"
+  }
+}
