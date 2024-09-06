@@ -4,8 +4,29 @@ import { Box, Stack, Typography } from '@mui/material';
 import styles from '../page.module.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { getContactData } from '@/utils/functions/getContactData';
+import { ContactData } from '@/utils/types/types';
 
 export default function Contact() {
+  const [contactData, setContactData] = useState<ContactData>({
+    contact_email: '',
+    whatsapp_number: '',
+    instagram_url: '',
+  });
+
+  const fetchContactData = async () => {
+    const data: ContactData | null = await getContactData();
+
+    if (data) {
+      setContactData(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchContactData();
+  }, []);
+
   return (
     <main className={styles.main}>
       <Box
@@ -33,43 +54,47 @@ export default function Contact() {
               }}
               gap={2}
             >
-              <Link href="mailto:moirasofiavaccaro@gmail.com">
-                <Typography
-                  sx={{
-                    overflowWrap: 'break-word',
-                    fontSize: {
-                      xs: '1.8rem',
-                      sm: '2.8rem',
-                    },
-                  }}
-                  fontWeight="bold"
-                  variant="h3"
-                >
-                  moirasofiavaccaro@gmail.com
-                </Typography>
-              </Link>
+              {contactData.contact_email && (
+                <Link href={`mailto:${contactData.contact_email}`}>
+                  <Typography
+                    sx={{
+                      overflowWrap: 'break-word',
+                      fontSize: {
+                        xs: '1.8rem',
+                        sm: '2.8rem',
+                      },
+                    }}
+                    fontWeight="bold"
+                    variant="h3"
+                  >
+                    {contactData.contact_email}
+                  </Typography>
+                </Link>
+              )}
+
               <Box height={10}></Box>
 
-              <Link
-                href="https://wa.me/4915739403198"
-                passHref
-                // href="https://api.whatsapp.com/send/?phone=34623319655&text&type=phone_number&app_absent=0"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Typography
-                  sx={{
-                    fontSize: {
-                      xs: '1.8rem',
-                      sm: '2.8rem',
-                    },
-                  }}
-                  fontWeight="bold"
-                  variant="h3"
+              {contactData.whatsapp_number && (
+                <Link
+                  href={`https://wa.me/${contactData.whatsapp_number}`}
+                  passHref
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  +49 1573 9403198
-                </Typography>
-              </Link>
+                  <Typography
+                    sx={{
+                      fontSize: {
+                        xs: '1.8rem',
+                        sm: '2.8rem',
+                      },
+                    }}
+                    fontWeight="bold"
+                    variant="h3"
+                  >
+                    +{contactData.whatsapp_number}
+                  </Typography>
+                </Link>
+              )}
             </Stack>
           </motion.div>
         </AnimatePresence>

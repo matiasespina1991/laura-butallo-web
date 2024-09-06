@@ -3,8 +3,31 @@
 import { Box, Typography } from '@mui/material';
 import styles from '../page.module.css';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { title } from 'process';
+import { getAboutMeData } from '@/utils/functions/getAboutMeData';
 
 export default function AboutMe() {
+  const [aboutMeData, setAboutMeData] = useState({
+    title: '',
+    content: '',
+  });
+
+  const fetchAboutMeData = async () => {
+    const data = await getAboutMeData();
+
+    if (data) {
+      setAboutMeData({
+        title: data.title,
+        content: data.content,
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchAboutMeData();
+  }, []);
+
   return (
     <main className={styles.main}>
       <AnimatePresence mode="wait">
@@ -42,11 +65,11 @@ export default function AboutMe() {
               fontWeight="bold"
               variant="h3"
             >
-              Meine Name ist Sofia.
+              {aboutMeData.title}
             </Typography>
             <Box height={10}></Box>
 
-            <Typography variant="h5">Ich bin eine schöne Frau.</Typography>
+            <Typography variant="h5">{aboutMeData.content}</Typography>
           </Box>
         </motion.div>
       </AnimatePresence>

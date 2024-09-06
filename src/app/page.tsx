@@ -7,7 +7,7 @@ import { Artwork } from '@/utils/types/types';
 import ScrollContainer from 'react-indiana-drag-scroll';
 import { AnimatePresence, motion } from 'framer-motion';
 import NextImage from 'next/image';
-import { Box, Stack, Modal, IconButton, Skeleton } from '@mui/material';
+import { Box, Stack, Grid, IconButton } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useSwipeable } from 'react-swipeable';
@@ -25,6 +25,7 @@ export default function Home() {
   useEffect(() => {
     async function loadArtworks() {
       const fetchedArtworks = await fetchArtworks();
+
       setArtworks(fetchedArtworks);
       setLoadedIndexes(Array(fetchedArtworks.length).fill(false));
     }
@@ -34,7 +35,6 @@ export default function Home() {
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => handleNextImage(),
     onSwipedRight: () => handlePrevImage(),
-    // trackMouse: true,
   });
 
   useEffect(() => {
@@ -70,23 +70,6 @@ export default function Home() {
     setActiveImageIndex(null);
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (lightboxOpen) {
-        if (e.key === 'ArrowLeft') {
-          handlePrevImage();
-        } else if (e.key === 'ArrowRight') {
-          handleNextImage();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [lightboxOpen, activeImageIndex]);
-
   const handlePrevImage = () => {
     if (activeImageIndex !== null && activeImageIndex > 0) {
       setActiveImageIndex((prevIndex) => prevIndex! - 1);
@@ -107,7 +90,7 @@ export default function Home() {
             xs: '0rem',
             sm: '4rem',
             md: '5rem',
-            lg: '6rem',
+            lg: '5.5rem',
             xl: '7rem',
           },
         }}
@@ -123,78 +106,195 @@ export default function Home() {
           <ScrollContainer draggable={false} className={styles.carousel}>
             {artworks.map((artwork, index) => {
               const imageUrl =
-                artwork.right_image_url_optional || artwork.image_url;
+                artwork?.right_image_url_optional || artwork?.image_url;
+
               return (
-                <>
-                  <motion.div
-                    key={index}
-                    className={styles.artworkContainer}
-                    animate={{ opacity: loadedIndexes[index] ? 1 : 0 }}
-                    transition={{
-                      duration: 1,
-                      ease: 'easeInOut',
-                      delay: index * 0.2,
-                    }}
-                    onMouseEnter={() => setHoveredIndex(index)}
-                    onMouseLeave={() => setHoveredIndex(null)}
-                  >
-                    {artwork.right_image_url_optional ? (
-                      <Stack direction="row" spacing={2}>
-                        <Box>
-                          <NextImage
-                            draggable="false"
-                            style={{ userSelect: 'none' }}
-                            src={artwork.image_url}
-                            width={600}
-                            height={600}
-                            placeholder="blur"
-                            blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                            onClick={() => openLightbox(index)}
-                            onLoad={() => handleImageLoad(index)}
-                            alt={artwork.title || ''}
-                            className={styles.artworkImage}
-                          />
-                        </Box>
-                        <Box>
-                          <NextImage
-                            draggable="false"
-                            style={{ userSelect: 'none' }}
-                            width={600}
-                            height={600}
-                            placeholder="blur"
-                            blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                            src={artwork.right_image_url_optional}
-                            onClick={() => openLightbox(index)}
-                            onLoad={() => handleImageLoad(index)}
-                            alt={artwork.title || ''}
-                            className={styles.artworkImage}
-                          />
-                        </Box>
-                      </Stack>
-                    ) : (
-                      <NextImage
-                        draggable="false"
-                        width={600}
-                        height={600}
-                        placeholder="blur"
-                        blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                        style={{ userSelect: 'none' }}
-                        onClick={() => openLightbox(index)}
-                        src={imageUrl}
-                        onLoad={() => handleImageLoad(index)}
-                        alt={artwork.title || ''}
-                        className={styles.artworkImage}
-                      />
-                    )}
-                  </motion.div>
-                </>
+                <motion.div
+                  key={index}
+                  className={styles.artworkContainer}
+                  animate={{ opacity: loadedIndexes[index] ? 1 : 1 }}
+                  transition={{
+                    duration: 1,
+                    ease: 'easeInOut',
+                    delay: index * 0.2,
+                  }}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  {artwork?.images && artwork.images?.length > 0 ? (
+                    <Box>
+                      {artwork.images.length === 1 ? (
+                        <NextImage
+                          draggable="false"
+                          width={600}
+                          height={600}
+                          placeholder="blur"
+                          blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                          style={{ userSelect: 'none' }}
+                          onClick={() => openLightbox(index)}
+                          src={artwork.images[0]}
+                          onLoad={() => handleImageLoad(index)}
+                          alt={artwork.title || ''}
+                          className={styles.artworkImage}
+                        />
+                      ) : artwork.images.length === 2 ? (
+                        <Stack direction="row" spacing={2}>
+                          {artwork.images.map((img, idx) => (
+                            <Box key={idx}>
+                              <NextImage
+                                draggable="false"
+                                width={600}
+                                height={600}
+                                placeholder="blur"
+                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                                style={{ userSelect: 'none' }}
+                                src={img}
+                                onClick={() => openLightbox(index)}
+                                onLoad={() => handleImageLoad(idx)}
+                                alt={artwork.title || ''}
+                                className={styles.artworkImage}
+                              />
+                            </Box>
+                          ))}
+                        </Stack>
+                      ) : artwork.images.length === 3 ? (
+                        <Stack direction="row" spacing={2}>
+                          {artwork.images.map((img, idx) => (
+                            <Box key={idx}>
+                              <NextImage
+                                draggable="false"
+                                width={600}
+                                height={600}
+                                placeholder="blur"
+                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                                style={{ userSelect: 'none' }}
+                                src={img}
+                                onClick={() => openLightbox(index)}
+                                onLoad={() => handleImageLoad(idx)}
+                                alt={artwork.title || ''}
+                                className={styles.artworkImage}
+                              />
+                            </Box>
+                          ))}
+                        </Stack>
+                      ) : artwork.images.length === 4 ? (
+                        <Grid container spacing={2}>
+                          {artwork.images.map((img, idx) => (
+                            <Grid item xs={6} key={idx}>
+                              <NextImage
+                                draggable="false"
+                                width={600}
+                                height={600}
+                                placeholder="blur"
+                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                                style={{ userSelect: 'none' }}
+                                src={img}
+                                onClick={() => openLightbox(index)}
+                                onLoad={() => handleImageLoad(idx)}
+                                alt={artwork.title || ''}
+                                className={styles.artworkImage}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : artwork.images.length === 6 ? (
+                        <Grid container spacing={2}>
+                          {artwork.images.map((img, idx) => (
+                            <Grid item xs={4} key={idx}>
+                              <NextImage
+                                draggable="false"
+                                width={600}
+                                height={600}
+                                placeholder="blur"
+                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                                style={{ userSelect: 'none' }}
+                                src={img}
+                                onClick={() => openLightbox(index)}
+                                onLoad={() => handleImageLoad(idx)}
+                                alt={artwork.title || ''}
+                                className={styles.artworkImage}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : artwork.images.length === 8 ? (
+                        <Grid container spacing={2}>
+                          {artwork.images.map((img, idx) => (
+                            <Grid item xs={3} key={idx}>
+                              <NextImage
+                                draggable="false"
+                                width={600}
+                                height={600}
+                                placeholder="blur"
+                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                                style={{ userSelect: 'none' }}
+                                src={img}
+                                onClick={() => openLightbox(index)}
+                                onLoad={() => handleImageLoad(idx)}
+                                alt={artwork.title || ''}
+                                className={styles.artworkImage}
+                              />
+                            </Grid>
+                          ))}
+                        </Grid>
+                      ) : null}
+                    </Box>
+                  ) : artwork?.right_image_url_optional ? (
+                    <Stack direction="row" spacing={2}>
+                      <Box width="100%">
+                        <NextImage
+                          draggable="false"
+                          style={{ userSelect: 'none', objectFit: 'cover' }}
+                          src={artwork.image_url}
+                          width={600}
+                          height={600}
+                          placeholder="blur"
+                          blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                          onClick={() => openLightbox(index)}
+                          onLoad={() => handleImageLoad(index)}
+                          alt={artwork?.title || ''}
+                          className={styles.artworkImage}
+                        />
+                      </Box>
+                      <Box width="100%">
+                        <NextImage
+                          draggable="false"
+                          style={{ userSelect: 'none', objectFit: 'cover' }}
+                          width={600}
+                          height={600}
+                          placeholder="blur"
+                          blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                          src={artwork?.right_image_url_optional}
+                          onClick={() => openLightbox(index)}
+                          onLoad={() => handleImageLoad(index)}
+                          alt={artwork?.title || ''}
+                          className={styles.artworkImage}
+                        />
+                      </Box>
+                    </Stack>
+                  ) : (
+                    <NextImage
+                      draggable="false"
+                      width={600}
+                      height={600}
+                      placeholder="blur"
+                      blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                      style={{ userSelect: 'none' }}
+                      onClick={() => openLightbox(index)}
+                      src={imageUrl}
+                      onLoad={() => handleImageLoad(index)}
+                      alt={artwork?.title || ''}
+                      className={styles.artworkImage}
+                    />
+                  )}
+                </motion.div>
               );
             })}
           </ScrollContainer>
         ) : (
           <></>
         )}
-
+        {/* Lightbox */}
         <AnimatePresence mode="wait">
           {activeImageIndex !== null && (
             <motion.div
@@ -233,9 +333,6 @@ export default function Home() {
                   transform: 'scale(1.5)',
                   opacity: lightboxImageIsDragging ? 0 : 1,
                   transition: 'opacity 0.3s',
-                  '@media (max-width: 600px)': {
-                    transform: 'scale(1)',
-                  },
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -275,6 +372,7 @@ export default function Home() {
                       }}
                     >
                       <NextImage
+                        draggable="false"
                         src={artworks[activeImageIndex]?.image_url || ''}
                         alt="Fullscreen Image"
                         width={1200}
@@ -286,7 +384,9 @@ export default function Home() {
                           maxHeight: '90vh',
                           objectFit: 'contain',
                           padding: '3rem 0',
-                          transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
+                          transition: `transform ${
+                            lightboxImageIsDragging ? '0s' : '0.9s'
+                          }, opacity 0.5s`,
                         }}
                       />
                     </Draggable>
@@ -303,9 +403,6 @@ export default function Home() {
                   opacity: lightboxImageIsDragging ? 0 : 1,
                   transition: 'opacity 0.3s',
                   transform: 'scale(1.5)',
-                  '@media (max-width: 600px)': {
-                    transform: 'scale(1)',
-                  },
                 }}
                 onClick={(e) => {
                   e.stopPropagation();

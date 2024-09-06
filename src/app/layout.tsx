@@ -13,7 +13,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Sofia Vaccaro - PH',
-  description: 'Photographer based in Berlin.',
+  description: 'Argentinian photographer based in Berlin.',
   openGraph: {
     type: 'website',
     locale: 'en_US',
