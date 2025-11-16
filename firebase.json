@@ -15,5 +15,19 @@
     "frameworksBackend": {
       "region": "europe-west1"
     }
+  },
+  "apphosting": {
+    "backendId": "laura-butallo-web-backend",
+    "rootDir": "/",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "functions"
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }
