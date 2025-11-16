@@ -8,16 +8,16 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
 import { Stack } from '@mui/material';
-import Link from 'next/link';
 import MenuIcon from '@mui/icons-material/Menu';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import ListItemButton from '@mui/material/ListItemButton';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import NextLink from 'next/link';
 
 export default function Header() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -28,15 +28,11 @@ export default function Header() {
   const [isHome, setIsHome] = useState<boolean>(true);
 
   useEffect(() => {
-    if (pathname === '/') {
-      setIsHome(true);
-    } else {
-      setIsHome(false);
-    }
+    setIsHome(pathname === '/');
   }, [pathname]);
 
   useEffect(() => {
-    // Set the mounted state to true after the component has been mounted
+    // Avoid hydration mismatch
     setIsMounted(true);
   }, []);
 
@@ -49,7 +45,6 @@ export default function Header() {
       ) {
         return;
       }
-
       setDrawerOpen(open);
     };
 
@@ -60,41 +55,19 @@ export default function Header() {
       onClick={toggleDrawer(false)}
       onKeyDown={toggleDrawer(false)}
     >
-      <List
-        sx={{
-          pl: '0.5rem',
-        }}
-      >
-        <ListItem
-          component={Button}
-          sx={{ border: 'none !important', justifyContent: 'flex-end' }}
-          onClick={toggleDrawer(false)}
-        >
-          <CloseIcon
-            sx={{
-              color: 'black',
-              pt: '0.8rem',
-              fontSize: '2.5rem',
+      <List sx={{ pl: '0.5rem' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <IconButton aria-label="close menu" onClick={toggleDrawer(false)}>
+            <CloseIcon
+              sx={{ color: 'black', fontSize: '2.5rem', pt: '0.8rem' }}
+            />
+          </IconButton>
+        </Box>
 
-              justifyContent: 'flex-end',
-            }}
-          />
-          {/* <ListItemText
-            sx={{
-              color: 'black',
-              textAlign: 'right',
-              pr: '0.5rem',
-              border: 'none !important',
-            }}
-            primary="X"
-          /> */}
-        </ListItem>
-        <Box
-          sx={{
-            height: '3.8rem',
-          }}
-        ></Box>
-        <ListItem component={Link} href="/">
+        <Box sx={{ height: '3.8rem' }} />
+
+        {/* Home */}
+        <ListItemButton component={NextLink} href="/" prefetch>
           <ListItemText
             primary={
               <Typography
@@ -108,27 +81,21 @@ export default function Header() {
                   lg: '82px',
                   xl: '82px',
                 }}
-                pt={{
-                  xs: '0.5rem',
-                  sm: '3rem',
-                }}
+                pt={{ xs: '0.5rem', sm: '3rem' }}
                 letterSpacing="-0.04em"
                 component="div"
-                sx={{
-                  flexGrow: 1,
-                }}
+                sx={{ flexGrow: 1 }}
               >
                 Home
               </Typography>
             }
           />
-        </ListItem>
-        <Box
-          sx={{
-            height: '1rem',
-          }}
-        ></Box>
-        <ListItem component={Link} href="/about-me">
+        </ListItemButton>
+
+        <Box sx={{ height: '1rem' }} />
+
+        {/* About Me */}
+        <ListItemButton component={NextLink} href="/obras" prefetch>
           <ListItemText
             primary={
               <Typography
@@ -142,25 +109,27 @@ export default function Header() {
                   lg: '82px',
                   xl: '82px',
                 }}
-                pt={{
-                  xs: '0.5rem',
-                  sm: '3rem',
-                }}
+                pt={{ xs: '0.5rem', sm: '3rem' }}
                 letterSpacing="-0.04em"
                 component="div"
-                sx={{ flexGrow: 1 }}
+                noWrap
+                sx={{
+                  flexGrow: 0, // <-- que no se estire
+                  display: 'inline-flex',
+                  whiteSpace: 'nowrap', // <-- y no permita cortes
+                }}
               >
-                About <b>Me</b>
+                {/* Usar &nbsp; elimina el corte entre palabras */}
+                Obras
               </Typography>
             }
           />
-        </ListItem>
-        <Box
-          sx={{
-            height: '1rem',
-          }}
-        ></Box>
-        <ListItem component={Link} href="/contact">
+        </ListItemButton>
+
+        <Box sx={{ height: '1rem' }} />
+
+        {/* About Me */}
+        <ListItemButton component={NextLink} href="/about-me" prefetch>
           <ListItemText
             primary={
               <Typography
@@ -174,10 +143,41 @@ export default function Header() {
                   lg: '82px',
                   xl: '82px',
                 }}
-                pt={{
-                  xs: '0.5rem',
-                  sm: '3rem',
+                pt={{ xs: '0.5rem', sm: '3rem' }}
+                letterSpacing="-0.04em"
+                component="div"
+                noWrap // <-- clave
+                sx={{
+                  flexGrow: 0, // <-- que no se estire
+                  display: 'inline-flex',
+                  whiteSpace: 'nowrap', // <-- y no permita cortes
                 }}
+              >
+                {/* Usar &nbsp; elimina el corte entre palabras */}
+                About&nbsp;Me
+              </Typography>
+            }
+          />
+        </ListItemButton>
+
+        <Box sx={{ height: '1rem' }} />
+
+        {/* Contact */}
+        <ListItemButton component={NextLink} href="/contact" prefetch>
+          <ListItemText
+            primary={
+              <Typography
+                variant="h3"
+                fontWeight="bold"
+                fontFamily="Helvetica Neue"
+                fontSize={{
+                  xs: '36px',
+                  sm: '50px',
+                  md: '82px',
+                  lg: '82px',
+                  xl: '82px',
+                }}
+                pt={{ xs: '0.5rem', sm: '3rem' }}
                 letterSpacing="-0.04em"
                 component="div"
                 sx={{ flexGrow: 1 }}
@@ -186,19 +186,14 @@ export default function Header() {
               </Typography>
             }
           />
-        </ListItem>
-        <Box
-          sx={{
-            height: '1rem',
-          }}
-        ></Box>
+        </ListItemButton>
+
+        <Box sx={{ height: '1rem' }} />
       </List>
     </Box>
   );
 
-  if (!isMounted) {
-    return null;
-  }
+  if (!isMounted) return null;
 
   return (
     <AppBar
@@ -222,32 +217,23 @@ export default function Header() {
             fontWeight="bold"
             fontFamily="Helvetica Neue"
             pl="0.3rem"
-            pt={{
-              xs: '0.5rem',
-              sm: '3rem',
-            }}
+            pt={{ xs: '0.5rem', sm: '3rem' }}
             color="white"
             letterSpacing="-0.04em"
             component="div"
             sx={{
               flexGrow: 1,
               fontSize: isHome
-                ? {
-                    xs: '36px',
-                    sm: '50px',
-                    md: '82px',
-                    lg: '82px',
-                    xl: '82px',
-                  }
+                ? { xs: '36px', sm: '50px', md: '82px', lg: '82px', xl: '82px' }
                 : '20px !important',
-              ...(!isHome && {
-                pt: '0rem !important',
-              }),
+              ...(!isHome && { pt: '0rem !important' }),
               transition: '0.5s',
             }}
           >
-            <Link
+            {/* Brand link */}
+            <NextLink
               href="/"
+              prefetch
               style={{
                 width: '100%',
                 textDecoration: 'none',
@@ -257,6 +243,7 @@ export default function Header() {
               }}
             >
               <Box
+                component="span"
                 sx={{
                   whiteSpace: 'pre-wrap',
                   fontWeight: '400',
@@ -266,36 +253,26 @@ export default function Header() {
                   transitionDelay: isHome ? '0.5s' : '0.5s',
                   fontSize: isHome ? '40px' : '20px',
                 }}
-                component="span"
               >
                 ←{' '}
               </Box>
-              SOFIA VACCARO
-            </Link>
+              Laura Butallo
+            </NextLink>
           </Typography>
+
           {isMobile ? (
             <>
               <IconButton
                 edge="end"
                 color="inherit"
                 sx={{
-                  mt: {
-                    xs: '0.6rem',
-                    sm: '0rem',
-                  },
-                  mr: {
-                    xs: '-0.5rem',
-                    sm: '0rem',
-                  },
+                  mt: { xs: '0.6rem', sm: '0rem' },
+                  mr: { xs: '-0.5rem', sm: '0rem' },
                 }}
                 aria-label="menu"
                 onClick={toggleDrawer(true)}
               >
-                <MenuIcon
-                  sx={{
-                    fontSize: '1.8rem',
-                  }}
-                />
+                <MenuIcon sx={{ fontSize: '1.8rem' }} />
               </IconButton>
               <Drawer
                 anchor="right"
@@ -307,29 +284,70 @@ export default function Header() {
             </>
           ) : (
             <Stack direction="row" gap={4}>
-              <Link href="/about-me">
-                <Button
-                  variant="text"
-                  sx={{ textTransform: 'unset' }}
-                  color="inherit"
-                >
-                  <span>
-                    About <b>Me</b>
-                  </span>
-                </Button>
-              </Link>
-              <Link href="/contact">
-                <Button
-                  variant="text"
-                  sx={{ textTransform: 'unset' }}
-                  color="inherit"
-                >
-                  <span>Contact</span>
-                </Button>
-              </Link>
-              {/* <Link href="/book-a-visit">
-              <Button variant="contained">Book a visit</Button>
-            </Link> */}
+              {/* Do NOT wrap Button with <Link>. Use component={NextLink}. */}
+
+              <Button
+                component={NextLink}
+                href="/"
+                prefetch
+                variant="text"
+                sx={{ textTransform: 'unset', justifyContent: 'right' }}
+                color="inherit"
+              >
+                <img
+                  style={{
+                    transform: 'translate(11px, -0.2px)',
+                    filter: 'invert(1)',
+                    width: '1.9rem',
+                  }}
+                  src="/images/icons/home/cueva.png"
+                  alt="Home"
+                />
+              </Button>
+
+              <Button
+                component={NextLink}
+                href="/works"
+                prefetch
+                variant="text"
+                sx={{ textTransform: 'unset' }}
+                color="inherit"
+              >
+                <span>
+                  Obras&nbsp; <span>▼</span>
+                </span>
+              </Button>
+              <Button
+                component={NextLink}
+                href="/works"
+                prefetch
+                variant="text"
+                sx={{ textTransform: 'unset' }}
+                color="inherit"
+              >
+                <span>Exhibiciones</span>
+              </Button>
+              <Button
+                component={NextLink}
+                href="/about-me"
+                prefetch
+                variant="text"
+                sx={{ textTransform: 'unset' }}
+                color="inherit"
+              >
+                <span>About&nbsp;Me</span>
+              </Button>
+
+              <Button
+                component={NextLink}
+                href="/contact"
+                prefetch
+                variant="text"
+                sx={{ textTransform: 'unset' }}
+                color="inherit"
+              >
+                <span>Contact</span>
+              </Button>
             </Stack>
           )}
         </Toolbar>

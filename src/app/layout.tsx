@@ -12,16 +12,16 @@ import CSAnimatedCursor from './CSAnimatedCursor';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Sofia Vaccaro - PH',
-  description: 'Argentinian photographer based in Berlin.',
+  title: 'Laura Butallo',
+  description: '3D artist.',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://sofiavaccaro.com',
+    url: '', // --- URL OF YOUR WEBSITE ---
     images: [
       {
-        url: 'https://sofiavaccaro.com/images/opengraph-image.jpg',
-        alt: 'Sofia Vaccaro - PH',
+        url: '', // --- IMAGE FOR MINIATURE IN SOCIAL MEDIA ---
+        alt: 'Laura Butallo',
       },
     ],
   },
@@ -57,10 +57,19 @@ export default function RootLayout({
                 <Box
                   sx={{
                     p: '3.5rem',
+                    textAlign: 'center',
                   }}
                 >
                   <Typography>
-                    Sofia Vaccaro © {new Date().getFullYear()}
+                    Laura Butallo © {new Date().getFullYear()}
+                  </Typography>
+                  <Box
+                    sx={{
+                      p: '0.1rem',
+                    }}
+                  ></Box>
+                  <Typography>
+                    Designed by <b>Cymatics Ideas</b>™
                   </Typography>
                 </Box>
               </footer>

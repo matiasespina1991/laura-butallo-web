@@ -13,6 +13,8 @@ export default function Contact() {
     contact_email: '',
     whatsapp_number: '',
     instagram_url: '',
+    linktree_url: '',
+    behance_url: '',
   });
 
   const fetchContactData = async () => {
@@ -52,46 +54,139 @@ export default function Contact() {
                 xs: '0.3rem',
                 sm: '0',
               }}
-              gap={2}
+              gap={1.5}
             >
+              <Typography
+                sx={{
+                  overflowWrap: 'break-word',
+                  fontSize: {
+                    xs: '1.8rem',
+                    sm: '2.8rem',
+                  },
+                }}
+                fontWeight="bold"
+                variant="h3"
+              >
+                CONTACT
+              </Typography>
+              <Box height={10}></Box>
               {contactData.contact_email && (
                 <Link href={`mailto:${contactData.contact_email}`}>
                   <Typography
                     sx={{
                       overflowWrap: 'break-word',
                       fontSize: {
-                        xs: '1.8rem',
+                        xs: '1.4rem',
                         sm: '2.8rem',
                       },
                     }}
                     fontWeight="bold"
                     variant="h3"
                   >
-                    {contactData.contact_email}
+                    <img
+                      src="/images/icons/arrows/arrow_contact_light.png"
+                      alt="Linktree"
+                      style={{
+                        width: '0.72em',
+                        height: '0.72em',
+                        marginRight: '0.3em',
+                      }}
+                    />
+                    Email
+                  </Typography>
+                </Link>
+              )}
+              <Box height={10}></Box>
+              {contactData.instagram_url && (
+                <Link
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`${contactData.instagram_url}`}
+                >
+                  <Typography
+                    sx={{
+                      overflowWrap: 'break-word',
+                      fontSize: {
+                        xs: '1.4rem',
+                        sm: '2.8rem',
+                      },
+                    }}
+                    fontWeight="bold"
+                    variant="h3"
+                  >
+                    <img
+                      src="/images/icons/arrows/arrow_contact_light.png"
+                      alt="Instagram"
+                      style={{
+                        width: '0.72em',
+                        height: '0.72em',
+                        marginRight: '0.3em',
+                      }}
+                    />
+                    Instagram
                   </Typography>
                 </Link>
               )}
 
               <Box height={10}></Box>
-
-              {contactData.whatsapp_number && (
+              {contactData.linktree_url && (
                 <Link
-                  href={`https://wa.me/${contactData.whatsapp_number}`}
-                  passHref
                   target="_blank"
                   rel="noopener noreferrer"
+                  href={`${contactData.linktree_url}`}
                 >
                   <Typography
                     sx={{
+                      overflowWrap: 'break-word',
                       fontSize: {
-                        xs: '1.8rem',
+                        xs: '1.4rem',
                         sm: '2.8rem',
                       },
                     }}
                     fontWeight="bold"
                     variant="h3"
                   >
-                    +{contactData.whatsapp_number}
+                    <img
+                      src="/images/icons/arrows/arrow_contact_light.png"
+                      alt="Linktree"
+                      style={{
+                        width: '0.72em',
+                        height: '0.72em',
+                        marginRight: '0.3em',
+                      }}
+                    />
+                    Linktree
+                  </Typography>
+                </Link>
+              )}
+              <Box height={10}></Box>
+              {contactData.behance_url && (
+                <Link
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`${contactData.behance_url}`}
+                >
+                  <Typography
+                    sx={{
+                      overflowWrap: 'break-word',
+                      fontSize: {
+                        xs: '1.4rem',
+                        sm: '2.8rem',
+                      },
+                    }}
+                    fontWeight="bold"
+                    variant="h3"
+                  >
+                    <img
+                      src="/images/icons/arrows/arrow_contact_light.png"
+                      alt="Behance"
+                      style={{
+                        width: '0.72em',
+                        height: '0.72em',
+                        marginRight: '0.3em',
+                      }}
+                    />
+                    Behance
                   </Typography>
                 </Link>
               )}

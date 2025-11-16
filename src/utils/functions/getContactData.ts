@@ -1,5 +1,5 @@
 import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
-import { AboutMeContactData, Artwork, ContactData } from '../types/types';
+import { AboutMeContactData, PhotoSetData, ContactData } from '../types/types';
 import db from '../config/firebase';
 
 export async function getContactData(): Promise<ContactData | null> {

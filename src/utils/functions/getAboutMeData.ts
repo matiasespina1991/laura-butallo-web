@@ -2,7 +2,7 @@ import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
 import {
   AboutMeContactData,
   AboutMeData,
-  Artwork,
+  PhotoSetData,
   ContactData,
 } from '../types/types';
 import db from '../config/firebase';

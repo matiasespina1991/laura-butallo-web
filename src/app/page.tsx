@@ -1,35 +1,63 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import styles from './page.module.css';
-import { fetchArtworks } from '@/utils/functions/fetchArtworks';
-import { Artwork } from '@/utils/types/types';
+import { fetchPhotoSets } from '@/utils/functions/fetchPhotoSets';
+import { PhotoSetData } from '@/utils/types/types';
 import ScrollContainer from 'react-indiana-drag-scroll';
 import { AnimatePresence, motion } from 'framer-motion';
 import NextImage from 'next/image';
-import { Box, Stack, Grid, IconButton } from '@mui/material';
+import { Box, Grid, IconButton, Theme, useMediaQuery } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useSwipeable } from 'react-swipeable';
 import Draggable from 'react-draggable';
 
 export default function Home() {
-  const [artworks, setArtworks] = useState<Artwork[]>([]);
-  const [loadedIndexes, setLoadedIndexes] = useState<boolean[]>([]);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [photoSetArray, setPhotoSetArray] = useState<PhotoSetData[]>([]);
+  const [photoSetIndex, setPhotoSetIndex] = useState<number>(0);
+
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [lightboxImageIsDragging, setLightboxImageIsDragging] =
     useState<boolean>(false);
+  const [currentImages, setCurrentImages] = useState<string[]>([]);
+  const draggableNodeRef = useRef(null);
+
+  const isMobile = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down('sm')
+  );
+
+  const getGridColumns = (length: number) => {
+    switch (length) {
+      case 1:
+        return 1;
+      case 2:
+        return 2;
+      case 3:
+        return 3;
+      case 4:
+        return 4;
+      case 5:
+        return 4;
+      case 6:
+        return 3;
+      case 7:
+        return 4;
+      case 8:
+        return 4;
+      default:
+        return 1;
+    }
+  };
 
   useEffect(() => {
-    async function loadArtworks() {
-      const fetchedArtworks = await fetchArtworks();
+    async function loadPhotoSets() {
+      const fetchedPhotoSetArray = await fetchPhotoSets();
 
-      setArtworks(fetchedArtworks);
-      setLoadedIndexes(Array(fetchedArtworks.length).fill(false));
+      setPhotoSetArray(fetchedPhotoSetArray);
     }
-    loadArtworks();
+    loadPhotoSets();
   }, []);
 
   const swipeHandlers = useSwipeable({
@@ -52,17 +80,15 @@ export default function Home() {
     };
   }, [lightboxOpen]);
 
-  const handleImageLoad = (index: number) => {
-    setLoadedIndexes((prev) => {
-      const newLoaded = [...prev];
-      newLoaded[index] = true;
-      return newLoaded;
-    });
-  };
-
-  const openLightbox = (index: number) => {
-    setActiveImageIndex(index);
+  const openLightbox = (
+    images: string[],
+    clickedIndex: number,
+    photoSetIndex: number
+  ) => {
+    setCurrentImages(images);
+    setActiveImageIndex(clickedIndex);
     setLightboxOpen(true);
+    setPhotoSetIndex(photoSetIndex);
   };
 
   const closeLightbox = () => {
@@ -70,17 +96,77 @@ export default function Home() {
     setActiveImageIndex(null);
   };
 
-  const handlePrevImage = () => {
-    if (activeImageIndex !== null && activeImageIndex > 0) {
-      setActiveImageIndex((prevIndex) => prevIndex! - 1);
-    }
-  };
+  const handlePrevImage = useCallback(() => {
+    if (activeImageIndex !== null && activeImageIndex !== 0) {
+      setActiveImageIndex((prevIndex) => {
+        const newIndex = prevIndex! - 1;
+        return newIndex >= 0 ? newIndex : 0;
+      });
+    } else {
+      const prevPhotoSetIndex =
+        photoSetIndex > 0 ? photoSetIndex - 1 : photoSetArray.length - 1;
 
-  const handleNextImage = () => {
-    if (activeImageIndex !== null && activeImageIndex < artworks.length - 1) {
-      setActiveImageIndex((prevIndex) => prevIndex! + 1);
+      if (photoSetArray[prevPhotoSetIndex].images) {
+        openLightbox(
+          photoSetArray[prevPhotoSetIndex].images,
+          photoSetArray[prevPhotoSetIndex].images.length - 1,
+          prevPhotoSetIndex
+        );
+      }
     }
-  };
+  }, [activeImageIndex, photoSetArray, photoSetIndex]);
+
+  const handleNextImage = useCallback(() => {
+    if (
+      activeImageIndex !== null &&
+      activeImageIndex < currentImages.length - 1
+    ) {
+      setActiveImageIndex((prevIndex) => {
+        const newIndex = prevIndex! + 1;
+        return newIndex <= currentImages.length - 1
+          ? newIndex
+          : currentImages.length - 1;
+      });
+    } else {
+      const nextPhotoSetIndex =
+        photoSetIndex < photoSetArray.length - 1 ? photoSetIndex + 1 : 0;
+
+      setPhotoSetIndex(nextPhotoSetIndex);
+
+      if (photoSetArray[nextPhotoSetIndex].images) {
+        openLightbox(
+          photoSetArray[nextPhotoSetIndex].images,
+          0,
+          nextPhotoSetIndex
+        );
+      }
+    }
+  }, [activeImageIndex, currentImages, photoSetArray, photoSetIndex]);
+
+  useEffect(() => {
+    if (lightboxOpen) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'ArrowRight') {
+          handleNextImage();
+        } else if (e.key === 'ArrowLeft') {
+          handlePrevImage();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [
+    lightboxOpen,
+    currentImages,
+    activeImageIndex,
+
+    handleNextImage,
+    handlePrevImage,
+  ]);
 
   return (
     <main className={styles.main}>
@@ -102,190 +188,59 @@ export default function Home() {
         }}
         width="100%"
       >
-        {artworks.length > 0 ? (
+        {photoSetArray.length > 0 ? (
           <ScrollContainer draggable={false} className={styles.carousel}>
-            {artworks.map((artwork, index) => {
-              const imageUrl =
-                artwork?.right_image_url_optional || artwork?.image_url;
+            {photoSetArray.map((photoSet, photoSetIndex) => {
+              const allImages = [...(photoSet.images || [])].filter(Boolean);
 
               return (
                 <motion.div
-                  key={index}
-                  className={styles.artworkContainer}
-                  animate={{ opacity: loadedIndexes[index] ? 1 : 1 }}
+                  key={photoSetIndex}
+                  className={styles.photoSetContainer}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{
                     duration: 1,
                     ease: 'easeInOut',
-                    delay: index * 0.2,
+                    delay: photoSetIndex * 0.2,
                   }}
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
                 >
-                  {artwork?.images && artwork.images?.length > 0 ? (
+                  {photoSet?.images && photoSet.images.length > 0 ? (
                     <Box>
-                      {artwork.images.length === 1 ? (
-                        <NextImage
-                          draggable="false"
-                          width={600}
-                          height={600}
-                          placeholder="blur"
-                          blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                          style={{ userSelect: 'none' }}
-                          onClick={() => openLightbox(index)}
-                          src={artwork.images[0]}
-                          onLoad={() => handleImageLoad(index)}
-                          alt={artwork.title || ''}
-                          className={styles.artworkImage}
-                        />
-                      ) : artwork.images.length === 2 ? (
-                        <Stack direction="row" spacing={2}>
-                          {artwork.images.map((img, idx) => (
-                            <Box key={idx}>
-                              <NextImage
-                                draggable="false"
-                                width={600}
-                                height={600}
-                                placeholder="blur"
-                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                                style={{ userSelect: 'none' }}
-                                src={img}
-                                onClick={() => openLightbox(index)}
-                                onLoad={() => handleImageLoad(idx)}
-                                alt={artwork.title || ''}
-                                className={styles.artworkImage}
-                              />
-                            </Box>
-                          ))}
-                        </Stack>
-                      ) : artwork.images.length === 3 ? (
-                        <Stack direction="row" spacing={2}>
-                          {artwork.images.map((img, idx) => (
-                            <Box key={idx}>
-                              <NextImage
-                                draggable="false"
-                                width={600}
-                                height={600}
-                                placeholder="blur"
-                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                                style={{ userSelect: 'none' }}
-                                src={img}
-                                onClick={() => openLightbox(index)}
-                                onLoad={() => handleImageLoad(idx)}
-                                alt={artwork.title || ''}
-                                className={styles.artworkImage}
-                              />
-                            </Box>
-                          ))}
-                        </Stack>
-                      ) : artwork.images.length === 4 ? (
-                        <Grid container spacing={2}>
-                          {artwork.images.map((img, idx) => (
-                            <Grid item xs={6} key={idx}>
-                              <NextImage
-                                draggable="false"
-                                width={600}
-                                height={600}
-                                placeholder="blur"
-                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                                style={{ userSelect: 'none' }}
-                                src={img}
-                                onClick={() => openLightbox(index)}
-                                onLoad={() => handleImageLoad(idx)}
-                                alt={artwork.title || ''}
-                                className={styles.artworkImage}
-                              />
-                            </Grid>
-                          ))}
-                        </Grid>
-                      ) : artwork.images.length === 6 ? (
-                        <Grid container spacing={2}>
-                          {artwork.images.map((img, idx) => (
-                            <Grid item xs={4} key={idx}>
-                              <NextImage
-                                draggable="false"
-                                width={600}
-                                height={600}
-                                placeholder="blur"
-                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                                style={{ userSelect: 'none' }}
-                                src={img}
-                                onClick={() => openLightbox(index)}
-                                onLoad={() => handleImageLoad(idx)}
-                                alt={artwork.title || ''}
-                                className={styles.artworkImage}
-                              />
-                            </Grid>
-                          ))}
-                        </Grid>
-                      ) : artwork.images.length === 8 ? (
-                        <Grid container spacing={2}>
-                          {artwork.images.map((img, idx) => (
-                            <Grid item xs={3} key={idx}>
-                              <NextImage
-                                draggable="false"
-                                width={600}
-                                height={600}
-                                placeholder="blur"
-                                blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                                style={{ userSelect: 'none' }}
-                                src={img}
-                                onClick={() => openLightbox(index)}
-                                onLoad={() => handleImageLoad(idx)}
-                                alt={artwork.title || ''}
-                                className={styles.artworkImage}
-                              />
-                            </Grid>
-                          ))}
-                        </Grid>
-                      ) : null}
+                      <Grid
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: `repeat(${getGridColumns(photoSet.images.length)}, 1fr)`,
+                        }}
+                        gap={2}
+                      >
+                        {photoSet.images.map((img, imageIndex) => (
+                          <Box width="100%" height="100%" key={imageIndex}>
+                            <NextImage
+                              onContextMenu={(e) => e.preventDefault()}
+                              draggable="false"
+                              width={600}
+                              height={600}
+                              placeholder="blur"
+                              blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                              style={{ userSelect: 'none' }}
+                              src={img}
+                              onClick={() =>
+                                openLightbox(
+                                  allImages,
+                                  imageIndex,
+                                  photoSetIndex
+                                )
+                              }
+                              alt={photoSet.title || ''}
+                              className={styles.photoSetImage}
+                            />
+                          </Box>
+                        ))}
+                      </Grid>
                     </Box>
-                  ) : artwork?.right_image_url_optional ? (
-                    <Stack direction="row" spacing={2}>
-                      <Box width="100%">
-                        <NextImage
-                          draggable="false"
-                          style={{ userSelect: 'none', objectFit: 'cover' }}
-                          src={artwork.image_url}
-                          width={600}
-                          height={600}
-                          placeholder="blur"
-                          blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                          onClick={() => openLightbox(index)}
-                          onLoad={() => handleImageLoad(index)}
-                          alt={artwork?.title || ''}
-                          className={styles.artworkImage}
-                        />
-                      </Box>
-                      <Box width="100%">
-                        <NextImage
-                          draggable="false"
-                          style={{ userSelect: 'none', objectFit: 'cover' }}
-                          width={600}
-                          height={600}
-                          placeholder="blur"
-                          blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                          src={artwork?.right_image_url_optional}
-                          onClick={() => openLightbox(index)}
-                          onLoad={() => handleImageLoad(index)}
-                          alt={artwork?.title || ''}
-                          className={styles.artworkImage}
-                        />
-                      </Box>
-                    </Stack>
                   ) : (
-                    <NextImage
-                      draggable="false"
-                      width={600}
-                      height={600}
-                      placeholder="blur"
-                      blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                      style={{ userSelect: 'none' }}
-                      onClick={() => openLightbox(index)}
-                      src={imageUrl}
-                      onLoad={() => handleImageLoad(index)}
-                      alt={artwork?.title || ''}
-                      className={styles.artworkImage}
-                    />
+                    <></>
                   )}
                 </motion.div>
               );
@@ -338,7 +293,6 @@ export default function Home() {
                   e.stopPropagation();
                   handlePrevImage();
                 }}
-                disabled={activeImageIndex === 0}
               >
                 <ArrowBackIosNewIcon fontSize="large" />
               </IconButton>
@@ -354,7 +308,7 @@ export default function Home() {
               >
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={artworks[activeImageIndex]?.image_url || ''}
+                    key={currentImages[activeImageIndex]}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -362,6 +316,8 @@ export default function Home() {
                     {...swipeHandlers}
                   >
                     <Draggable
+                      disabled={!isMobile}
+                      nodeRef={draggableNodeRef}
                       position={{ x: 0, y: 0 }}
                       axis="x"
                       onDrag={() => setLightboxImageIsDragging(true)}
@@ -372,18 +328,28 @@ export default function Home() {
                       }}
                     >
                       <NextImage
+                        ref={draggableNodeRef}
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDrag={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
                         draggable="false"
-                        src={artworks[activeImageIndex]?.image_url || ''}
+                        src={currentImages[activeImageIndex]}
                         alt="Fullscreen Image"
                         width={1200}
                         height={1200}
                         style={{
                           opacity: lightboxImageIsDragging ? 0.5 : 1,
                           position: 'relative',
-                          maxWidth: '90vw',
-                          maxHeight: '90vh',
+                          maxWidth: '91.5vw',
+                          maxHeight: '80vh',
                           objectFit: 'contain',
-                          padding: '3rem 0',
+
                           transition: `transform ${
                             lightboxImageIsDragging ? '0s' : '0.9s'
                           }, opacity 0.5s`,
@@ -408,7 +374,6 @@ export default function Home() {
                   e.stopPropagation();
                   handleNextImage();
                 }}
-                disabled={activeImageIndex === artworks.length - 1}
               >
                 <ArrowForwardIosIcon fontSize="large" />
               </IconButton>

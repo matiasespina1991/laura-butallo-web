@@ -6,11 +6,18 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { title } from 'process';
 import { getAboutMeData } from '@/utils/functions/getAboutMeData';
+import { AboutMeData } from '@/utils/types/types';
 
 export default function AboutMe() {
-  const [aboutMeData, setAboutMeData] = useState({
+  const [aboutMeData, setAboutMeData] = useState<AboutMeData>({
     title: '',
     content: '',
+    subcontent: {
+      education: {
+        title: '',
+        content: '',
+      },
+    },
   });
 
   const fetchAboutMeData = async () => {
@@ -20,6 +27,7 @@ export default function AboutMe() {
       setAboutMeData({
         title: data.title,
         content: data.content,
+        subcontent: data.subcontent,
       });
     }
   };
@@ -67,9 +75,63 @@ export default function AboutMe() {
             >
               {aboutMeData.title}
             </Typography>
-            <Box height={10}></Box>
+            <Box height={15}></Box>
 
-            <Typography variant="h5">{aboutMeData.content}</Typography>
+            <Typography
+              maxWidth={{
+                sm: '100%',
+                md: '95%',
+                lg: '95%',
+                xl: '78%',
+              }}
+              sx={{
+                fontSize: {
+                  xs: '1.3rem',
+                  sm: '1.5rem',
+                },
+              }}
+            >
+              {aboutMeData.content}
+            </Typography>
+          </Box>
+
+          <Box height={30}></Box>
+          <Box
+            px={{
+              xs: '0.3rem',
+              sm: '0',
+            }}
+            width="100%"
+          >
+            <Typography
+              sx={{
+                fontSize: {
+                  xs: '1.5rem',
+                  sm: '2.2rem',
+                },
+              }}
+              fontWeight="bold"
+              variant="h4"
+            >
+              {aboutMeData.subcontent.education.title}
+            </Typography>
+            <Box height={10}></Box>
+            <Typography
+              maxWidth={{
+                sm: '100%',
+                md: '95%',
+                lg: '95%',
+                xl: '78%',
+              }}
+              sx={{
+                fontSize: {
+                  xs: '1.2rem',
+                  sm: '1.4rem',
+                },
+              }}
+            >
+              {aboutMeData.subcontent.education.content}
+            </Typography>
           </Box>
         </motion.div>
       </AnimatePresence>
