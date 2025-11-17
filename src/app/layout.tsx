@@ -1,3 +1,4 @@
+// app/layout.tsx
 import './globals.css';
 import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
@@ -5,24 +6,64 @@ import Header from './components/Header';
 import ThemeRegistry from './ThemeRegistry';
 
 import { Box, Typography } from '@mui/material';
-import AnimatedCursor from 'react-animated-cursor';
-import { motion } from 'framer-motion';
 import CSAnimatedCursor from './CSAnimatedCursor';
 
 const inter = Inter({ subsets: ['latin'] });
 
+const SITE_URL =
+  'https://laura-butallo-web-backend--laura-butallo-web.us-central1.hosted.app/';
+const OG_IMAGE =
+  'https://firebasestorage.googleapis.com/v0/b/laura-butallo-web.firebasestorage.app/o/system%2Fseo%2Fog_image.jpg?alt=media&token=633936e5-c2f4-46b8-9d27-435aa845849a'; //
+const SITE_NAME = 'Laura Butallo';
+const DESCRIPTION =
+  'Laura Butallo a.k.a Aura is an Argentinean digital artist, dedicated to the creation of abstract 3D ecosystems. She fuses colours, textures and shapes to create dreamlike and fluid worlds, where there is no human presence. Aura is also a DJ and multimedia designer. Currently she is also experimenting with artificial intelligence to push the limits of her worlds and magical caves.';
+
 export const metadata: Metadata = {
-  title: 'Laura Butallo',
-  description: '3D artist.',
+  title: SITE_NAME,
+  description: DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: 'Laura Butallo' }],
   openGraph: {
+    title: SITE_NAME,
+    description: DESCRIPTION,
     type: 'website',
+    url: SITE_URL,
+    siteName: SITE_NAME,
     locale: 'en_US',
-    url: '', // --- URL OF YOUR WEBSITE ---
     images: [
       {
-        url: '', // --- IMAGE FOR MINIATURE IN SOCIAL MEDIA ---
-        alt: 'Laura Butallo',
+        url: OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: SITE_NAME,
       },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_NAME,
+    description: DESCRIPTION,
+    images: [OG_IMAGE],
+    creator: '@your_twitter_handle', // Replace with actual Twitter handle if available
+  },
+  metadataBase: new URL(SITE_URL),
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+    other: [
+      { rel: 'icon', url: '/favicon-32x32.png', sizes: '32x32' },
+      { rel: 'icon', url: '/favicon-16x16.png', sizes: '16x16' },
     ],
   },
 };
@@ -33,50 +74,73 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <html lang="en">
-        <body className={inter.className}>
-          <CSAnimatedCursor />
+    <html lang="en">
+      <head>
+        {/* Explicit meta tags for crawlers that might not use Next metadata API */}
+        <meta name="description" content={DESCRIPTION} />
+        <link rel="canonical" href={SITE_URL} />
+        <meta property="og:title" content={SITE_NAME} />
+        <meta property="og:site_name" content={SITE_NAME} />
+        <meta property="og:description" content={DESCRIPTION} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={SITE_URL} />
+        <meta property="og:image" content={OG_IMAGE} />
+        <meta property="og:image:alt" content={SITE_NAME} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
 
-          <ThemeRegistry>
-            <Header />
-            <Box mt="64px">{children}</Box>
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={SITE_NAME} />
+        <meta name="twitter:description" content={DESCRIPTION} />
+        <meta name="twitter:image" content={OG_IMAGE} />
 
-            <Box>
-              <footer
-                style={{
-                  display: 'flex',
+        <meta name="theme-color" content="#000000" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: '10rem',
-                  backgroundColor: 'black',
-                  color: 'white',
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+      </head>
+
+      <body className={inter.className}>
+        <CSAnimatedCursor />
+        <ThemeRegistry>
+          <Header />
+          <Box mt="64px">{children}</Box>
+
+          <Box>
+            <footer
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '10rem',
+                backgroundColor: 'black',
+                color: 'white',
+              }}
+            >
+              <Box
+                sx={{
+                  p: '3.5rem',
+                  textAlign: 'center',
                 }}
               >
+                <Typography>
+                  Laura Butallo © {new Date().getFullYear()}
+                </Typography>
                 <Box
                   sx={{
-                    p: '3.5rem',
-                    textAlign: 'center',
+                    p: '0.1rem',
                   }}
-                >
-                  <Typography>
-                    Laura Butallo © {new Date().getFullYear()}
-                  </Typography>
-                  <Box
-                    sx={{
-                      p: '0.1rem',
-                    }}
-                  ></Box>
-                  <Typography>
-                    Designed by <b>Cymatics Ideas</b>™
-                  </Typography>
-                </Box>
-              </footer>
-            </Box>
-          </ThemeRegistry>
-        </body>
-      </html>
-    </>
+                />
+                <Typography>
+                  Designed by <b>Cymatics Ideas</b>™
+                </Typography>
+              </Box>
+            </footer>
+          </Box>
+        </ThemeRegistry>
+      </body>
+    </html>
   );
 }
