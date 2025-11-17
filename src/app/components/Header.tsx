@@ -18,6 +18,8 @@ import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import NextLink from 'next/link';
+import { MinimalMenuIcon } from './MinimalMenuIcon';
+import { MinimalCloseIcon } from './MinimalCloseIcon';
 
 export default function Header() {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -56,15 +58,20 @@ export default function Header() {
       onKeyDown={toggleDrawer(false)}
     >
       <List sx={{ pl: '0.5rem' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            paddingTop: '0.7rem',
+            paddingRight: '0.8rem',
+          }}
+        >
           <IconButton aria-label="close menu" onClick={toggleDrawer(false)}>
-            <CloseIcon
-              sx={{ color: 'black', fontSize: '2.5rem', pt: '0.8rem' }}
-            />
+            <MinimalCloseIcon />
           </IconButton>
         </Box>
 
-        <Box sx={{ height: '3.8rem' }} />
+        <Box sx={{ height: '2.8rem' }} />
 
         {/* Home */}
         <ListItemButton component={NextLink} href="/" prefetch>
@@ -272,7 +279,7 @@ export default function Header() {
                 aria-label="menu"
                 onClick={toggleDrawer(true)}
               >
-                <MenuIcon sx={{ fontSize: '1.8rem' }} />
+                <MinimalMenuIcon />
               </IconButton>
               <Drawer
                 anchor="right"
