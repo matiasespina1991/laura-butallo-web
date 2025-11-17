@@ -17,6 +17,15 @@ rm -rf lib
 npx tsc
 ```
 
+This command above will compile the TS functions into JS.
+
+Then run:
+
+```bash
+rm -rf lib
+npx tsc
+```
+
 If you get an error similar to this one:
 
 ```bash

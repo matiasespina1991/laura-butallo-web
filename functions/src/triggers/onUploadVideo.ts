@@ -37,7 +37,7 @@ export const onVideoFinalize = onObjectFinalized(
 
       const db = getDb();
 
-      const mediaId = db.collection('Media').doc().id;
+      const mediaId = db.collection('media').doc().id;
       const tmpBase = '/tmp';
 
       const resolutions = [

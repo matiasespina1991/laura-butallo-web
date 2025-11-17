@@ -13,7 +13,7 @@ export const generateDownloadUrl = onCall(async (req) => {
   const mediaId = req.data?.mediaId;
   if (!mediaId) throw new Error('mediaId-required');
 
-  const mediaRef = db.collection('Media').doc(mediaId);
+  const mediaRef = db.collection('media').doc(mediaId);
   const snap = await mediaRef.get();
   if (!snap.exists) throw new Error('media-not-found');
   const media = snap.data() as any;

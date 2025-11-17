@@ -43,7 +43,7 @@ export const onImageFinalize = onObjectFinalized(
 
       const variants = await createWebpVariants(localPath);
       const db = getDb();
-      const mediaId = db.collection('Media').doc().id;
+      const mediaId = db.collection('media').doc().id;
 
       const derivativePaths: { [k: string]: string } = {};
 

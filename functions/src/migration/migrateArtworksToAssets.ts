@@ -2,16 +2,16 @@ import * as functions from 'firebase-functions';
 import admin from 'firebase-admin';
 // import { v4 as uuidv4 } from 'uuid';
 
-admin.initializeApp();
+// admin.initializeApp();
 const db = admin.firestore();
 
 export const migrateArtworksToAssets = functions.https.onCall(async () => {
-  const artworksSnap = await db.collection('Artworks').get();
+  const artworksSnap = await db.collection('artworks').get();
   console.log(`Found ${artworksSnap.size} artworks to migrate.`);
 
   for (const doc of artworksSnap.docs) {
     const old = doc.data();
-    const mediaSetId = db.collection('MediaSets').doc().id;
+    const mediaSetId = db.collection('mediasets').doc().id;
     const now = admin.firestore.Timestamp.now();
 
     const mediaset = {
@@ -26,11 +26,11 @@ export const migrateArtworksToAssets = functions.https.onCall(async () => {
       deletedAt: old.deleted_at ?? null,
     };
 
-    await db.collection('MediaSets').doc(mediaSetId).set(mediaset);
+    await db.collection('mediasets').doc(mediaSetId).set(mediaset);
 
     const images = Array.isArray(old.images) ? old.images : [];
     for (const imgUrl of images) {
-      const mediaId = db.collection('Media').doc().id;
+      const mediaId = db.collection('media').doc().id;
       const mediaDoc = {
         id: mediaId,
         mediaSetId,
@@ -42,7 +42,7 @@ export const migrateArtworksToAssets = functions.https.onCall(async () => {
         modifiedAt: now,
         processed: false,
       };
-      await db.collection('Media').doc(mediaId).set(mediaDoc);
+      await db.collection('media').doc(mediaId).set(mediaDoc);
     }
     console.log(`Migrated artwork ${doc.id} -> mediaset ${mediaSetId}`);
   }

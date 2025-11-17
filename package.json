@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy-functions": "cd functions && rm -rf lib && npx tsc && firebase deploy --only functions"
   },
   "dependencies": {
     "@emotion/react": "^11.13.0",
