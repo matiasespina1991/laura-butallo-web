@@ -85,7 +85,7 @@ export const onVideoFinalize = onObjectFinalized(
 
       const now = admin.firestore.Timestamp.now();
 
-      const doc: Media = {
+      const doc: any = {
         id: mediaId,
         mediaSetId: null,
         type: 'video',
@@ -94,19 +94,23 @@ export const onVideoFinalize = onObjectFinalized(
           original: storagePath,
           derivatives: derivativePaths,
           poster: posterStoragePath,
-        } as any,
+        },
         downloadURL: null,
-        width: undefined,
-        height: undefined,
+        width: meta.streams?.[0]?.width,
+        height: meta.streams?.[0]?.height,
         duration,
         mimeType: contentType,
         sizeBytes,
         codec: 'vp9',
-        bitrate: undefined,
+        bitrate: format.bit_rate,
         createdAt: now,
         modifiedAt: now,
         processed: true,
       };
+
+      Object.keys(doc).forEach(
+        (key) => doc[key] === undefined && delete doc[key]
+      );
 
       await createAssetDoc(doc);
       await safeUnlink(localPath);
