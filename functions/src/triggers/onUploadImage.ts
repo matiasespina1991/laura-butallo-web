@@ -49,7 +49,7 @@ export const onImageFinalize = onObjectFinalized(
       const derivativePaths: { [k: string]: string } = {};
 
       for (const [key, info] of Object.entries(variants)) {
-        const dest = `assets/${mediaId}/${key}.webp`;
+        const dest = `temp-assets/${mediaId}/${key}.webp`;
         await uploadFromLocal(info.path, dest, 'image/webp');
         derivativePaths[key] = dest;
         await safeUnlink(info.path);

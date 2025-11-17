@@ -61,7 +61,7 @@ export const onVideoFinalize = onObjectFinalized(
       const posterLocal = `${tmpBase}/${Date.now()}-poster.jpg`;
       await generateThumbnail(localPath, posterLocal);
 
-      const posterStoragePath = `assets/${mediaId}/poster.jpg`;
+      const posterStoragePath = `temp-assets/${mediaId}/poster.jpg`;
       await uploadFromLocal(posterLocal, posterStoragePath, 'image/jpeg');
       await safeUnlink(posterLocal);
 
@@ -69,7 +69,7 @@ export const onVideoFinalize = onObjectFinalized(
       for (const r of resolutions) {
         const outLocal = `${tmpBase}/${Date.now()}-${r.name}.webm`;
         await transcodeToWebM(localPath, outLocal, r.height);
-        const remotePath = `assets/${mediaId}/video_${r.name}.webm`;
+        const remotePath = `temp-assets/${mediaId}/video_${r.name}.webm`;
         await uploadFromLocal(outLocal, remotePath, 'video/webm');
         derivativePaths[`webm_${r.name}`] = remotePath;
         await safeUnlink(outLocal);
