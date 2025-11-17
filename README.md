@@ -10,6 +10,14 @@ npm run dev
 
 ## Deploy Cloud Functions
 
+Use command:
+
+```bash
+npm run deploy-functions
+```
+
+Or if you want to do it manually:
+
 From /functions/:
 
 ```bash
