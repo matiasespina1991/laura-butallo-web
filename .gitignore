@@ -39,6 +39,5 @@ next-env.d.ts
 # Firebase 
 .firebase/ 
 /functions/node_modules
-/functions/lib  
 /functions/.eslintrc.json  
 /functions/.firebase/ 
