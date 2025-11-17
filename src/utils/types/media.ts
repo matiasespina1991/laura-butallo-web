@@ -1,4 +1,7 @@
 // types/media.ts
+
+import type { Timestamp } from 'firebase/firestore';
+
 export type MediaType = 'image' | 'video';
 
 export interface AssetPaths {
@@ -24,8 +27,8 @@ export interface Media {
   blurHash?: string | null; // only images
   codec?: string | null; // for video (e.g. "vp9")
   bitrate?: number | null; // kbps
-  createdAt: FirebaseFirestore.Timestamp;
-  modifiedAt: FirebaseFirestore.Timestamp;
-  deletedAt?: FirebaseFirestore.Timestamp | null;
+  createdAt: Timestamp;
+  modifiedAt: Timestamp;
+  deletedAt?: Timestamp | null;
   processed: boolean; // true when derivatives available and asset doc created
 }
