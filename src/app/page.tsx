@@ -57,7 +57,7 @@ function MediaItem({
       // animate only when loaded to prevent "pop in"
       initial={{ opacity: 0, scale: 0.995 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
-      transition={{ duration: 0.45, ease: 'easeOut' }}
+      transition={{ delay: 0.3, duration: 1.2, ease: 'easeInOut' }}
       style={{ width: '100%', height: '100%' }}
     >
       <Box width="100%" height="100%">
@@ -72,7 +72,7 @@ function MediaItem({
             style={{ userSelect: 'none', cursor: 'pointer' }}
             src={m.paths.derivatives.webp_medium?.downloadURL || ''}
             onClick={() => openLightbox(mediaArray, index, setIndex)}
-            alt={m.title || ''}
+            alt={'Media'}
             className={styles.photoSetImage}
             // keep layout predictable
             priority={false}
@@ -157,8 +157,6 @@ export default function Home() {
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => handleNextMedia(),
     onSwipedRight: () => handlePrevMedia(),
-    preventDefaultTouchmoveEvent: true,
-    trackMouse: false,
   });
 
   useEffect(() => {
@@ -202,7 +200,7 @@ export default function Home() {
             ? activeMediaSetIndex - 1
             : mediaSetsWithMedia.length - 1;
         const prevSet = mediaSetsWithMedia[prevSetIndex];
-        if (prevSet && prevSet.media.length > 0) {
+        if (prevSet.media.length > 0) {
           setActiveMediaSetIndex(prevSetIndex);
           setActiveMediaIndex(prevSet.media.length - 1);
         }
@@ -213,7 +211,7 @@ export default function Home() {
   const handleNextMedia = useCallback(() => {
     if (activeMediaIndex !== null && activeMediaSetIndex !== null) {
       const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
-      if (currentSet && activeMediaIndex < currentSet.media.length - 1) {
+      if (activeMediaIndex < currentSet.media.length - 1) {
         setActiveMediaIndex(activeMediaIndex + 1);
       } else {
         const nextSetIndex =
@@ -221,7 +219,7 @@ export default function Home() {
             ? activeMediaSetIndex + 1
             : 0;
         const nextSet = mediaSetsWithMedia[nextSetIndex];
-        if (nextSet && nextSet.media.length > 0) {
+        if (nextSet.media.length > 0) {
           setActiveMediaSetIndex(nextSetIndex);
           setActiveMediaIndex(0);
         }
@@ -401,6 +399,7 @@ export default function Home() {
                           <video
                             width={1200}
                             height={1200}
+                            // controls
                             autoPlay
                             poster={
                               mediaSetsWithMedia[activeMediaSetIndex].media[
