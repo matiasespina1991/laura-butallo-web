@@ -27,7 +27,6 @@ export default function Home() {
     useState<boolean>(false);
 
   const draggableNodeRef = useRef(null);
-
   const isMobile = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
   );
@@ -76,7 +75,6 @@ export default function Home() {
       document.body.classList.remove('no-scroll');
       document.documentElement.classList.remove('no-scroll');
     }
-
     return () => {
       document.body.classList.remove('no-scroll');
       document.documentElement.classList.remove('no-scroll');
@@ -105,7 +103,6 @@ export default function Home() {
       if (activeMediaIndex > 0) {
         setActiveMediaIndex(activeMediaIndex - 1);
       } else {
-        // ir al último media del set anterior
         const prevSetIndex =
           activeMediaSetIndex > 0
             ? activeMediaSetIndex - 1
@@ -125,7 +122,6 @@ export default function Home() {
       if (activeMediaIndex < currentSet.media.length - 1) {
         setActiveMediaIndex(activeMediaIndex + 1);
       } else {
-        // ir al primer media del siguiente set
         const nextSetIndex =
           activeMediaSetIndex < mediaSetsWithMedia.length - 1
             ? activeMediaSetIndex + 1
@@ -142,13 +138,9 @@ export default function Home() {
   useEffect(() => {
     if (lightboxOpen) {
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'ArrowRight') {
-          handleNextMedia();
-        } else if (e.key === 'ArrowLeft') {
-          handlePrevMedia();
-        }
+        if (e.key === 'ArrowRight') handleNextMedia();
+        if (e.key === 'ArrowLeft') handlePrevMedia();
       };
-
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
@@ -187,33 +179,62 @@ export default function Home() {
                     <Grid
                       sx={{
                         display: 'grid',
-                        gridTemplateColumns: `repeat(${getGridColumns(
-                          setWithMedia.media.length
-                        )}, 1fr)`,
+                        gridTemplateColumns: `repeat(${getGridColumns(setWithMedia.media.length)}, 1fr)`,
                       }}
                       gap={2}
                     >
                       {setWithMedia.media.map((m, mediaIndex) => (
                         <Box key={m.id} width="100%" height="100%">
-                          <NextImage
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable="false"
-                            width={600}
-                            height={600}
-                            placeholder="blur"
-                            blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-                            style={{ userSelect: 'none' }}
-                            src={m.downloadURL || ''}
-                            onClick={() =>
-                              openLightbox(
-                                setWithMedia.media,
-                                mediaIndex,
-                                setIndex
-                              )
-                            }
-                            alt={setWithMedia.mediaset.title || ''}
-                            className={styles.photoSetImage}
-                          />
+                          {m.type === 'image' ? (
+                            <NextImage
+                              onContextMenu={(e) => e.preventDefault()}
+                              draggable="false"
+                              width={600}
+                              height={600}
+                              // placeholder="blur"
+                              // blurDataURL="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+                              style={{ userSelect: 'none', cursor: 'pointer' }}
+                              src={
+                                m.paths.derivatives.webp_medium?.downloadURL ||
+                                ''
+                              }
+                              onClick={() =>
+                                openLightbox(
+                                  setWithMedia.media,
+                                  mediaIndex,
+                                  setIndex
+                                )
+                              }
+                              alt={setWithMedia.mediaset.title || ''}
+                              className={styles.photoSetImage}
+                            />
+                          ) : (
+                            <video
+                              width="100%"
+                              height="100%"
+                              autoPlay={true}
+                              loop
+                              muted
+                              // poster={m.paths.poster?.downloadURL || undefined}
+                              style={{ objectFit: 'cover', cursor: 'pointer' }}
+                              onClick={() =>
+                                openLightbox(
+                                  setWithMedia.media,
+                                  mediaIndex,
+                                  setIndex
+                                )
+                              }
+                            >
+                              <source
+                                src={
+                                  m.paths.derivatives.webm_720?.downloadURL ||
+                                  ''
+                                }
+                                type="video/webm"
+                              />
+                              Tu navegador no soporta video.
+                            </video>
+                          )}
                         </Box>
                       ))}
                     </Grid>
@@ -293,35 +314,69 @@ export default function Home() {
                         onStop={() => setLightboxImageIsDragging(false)}
                         bounds={{ left: -240, right: 240 }}
                       >
-                        <NextImage
-                          ref={draggableNodeRef}
-                          onContextMenu={(e) => e.preventDefault()}
-                          onDrag={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          draggable="false"
-                          src={
-                            mediaSetsWithMedia[activeMediaSetIndex].media[
-                              activeMediaIndex
-                            ].downloadURL || ''
-                          }
-                          alt="Fullscreen Image"
-                          width={1200}
-                          height={1200}
-                          style={{
-                            opacity: lightboxImageIsDragging ? 0.5 : 1,
-                            position: 'relative',
-                            maxWidth: '91.5vw',
-                            maxHeight: '80vh',
-                            objectFit: 'contain',
-                            transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
-                          }}
-                        />
+                        {mediaSetsWithMedia[activeMediaSetIndex].media[
+                          activeMediaIndex
+                        ].type === 'image' ? (
+                          <NextImage
+                            ref={draggableNodeRef}
+                            onContextMenu={(e) => e.preventDefault()}
+                            onDrag={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            draggable="false"
+                            src={
+                              mediaSetsWithMedia[activeMediaSetIndex].media[
+                                activeMediaIndex
+                              ].paths.derivatives.webp_medium?.downloadURL || ''
+                            }
+                            alt="Fullscreen Image"
+                            width={1200}
+                            height={1200}
+                            style={{
+                              opacity: lightboxImageIsDragging ? 0.5 : 1,
+                              position: 'relative',
+                              maxWidth: '91.5vw',
+                              maxHeight: '80vh',
+                              objectFit: 'contain',
+                              transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
+                            }}
+                          />
+                        ) : (
+                          <video
+                            width={1200}
+                            height={1200}
+                            // controls
+                            autoPlay
+                            poster={
+                              mediaSetsWithMedia[activeMediaSetIndex].media[
+                                activeMediaIndex
+                              ].paths.poster?.downloadURL || undefined
+                            }
+                            style={{
+                              opacity: lightboxImageIsDragging ? 0.5 : 1,
+                              position: 'relative',
+                              maxWidth: '91.5vw',
+                              maxHeight: '80vh',
+                              objectFit: 'contain',
+                              transition: 'opacity 0.5s',
+                            }}
+                          >
+                            <source
+                              src={
+                                mediaSetsWithMedia[activeMediaSetIndex].media[
+                                  activeMediaIndex
+                                ].paths.derivatives.webm_720?.downloadURL || ''
+                              }
+                              type="video/webm"
+                            />
+                            Tu navegador no soporta videos HTML5.
+                          </video>
+                        )}
                       </Draggable>
                     </motion.div>
                   </AnimatePresence>

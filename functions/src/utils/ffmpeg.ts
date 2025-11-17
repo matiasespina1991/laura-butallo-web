@@ -18,12 +18,12 @@ export function transcodeToWebM(
   return new Promise((resolve, reject) => {
     ffmpeg(inputPath)
       .outputOptions([
+        '-an',
         '-c:v libvpx-vp9',
         '-b:v 0',
         '-crf 30',
         `-vf scale=-2:${height}`,
-        '-c:a libopus',
-        '-threads 2',
+        '-pix_fmt yuv420p',
       ])
       .on('end', () => resolve())
       .on('error', (err) => reject(err))
@@ -35,7 +35,7 @@ export function transcodeToWebM(
  * Generate single thumbnail (poster)from video at time 1s
  */
 
-export function generateThumbnail(
+export function generatePoster(
   inputPath: string,
   outputPath: string
 ): Promise<void> {

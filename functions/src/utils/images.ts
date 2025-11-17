@@ -37,18 +37,22 @@ export async function createWebpVariants(
 }
 
 export async function generateBlurHash(localPath: string): Promise<string> {
+  // Leemos la imagen, forzamos alpha y la redimensionamos a 32x32
   const img = sharp(localPath)
     .raw()
     .ensureAlpha()
     .resize(32, 32, { fit: 'inside' });
+
   const { data, info } = await img.toBuffer({ resolveWithObject: true });
-  // blurhash requires RGB, drop alpha
+
+  // blurhash necesita RGB, descartamos alpha
   const pixels = new Uint8ClampedArray(info.width * info.height * 3);
   for (let i = 0, j = 0; i < data.length; i += 4, j += 3) {
-    pixels[j] = data[i];
-    pixels[j + 1] = data[i + 1];
-    pixels[j + 2] = data[i + 2];
+    pixels[j] = data[i]; // R
+    pixels[j + 1] = data[i + 1]; // G
+    pixels[j + 2] = data[i + 2]; // B
   }
+
   const blur = encode(pixels, info.width, info.height, 4, 3);
   return blur;
 }

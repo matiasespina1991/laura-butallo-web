@@ -1,10 +1,14 @@
 export type MediaType = 'image' | 'video';
+export interface AssetFile {
+    storagePath: string;
+    downloadURL: string | null;
+}
 export interface AssetPaths {
-    original: string;
+    original: AssetFile;
     derivatives: {
-        [key: string]: string;
+        [key: string]: AssetFile;
     };
-    poster?: string;
+    poster?: AssetFile;
 }
 export interface Media {
     id: string;
@@ -12,7 +16,6 @@ export interface Media {
     type: MediaType;
     storagePath: string;
     paths: AssetPaths;
-    downloadURL: string | null;
     width?: number;
     height?: number;
     duration?: number;

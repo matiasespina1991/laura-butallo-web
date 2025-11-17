@@ -21,9 +21,7 @@ export async function fetchMediaSetsWithMedia(): Promise<
   const allMedia = mediaSnap.docs.map((doc) => doc.data() as Media);
 
   for (const ms of mediasets) {
-    const mediaOfSet = allMedia.filter(
-      (m) => m.mediaSetId === ms.id && m.type === 'image'
-    );
+    const mediaOfSet = allMedia.filter((m) => m.mediaSetId === ms.id);
     result.push({ mediaset: ms, media: mediaOfSet });
   }
 
