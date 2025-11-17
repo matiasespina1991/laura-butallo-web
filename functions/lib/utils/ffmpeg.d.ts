@@ -4,7 +4,7 @@
  */
 export declare function transcodeToWebM(inputPath: string, outputPath: string, height: number): Promise<void>;
 /**
- * Generate single thumbnail (poster) jpeg from video at time 1s
+ * Generate single thumbnail (poster)from video at time 1s
  */
 export declare function generateThumbnail(inputPath: string, outputPath: string): Promise<void>;
 /**

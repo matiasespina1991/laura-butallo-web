@@ -25,6 +25,10 @@ function getDb() {
 export const onImageFinalize = onObjectFinalized(
   {
     region: 'europe-west3',
+    timeoutSeconds: 1200,
+    memory: '2GiB',
+    cpu: 1,
+    maxInstances: 10,
   },
   async (event) => {
     const object = event.data;

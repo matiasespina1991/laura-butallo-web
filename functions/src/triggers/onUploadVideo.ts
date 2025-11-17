@@ -23,6 +23,10 @@ function getDb() {
 export const onVideoFinalize = onObjectFinalized(
   {
     region: 'europe-west3',
+    memory: '8GiB',
+    timeoutSeconds: 1200,
+    cpu: 2,
+    maxInstances: 10,
   },
   async (event) => {
     try {
@@ -58,11 +62,11 @@ export const onVideoFinalize = onObjectFinalized(
       const sizeBytes = object.size ?? undefined;
 
       // generate poster
-      const posterLocal = `${tmpBase}/${Date.now()}-poster.jpg`;
+      const posterLocal = `${tmpBase}/${Date.now()}-poster.webp`;
       await generateThumbnail(localPath, posterLocal);
 
-      const posterStoragePath = `temp-assets/${mediaId}/poster.jpg`;
-      await uploadFromLocal(posterLocal, posterStoragePath, 'image/jpeg');
+      const posterStoragePath = `temp-assets/${mediaId}/poster.webp`;
+      await uploadFromLocal(posterLocal, posterStoragePath, 'image/webp');
       await safeUnlink(posterLocal);
 
       // transcode each resolution to WebM VP9+Opus
@@ -85,7 +89,7 @@ export const onVideoFinalize = onObjectFinalized(
 
       const now = admin.firestore.Timestamp.now();
 
-      const doc: any = {
+      const doc: Media = {
         id: mediaId,
         mediaSetId: null,
         type: 'video',
@@ -108,9 +112,11 @@ export const onVideoFinalize = onObjectFinalized(
         processed: true,
       };
 
-      Object.keys(doc).forEach(
-        (key) => doc[key] === undefined && delete doc[key]
-      );
+      Object.keys(doc).forEach((key) => {
+        if (doc[key as keyof Media] === undefined) {
+          delete doc[key as keyof Media];
+        }
+      });
 
       await createAssetDoc(doc);
       await safeUnlink(localPath);

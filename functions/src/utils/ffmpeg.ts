@@ -32,7 +32,7 @@ export function transcodeToWebM(
 }
 
 /**
- * Generate single thumbnail (poster) jpeg from video at time 1s
+ * Generate single thumbnail (poster)from video at time 1s
  */
 
 export function generateThumbnail(
