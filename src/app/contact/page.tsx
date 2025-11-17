@@ -17,50 +17,11 @@ export default function Contact() {
     behance_url: '',
   });
 
-  const [migrating, setMigrating] = useState(false);
-  const [migrationResult, setMigrationResult] = useState<string | null>(null);
-
   const fetchContactData = async () => {
     const data: ContactData | null = await getContactData();
 
     if (data) {
       setContactData(data);
-    }
-  };
-
-  const runMigration = async () => {
-    try {
-      setMigrating(true);
-      setMigrationResult(null);
-
-      const res = await fetch(
-        'https://migrateartworkstoassets-iqcs3ho3pa-uc.a.run.app',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          // Callable functions expect a "data" key in the JSON body
-          body: JSON.stringify({ data: {} }),
-        }
-      );
-
-      // Provide better error visibility
-      const text = await res.text();
-      if (!res.ok) {
-        setMigrationResult(`HTTP ${res.status} ${res.statusText}\n${text}`);
-        return;
-      }
-
-      // Try to parse JSON response if any
-      try {
-        const json = JSON.parse(text || '{}');
-        setMigrationResult(JSON.stringify(json, null, 2));
-      } catch {
-        setMigrationResult(text || 'OK');
-      }
-    } catch (err: any) {
-      setMigrationResult(`Error: ${String(err)}`);
-    } finally {
-      setMigrating(false);
     }
   };
 
@@ -95,28 +56,6 @@ export default function Contact() {
               }}
               gap={1.5}
             >
-              {/* Migration Button */}
-              <Box height={30}></Box>
-
-              <Button
-                variant="contained"
-                disabled={migrating}
-                onClick={runMigration}
-              >
-                {migrating ? 'Running migration...' : 'Run migration'}
-              </Button>
-
-              {migrationResult && (
-                <Typography
-                  sx={{
-                    fontSize: '1rem',
-                    whiteSpace: 'pre-wrap',
-                    marginTop: '1rem',
-                  }}
-                >
-                  {migrationResult}
-                </Typography>
-              )}
               <Typography
                 sx={{
                   overflowWrap: 'break-word',
