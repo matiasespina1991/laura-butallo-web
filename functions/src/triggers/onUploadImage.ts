@@ -36,6 +36,7 @@ export const onImageFinalize = onObjectFinalized(
       if (!contentType.startsWith('image/')) return;
 
       const storagePath = object.name!;
+      if (!storagePath.startsWith('uploads/images/')) return;
       // download
       const localPath = await downloadToTmp(storagePath);
 

@@ -33,6 +33,7 @@ export const onVideoFinalize = onObjectFinalized(
       if (!contentType.startsWith('video/')) return;
 
       const storagePath = object.name!;
+      if (!storagePath.startsWith('uploads/videos/')) return;
       const localPath = await downloadToTmp(storagePath);
 
       const db = getDb();

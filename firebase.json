@@ -10,7 +10,12 @@
   },
   "hosting": {
     "source": ".",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**/*"
+    ],
     "frameworksBackend": {
       "region": "europe-west1"
     }
