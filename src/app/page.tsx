@@ -13,6 +13,8 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { useSwipeable } from 'react-swipeable';
 import Draggable from 'react-draggable';
 import { fetchMediaSetsWithMedia } from '@/utils/functions/fetchMediaSetsWithMedia';
+import { MinimalLeftArrowIcon } from './components/MinimalLeftArrowIcon';
+import { MinimalRightArrowIcon } from './components/MinimalRightArrowIcon';
 
 type MediaWithHandlers = {
   m: Media;
@@ -55,12 +57,23 @@ function MediaItem({
   return (
     <motion.div
       // animate only when loaded to prevent "pop in"
-      initial={{ opacity: 0, scale: 0.995 }}
+      initial={{ opacity: 0, scale: 0.985 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
-      transition={{ delay: 0.3, duration: 1.2, ease: 'easeInOut' }}
-      style={{ width: '100%', height: '100%' }}
+      transition={{
+        // delay should be 0.8, then plus a bit per index
+        delay: 0.9 + setIndex * 0.5,
+        duration: 1.1,
+      }}
     >
-      <Box width="100%" height="100%">
+      <Box
+        sx={{
+          opacity: loaded ? 1 : 0,
+        }}
+        width="100%"
+        height="100%"
+      >
+        {/* GRID CONTENT */}
+
         {m.type === 'image' ? (
           <NextImage
             onContextMenu={(e) => e.preventDefault()}
@@ -156,7 +169,7 @@ export default function Home() {
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => handleNextMedia(),
-    onSwipedRight: () => handlePrevMedia(),
+    onSwipedRight: () => handlePreviousMedia(),
   });
 
   useEffect(() => {
@@ -189,7 +202,7 @@ export default function Home() {
     setActiveMediaSetIndex(null);
   };
 
-  const handlePrevMedia = useCallback(() => {
+  const handlePreviousMedia = useCallback(() => {
     if (activeMediaIndex !== null && activeMediaSetIndex !== null) {
       const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
       if (activeMediaIndex > 0) {
@@ -231,12 +244,12 @@ export default function Home() {
     if (lightboxOpen) {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'ArrowRight') handleNextMedia();
-        if (e.key === 'ArrowLeft') handlePrevMedia();
+        if (e.key === 'ArrowLeft') handlePreviousMedia();
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [lightboxOpen, handleNextMedia, handlePrevMedia]);
+  }, [lightboxOpen, handleNextMedia, handlePreviousMedia]);
 
   return (
     <main className={styles.main}>
@@ -273,7 +286,7 @@ export default function Home() {
                         display: 'grid',
                         gridTemplateColumns: `repeat(${getGridColumns(setWithMedia.media.length)}, 1fr)`,
                       }}
-                      gap={2}
+                      gap={isMobile ? '14px' : 3}
                     >
                       {setWithMedia.media.map((m, mediaIndex) => (
                         <Box key={m.id} width="100%" height="100%">
@@ -310,7 +323,7 @@ export default function Home() {
                   position: 'fixed',
                   top: 0,
                   left: 0,
-                  height: '100vh',
+                  height: '90vh',
                   width: '100vw',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -331,10 +344,10 @@ export default function Home() {
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handlePrevMedia();
+                    handlePreviousMedia();
                   }}
                 >
-                  <ArrowBackIosNewIcon fontSize="large" />
+                  <MinimalLeftArrowIcon />
                 </IconButton>
 
                 <Box
@@ -389,8 +402,8 @@ export default function Home() {
                             style={{
                               opacity: lightboxImageIsDragging ? 0.5 : 1,
                               position: 'relative',
-                              maxWidth: '91.5vw',
-                              maxHeight: '80vh',
+                              maxWidth: isMobile ? '91.57vw' : 'fit-content',
+                              maxHeight: 'fit-content',
                               objectFit: 'contain',
                               transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
                             }}
@@ -399,8 +412,13 @@ export default function Home() {
                           <video
                             width={1200}
                             height={1200}
-                            // controls
+                            playsInline
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
                             autoPlay
+                            muted
+                            loop
                             poster={
                               mediaSetsWithMedia[activeMediaSetIndex].media[
                                 activeMediaIndex
@@ -409,8 +427,9 @@ export default function Home() {
                             style={{
                               opacity: lightboxImageIsDragging ? 0.5 : 1,
                               position: 'relative',
-                              maxWidth: '91.5vw',
-                              maxHeight: '80vh',
+                              maxWidth: isMobile ? '99vw' : 'fit-content',
+                              maxHeight: 'fit-content',
+                              minHeight: '15rem',
                               objectFit: 'contain',
                               transition: 'opacity 0.5s',
                             }}
@@ -446,7 +465,7 @@ export default function Home() {
                     handleNextMedia();
                   }}
                 >
-                  <ArrowForwardIosIcon fontSize="large" />
+                  <MinimalRightArrowIcon />
                 </IconButton>
               </motion.div>
             )}

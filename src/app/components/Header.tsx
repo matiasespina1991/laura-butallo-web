@@ -79,7 +79,7 @@ export default function Header() {
             primary={
               <Typography
                 variant="h3"
-                fontWeight="bold"
+                fontWeight="500"
                 fontFamily="Helvetica Neue"
                 fontSize={{
                   xs: '36px',
@@ -107,7 +107,7 @@ export default function Header() {
             primary={
               <Typography
                 variant="h3"
-                fontWeight="bold"
+                fontWeight="500"
                 fontFamily="Helvetica Neue"
                 fontSize={{
                   xs: '36px',
@@ -141,7 +141,7 @@ export default function Header() {
             primary={
               <Typography
                 variant="h3"
-                fontWeight="bold"
+                fontWeight="500"
                 fontFamily="Helvetica Neue"
                 fontSize={{
                   xs: '36px',
@@ -175,7 +175,7 @@ export default function Header() {
             primary={
               <Typography
                 variant="h3"
-                fontWeight="bold"
+                fontWeight="500"
                 fontFamily="Helvetica Neue"
                 fontSize={{
                   xs: '36px',
@@ -218,13 +218,17 @@ export default function Header() {
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.5 }}
       >
-        <Toolbar variant="dense">
+        <Toolbar
+          sx={{
+            height: isMobile ? '78px' : '101px',
+          }}
+          variant="dense"
+        >
           <Typography
             variant="h3"
             fontWeight="bold"
             fontFamily="Helvetica Neue"
             pl="0.3rem"
-            pt={{ xs: '0.5rem', sm: '3rem' }}
             color="white"
             letterSpacing="-0.04em"
             component="div"
