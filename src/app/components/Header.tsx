@@ -278,7 +278,7 @@ export default function Header() {
                 color="inherit"
                 sx={{
                   mt: { xs: '0.6rem', sm: '0rem' },
-                  mr: { xs: '-0.5rem', sm: '0rem' },
+                  mr: { xs: '-0.6rem', sm: '0rem' },
                 }}
                 aria-label="menu"
                 onClick={toggleDrawer(true)}
