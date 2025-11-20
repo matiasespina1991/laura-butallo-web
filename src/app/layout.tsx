@@ -123,17 +123,15 @@ export default function RootLayout({
                 sx={{
                   p: '3.5rem',
                   textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
-                <Typography>
+                <Typography fontSize="0.6rem">
                   Laura Butallo © {new Date().getFullYear()}
                 </Typography>
-                <Box
-                  sx={{
-                    p: '0.1rem',
-                  }}
-                />
-                <Typography>
+
+                <Typography fontSize="0.6rem">
                   Designed by <b>Cymatics Ideas</b>™
                 </Typography>
               </Box>

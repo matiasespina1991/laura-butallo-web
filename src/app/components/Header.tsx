@@ -121,9 +121,9 @@ export default function Header() {
                 component="div"
                 noWrap
                 sx={{
-                  flexGrow: 0, // <-- que no se estire
+                  flexGrow: 0,
                   display: 'inline-flex',
-                  whiteSpace: 'nowrap', // <-- y no permita cortes
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {/* Usar &nbsp; elimina el corte entre palabras */}
@@ -278,7 +278,7 @@ export default function Header() {
                 color="inherit"
                 sx={{
                   mt: { xs: '0.6rem', sm: '0rem' },
-                  mr: { xs: '-0.6rem', sm: '0rem' },
+                  mr: { xs: '-0.3rem', sm: '0rem' },
                 }}
                 aria-label="menu"
                 onClick={toggleDrawer(true)}

@@ -61,7 +61,7 @@
 
 @media (max-width: 600px) {
   .main {
-    padding: 1.7rem 1rem;
+    padding: 1.7rem 1.2rem;
   }
   .carousel {
     gap: 8px;

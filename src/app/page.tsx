@@ -131,10 +131,12 @@ export default function Home() {
   const [lightboxImageIsDragging, setLightboxImageIsDragging] =
     useState<boolean>(false);
 
-  const draggableNodeRef = useRef(null);
+  // const draggableNodeRef = useRef(null);
   const isMobile = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
   );
+
+  const draggableNodeRef = useRef<HTMLDivElement | null>(null);
 
   const getGridColumns = (length: number) => {
     switch (length) {
@@ -274,7 +276,7 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{
-                  duration: 0.8,
+                  duration: 1,
                   ease: 'easeInOut',
                   delay: setIndex * 0.12,
                 }}
@@ -323,7 +325,7 @@ export default function Home() {
                   position: 'fixed',
                   top: 0,
                   left: 0,
-                  height: '90vh',
+                  height: '100vh',
                   width: '100vw',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -351,10 +353,18 @@ export default function Home() {
                 </IconButton>
 
                 <Box
-                  sx={{ position: 'relative', cursor: 'pointer', zIndex: 900 }}
+                  sx={{
+                    position: 'relative',
+                    cursor: 'pointer',
+                    zIndex: 900,
+                    display: 'grid',
+                    width: '100%',
+                    height: '100%',
+                    placeItems: 'center',
+                  }}
                   onClick={closeLightbox}
                 >
-                  <AnimatePresence mode="wait">
+                  <AnimatePresence>
                     <motion.div
                       key={
                         mediaSetsWithMedia[activeMediaSetIndex].media[
@@ -364,8 +374,17 @@ export default function Home() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.6, ease: 'easeOut' }}
                       {...swipeHandlers}
+                      style={{
+                        gridArea: '1 / 1',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pointerEvents: 'none',
+                      }}
                     >
                       <Draggable
                         disabled={!isMobile}
@@ -376,75 +395,85 @@ export default function Home() {
                         onStop={() => setLightboxImageIsDragging(false)}
                         bounds={{ left: -240, right: 240 }}
                       >
-                        {mediaSetsWithMedia[activeMediaSetIndex].media[
-                          activeMediaIndex
-                        ].type === 'image' ? (
-                          <NextImage
-                            ref={draggableNodeRef}
-                            onContextMenu={(e) => e.preventDefault()}
-                            onDrag={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                            draggable="false"
-                            src={
-                              mediaSetsWithMedia[activeMediaSetIndex].media[
-                                activeMediaIndex
-                              ].paths.derivatives.webp_medium?.downloadURL || ''
-                            }
-                            alt="Fullscreen Image"
-                            width={1200}
-                            height={1200}
-                            style={{
-                              opacity: lightboxImageIsDragging ? 0.5 : 1,
-                              position: 'relative',
-                              maxWidth: isMobile ? '91.57vw' : 'fit-content',
-                              maxHeight: 'fit-content',
-                              objectFit: 'contain',
-                              transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
-                            }}
-                          />
-                        ) : (
-                          <video
-                            width={1200}
-                            height={1200}
-                            playsInline
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            autoPlay
-                            muted
-                            loop
-                            poster={
-                              mediaSetsWithMedia[activeMediaSetIndex].media[
-                                activeMediaIndex
-                              ].paths.poster?.downloadURL || undefined
-                            }
-                            style={{
-                              opacity: lightboxImageIsDragging ? 0.5 : 1,
-                              position: 'relative',
-                              maxWidth: isMobile ? '99vw' : 'fit-content',
-                              maxHeight: 'fit-content',
-                              minHeight: '15rem',
-                              objectFit: 'contain',
-                              transition: 'opacity 0.5s',
-                            }}
-                          >
-                            <source
+                        <div
+                          ref={draggableNodeRef}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            display: 'inline-block',
+                            cursor: isMobile ? 'grab' : 'default',
+                            userSelect: 'none',
+                            touchAction: 'pan-y',
+                            pointerEvents: 'auto',
+                          }}
+                        >
+                          {mediaSetsWithMedia[activeMediaSetIndex].media[
+                            activeMediaIndex
+                          ].type === 'image' ? (
+                            <NextImage
+                              onContextMenu={(e) => e.preventDefault()}
+                              onDrag={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              draggable="false"
                               src={
                                 mediaSetsWithMedia[activeMediaSetIndex].media[
                                   activeMediaIndex
-                                ].paths.derivatives.webm_720?.downloadURL || ''
+                                ].paths.derivatives.webp_medium?.downloadURL ||
+                                ''
                               }
-                              type="video/webm"
+                              alt="Fullscreen Image"
+                              width={1200}
+                              height={1200}
+                              style={{
+                                opacity: lightboxImageIsDragging ? 0.5 : 1,
+                                position: 'relative',
+                                maxWidth: isMobile ? '91.57vw' : 'fit-content',
+                                maxHeight: isMobile ? 'fit-content' : '70vh',
+                                objectFit: 'contain',
+                                transition: `transform ${
+                                  lightboxImageIsDragging ? '0s' : '0.9s'
+                                }, opacity 0.5s`,
+                              }}
                             />
-                            Tu navegador no soporta videos HTML5.
-                          </video>
-                        )}
+                          ) : (
+                            <video
+                              width={1200}
+                              height={1200}
+                              playsInline
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                              autoPlay
+                              muted
+                              loop
+                              poster={
+                                mediaSetsWithMedia[activeMediaSetIndex].media[
+                                  activeMediaIndex
+                                ].paths.poster?.downloadURL || undefined
+                              }
+                              style={{
+                                opacity: lightboxImageIsDragging ? 0.5 : 1,
+                                position: 'relative',
+                                maxWidth: isMobile ? '99vw' : 'fit-content',
+                                maxHeight: isMobile ? 'fit-content' : '70vh',
+                                minHeight: '15rem',
+                                objectFit: 'contain',
+                                transition: 'opacity 0.5s',
+                              }}
+                            >
+                              <source
+                                src={
+                                  mediaSetsWithMedia[activeMediaSetIndex].media[
+                                    activeMediaIndex
+                                  ].paths.derivatives.webm_720?.downloadURL ||
+                                  ''
+                                }
+                                type="video/webm"
+                              />
+                            </video>
+                          )}
+                        </div>
                       </Draggable>
                     </motion.div>
                   </AnimatePresence>
