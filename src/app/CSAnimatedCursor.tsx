@@ -1,21 +1,59 @@
-'use client'; // Marca este componente como un componente cliente
+'use client';
 
 import { Box } from '@mui/material';
 import AnimatedCursor from 'react-animated-cursor';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { isMobile } from 'react-device-detect';
 
 export default function CSAnimatedCursor() {
+  const [hidden, setHidden] = useState(false);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isMobile) return; // no cursor on mobile
+
+    const onPointerMove = (ev: PointerEvent) => {
+      // throttle with rAF
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(() => {
+        // elementFromPoint necesita coordenadas relativas al viewport
+        const el = document.elementFromPoint(
+          ev.clientX,
+          ev.clientY
+        ) as HTMLElement | null;
+        // busca ancestro con clase .auto-cursor
+        const overAuto = !!(el && el.closest && el.closest('.auto-cursor'));
+        setHidden(overAuto);
+      });
+    };
+
+    const onPointerLeaveWindow = () => {
+      // al salir de la ventana, ocultar cursor animado también
+      setHidden(false);
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('blur', onPointerLeaveWindow);
+
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('blur', onPointerLeaveWindow);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: hidden ? 0 : 1 }}>
       <Box
-        zIndex={9999}
-        display={{
-          xs: isMobile ? 'none' : 'block',
-          md: 'block',
-          lg: 'block',
-          xl: 'block',
+        id="cs-animated-cursor"
+        sx={{
+          display: isMobile ? 'none' : hidden ? 'none' : 'block',
+          // IMPORTANT: pointerEvents none so this overlay doesn't block underlying mouse events
+          pointerEvents: 'none',
+          zIndex: 9999,
         }}
       >
         <AnimatedCursor

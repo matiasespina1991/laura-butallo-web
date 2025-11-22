@@ -8,13 +8,12 @@ import ScrollContainer from 'react-indiana-drag-scroll';
 import { AnimatePresence, motion } from 'framer-motion';
 import NextImage from 'next/image';
 import { Box, Grid, IconButton, Theme, useMediaQuery } from '@mui/material';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+
 import { useSwipeable } from 'react-swipeable';
-import Draggable from 'react-draggable';
 import { fetchMediaSetsWithMedia } from '@/utils/functions/fetchMediaSetsWithMedia';
 import { MinimalLeftArrowIcon } from './components/MinimalLeftArrowIcon';
 import { MinimalRightArrowIcon } from './components/MinimalRightArrowIcon';
+import ZoomableImage from './components/ZoomeableImage';
 
 type MediaWithHandlers = {
   m: Media;
@@ -325,6 +324,7 @@ export default function Home() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
                 style={{
+                  touchAction: 'none',
                   display: 'flex',
                   position: 'fixed',
                   top: 0,
@@ -337,6 +337,7 @@ export default function Home() {
                   zIndex: 900,
                   backgroundColor: 'rgba(0, 0, 0, 0.4)',
                   backdropFilter: 'blur(2px) saturate(0)',
+                  overscrollBehavior: 'none',
                 }}
               >
                 <IconButton
@@ -380,7 +381,7 @@ export default function Home() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.6, ease: 'easeOut' }}
-                      {...swipeHandlers}
+                      // {...swipeHandlers}
                       style={{
                         gridArea: '1 / 1',
                         width: '100%',
@@ -392,7 +393,7 @@ export default function Home() {
                       }}
                     >
                       <div
-                        ref={draggableNodeRef}
+                        // ref={draggableNodeRef}
                         onClick={(e) => e.stopPropagation()}
                         onTouchStart={(e) => {}}
                         onMouseDown={(e) => {
@@ -400,9 +401,9 @@ export default function Home() {
                         }}
                         style={{
                           display: 'block',
-                          cursor: isMobile ? 'grab' : 'default',
+                          // cursor: isMobile ? 'grab' : 'default',
                           userSelect: 'none',
-                          touchAction: 'pan-y',
+                          // touchAction: 'pan-y',
                           pointerEvents: 'auto',
                           maxWidth: '99vw',
                           maxHeight: '80vh',
@@ -412,34 +413,16 @@ export default function Home() {
                         {mediaSetsWithMedia[activeMediaSetIndex].media[
                           activeMediaIndex
                         ].type === 'image' ? (
-                          <img
-                            onContextMenu={(e) => e.preventDefault()}
-                            onDragStart={(e) => e.preventDefault()} // NEW: prevent native image dragstart
-                            onDrag={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                            }}
-                            draggable={false}
+                          <ZoomableImage
+                            className="auto-cursor"
                             src={
                               mediaSetsWithMedia[activeMediaSetIndex].media[
                                 activeMediaIndex
                               ].paths.derivatives.webp_medium?.downloadURL || ''
                             }
                             alt="Fullscreen Image"
-                            // NEW: stop propagation for touchstart on image
-                            onTouchStart={(e) => e.stopPropagation()}
-                            style={{
-                              display: 'block',
-                              width: 'auto',
-                              maxWidth: isMobile
-                                ? '91.57vw'
-                                : 'calc(100vw - 4rem)',
-                              height: 'auto',
-                              maxHeight: isMobile ? '80vh' : '70vh',
-                              objectFit: 'contain',
-                              opacity: lightboxImageIsDragging ? 0.5 : 1,
-                              transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
-                            }}
+                            zoomScale={3}
+                            maxHeight="80vh"
                           />
                         ) : (
                           <video
