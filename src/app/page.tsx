@@ -333,7 +333,7 @@ export default function Home() {
                   width: '100vw',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  paddingBottom: '5rem',
+                  paddingBottom: isMobile ? '5rem' : '0',
                   zIndex: 900,
                   backgroundColor: 'rgba(0, 0, 0, 0.4)',
                   backdropFilter: 'blur(2px) saturate(0)',
