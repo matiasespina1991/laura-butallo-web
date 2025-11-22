@@ -326,6 +326,7 @@ export default function Home() {
                   width: '100vw',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  paddingBottom: '5rem',
                   zIndex: 900,
                   backgroundColor: 'rgba(0, 0, 0, 0.4)',
                   backdropFilter: 'blur(2px) saturate(0)',
@@ -383,132 +384,115 @@ export default function Home() {
                         pointerEvents: 'none',
                       }}
                     >
-                      <Draggable
-                        disabled={!isMobile}
-                        nodeRef={draggableNodeRef}
-                        position={{ x: 0, y: 0 }}
-                        axis="x"
-                        onDrag={() => setLightboxImageIsDragging(true)}
-                        onStop={() => setLightboxImageIsDragging(false)}
-                        bounds={{ left: -240, right: 240 }}
+                      <div
+                        ref={draggableNodeRef}
+                        onClick={(e) => e.stopPropagation()}
+                        onTouchStart={(e) => {}}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        style={{
+                          display: 'block',
+                          cursor: isMobile ? 'grab' : 'default',
+                          userSelect: 'none',
+                          touchAction: 'pan-y',
+                          pointerEvents: 'auto',
+                          maxWidth: '99vw',
+                          maxHeight: '80vh',
+                          margin: '0 auto',
+                        }}
                       >
-                        <div
-                          ref={draggableNodeRef}
-                          onClick={(e) => e.stopPropagation()}
-                          // NEW: stop propagation of touch/mouse down to avoid global DragStart race
-                          onTouchStart={(e) => {
-                            e.stopPropagation();
-                            // optional debug
-                            // console.log('[Draggable] touchstart');
-                          }}
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                          }}
-                          style={{
-                            display: 'block',
-                            cursor: isMobile ? 'grab' : 'default',
-                            userSelect: 'none',
-                            touchAction: 'pan-y',
-                            pointerEvents: 'auto',
-                            maxWidth: '99vw',
-                            maxHeight: '80vh',
-                            margin: '0 auto',
-                          }}
-                        >
-                          {mediaSetsWithMedia[activeMediaSetIndex].media[
-                            activeMediaIndex
-                          ].type === 'image' ? (
-                            <img
-                              onContextMenu={(e) => e.preventDefault()}
-                              onDragStart={(e) => e.preventDefault()} // NEW: prevent native image dragstart
-                              onDrag={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                              draggable={false}
+                        {mediaSetsWithMedia[activeMediaSetIndex].media[
+                          activeMediaIndex
+                        ].type === 'image' ? (
+                          <img
+                            onContextMenu={(e) => e.preventDefault()}
+                            onDragStart={(e) => e.preventDefault()} // NEW: prevent native image dragstart
+                            onDrag={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            draggable={false}
+                            src={
+                              mediaSetsWithMedia[activeMediaSetIndex].media[
+                                activeMediaIndex
+                              ].paths.derivatives.webp_medium?.downloadURL || ''
+                            }
+                            alt="Fullscreen Image"
+                            // NEW: stop propagation for touchstart on image
+                            onTouchStart={(e) => e.stopPropagation()}
+                            style={{
+                              display: 'block',
+                              width: 'auto',
+                              maxWidth: isMobile
+                                ? '91.57vw'
+                                : 'calc(100vw - 4rem)',
+                              height: 'auto',
+                              maxHeight: isMobile ? '80vh' : '70vh',
+                              objectFit: 'contain',
+                              opacity: lightboxImageIsDragging ? 0.5 : 1,
+                              transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
+                            }}
+                          />
+                        ) : (
+                          <video
+                            playsInline
+                            onClick={(e) => e.stopPropagation()}
+                            autoPlay
+                            muted
+                            loop
+                            preload="metadata"
+                            poster={
+                              mediaSetsWithMedia[activeMediaSetIndex].media[
+                                activeMediaIndex
+                              ].paths.poster?.downloadURL || undefined
+                            }
+                            onLoadedData={(e) => {
+                              console.log(
+                                '[Lightbox] video loaded',
+                                mediaSetsWithMedia[activeMediaSetIndex].media[
+                                  activeMediaIndex
+                                ].id,
+                                e.currentTarget.videoWidth,
+                                e.currentTarget.videoHeight
+                              );
+                            }}
+                            onError={(e) =>
+                              console.error(
+                                '[Lightbox] video error',
+                                mediaSetsWithMedia[activeMediaSetIndex].media[
+                                  activeMediaIndex
+                                ].id,
+                                e
+                              )
+                            }
+                            // NEW: stop propagation for touchstart on video
+                            onTouchStart={(e) => e.stopPropagation()}
+                            style={{
+                              display: 'block',
+                              opacity: lightboxImageIsDragging ? 0.5 : 1,
+                              width: 'auto',
+                              maxWidth: isMobile
+                                ? '99vw'
+                                : 'calc(100vw - 4rem)',
+                              maxHeight: isMobile ? '80vh' : '70vh',
+                              minHeight: '15rem',
+                              objectFit: 'contain',
+                              transition: 'opacity 0.5s',
+                              margin: '0 auto',
+                            }}
+                          >
+                            <source
                               src={
                                 mediaSetsWithMedia[activeMediaSetIndex].media[
                                   activeMediaIndex
-                                ].paths.derivatives.webp_medium?.downloadURL ||
-                                ''
+                                ].paths.derivatives.webm_720?.downloadURL || ''
                               }
-                              alt="Fullscreen Image"
-                              // NEW: stop propagation for touchstart on image
-                              onTouchStart={(e) => e.stopPropagation()}
-                              style={{
-                                display: 'block',
-                                width: 'auto',
-                                maxWidth: isMobile
-                                  ? '91.57vw'
-                                  : 'calc(100vw - 4rem)',
-                                height: 'auto',
-                                maxHeight: isMobile ? '80vh' : '70vh',
-                                objectFit: 'contain',
-                                opacity: lightboxImageIsDragging ? 0.5 : 1,
-                                transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
-                              }}
+                              type="video/webm"
                             />
-                          ) : (
-                            <video
-                              playsInline
-                              onClick={(e) => e.stopPropagation()}
-                              autoPlay
-                              muted
-                              loop
-                              preload="metadata"
-                              poster={
-                                mediaSetsWithMedia[activeMediaSetIndex].media[
-                                  activeMediaIndex
-                                ].paths.poster?.downloadURL || undefined
-                              }
-                              onLoadedData={(e) => {
-                                console.log(
-                                  '[Lightbox] video loaded',
-                                  mediaSetsWithMedia[activeMediaSetIndex].media[
-                                    activeMediaIndex
-                                  ].id,
-                                  e.currentTarget.videoWidth,
-                                  e.currentTarget.videoHeight
-                                );
-                              }}
-                              onError={(e) =>
-                                console.error(
-                                  '[Lightbox] video error',
-                                  mediaSetsWithMedia[activeMediaSetIndex].media[
-                                    activeMediaIndex
-                                  ].id,
-                                  e
-                                )
-                              }
-                              // NEW: stop propagation for touchstart on video
-                              onTouchStart={(e) => e.stopPropagation()}
-                              style={{
-                                display: 'block',
-                                opacity: lightboxImageIsDragging ? 0.5 : 1,
-                                width: 'auto',
-                                maxWidth: isMobile
-                                  ? '99vw'
-                                  : 'calc(100vw - 4rem)',
-                                maxHeight: isMobile ? '80vh' : '70vh',
-                                minHeight: '15rem',
-                                objectFit: 'contain',
-                                transition: 'opacity 0.5s',
-                                margin: '0 auto',
-                              }}
-                            >
-                              <source
-                                src={
-                                  mediaSetsWithMedia[activeMediaSetIndex].media[
-                                    activeMediaIndex
-                                  ].paths.derivatives.webm_720?.downloadURL ||
-                                  ''
-                                }
-                                type="video/webm"
-                              />
-                            </video>
-                          )}
-                        </div>
-                      </Draggable>
+                          </video>
+                        )}
+                      </div>
                     </motion.div>
                   </AnimatePresence>
                 </Box>

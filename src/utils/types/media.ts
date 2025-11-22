@@ -18,6 +18,8 @@ export interface Media {
   id: string;
   mediaSetId: string | null;
   type: MediaType;
+  title: string;
+  description?: string;
   storagePath: string;
   paths: AssetPaths;
   width?: number;
