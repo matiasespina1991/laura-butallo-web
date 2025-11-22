@@ -35,10 +35,8 @@ function MediaItem({
   openLightbox,
   mediaArray,
 }: MediaWithHandlers) {
-  // Track whether this specific media has finished loading.
   const [loaded, setLoaded] = useState<boolean>(false);
 
-  // Reset loaded when source changes to allow re-animating on re-render/new src.
   useEffect(() => {
     setLoaded(false);
   }, [
@@ -50,60 +48,60 @@ function MediaItem({
     setLoaded(true);
   };
 
-  const handleVideoLoaded = () => {
+  const handleVideoLoaded = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const t = e.currentTarget;
+    console.log('[MediaItem] video loaded', m.id, t.videoWidth, t.videoHeight);
     setLoaded(true);
   };
 
+  const handleVideoError = (e: any) => {
+    console.error('[MediaItem] video error', m.id, e);
+    setLoaded(true);
+  };
+
+  const posterSrc =
+    m.paths?.poster?.downloadURL ||
+    m.paths?.derivatives?.webp_medium?.downloadURL;
+
   return (
     <motion.div
-      // animate only when loaded to prevent "pop in"
       initial={{ opacity: 0, scale: 0.985 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
-      transition={{
-        // delay should be 0.8, then plus a bit per index
-        delay: 0.9 + setIndex * 0.5,
-        duration: 1.1,
-      }}
+      transition={{ delay: 0.9 + setIndex * 0.5, duration: 1.1 }}
     >
-      <Box
-        sx={{
-          opacity: loaded ? 1 : 0,
-        }}
-        width="100%"
-        height="100%"
-      >
-        {/* GRID CONTENT */}
-
+      <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
         {m.type === 'image' ? (
           <NextImage
             onContextMenu={(e) => e.preventDefault()}
-            draggable="false"
+            draggable={false}
             width={600}
             height={600}
-            // onLoadingComplete is supported by next/image and signals the image has finished decoding
-            onLoadingComplete={handleImageLoad as any}
-            style={{ userSelect: 'none', cursor: 'pointer' }}
+            onLoad={handleImageLoad as any}
+            style={{ userSelect: 'none', cursor: 'pointer', display: 'block' }}
             src={m.paths.derivatives.webp_medium?.downloadURL || ''}
             onClick={() => openLightbox(mediaArray, index, setIndex)}
             alt={'Media'}
             className={styles.photoSetImage}
-            // keep layout predictable
             priority={false}
           />
         ) : (
           <video
             width="100%"
             height="100%"
-            autoPlay={true}
+            autoPlay
             loop
             muted
             playsInline
+            preload="metadata"
+            poster={posterSrc || undefined}
             onLoadedData={handleVideoLoaded}
+            onError={handleVideoError}
             style={{
               objectFit: 'cover',
               cursor: 'pointer',
               width: '100%',
               height: '100%',
+              display: 'block',
             }}
             onClick={() => openLightbox(mediaArray, index, setIndex)}
           >
@@ -118,7 +116,6 @@ function MediaItem({
     </motion.div>
   );
 }
-
 export default function Home() {
   const [mediaSetsWithMedia, setMediaSetsWithMedia] = useState<
     { mediaset: MediaSet; media: Media[] }[]
@@ -398,24 +395,37 @@ export default function Home() {
                         <div
                           ref={draggableNodeRef}
                           onClick={(e) => e.stopPropagation()}
+                          // NEW: stop propagation of touch/mouse down to avoid global DragStart race
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            // optional debug
+                            // console.log('[Draggable] touchstart');
+                          }}
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                          }}
                           style={{
-                            display: 'inline-block',
+                            display: 'block',
                             cursor: isMobile ? 'grab' : 'default',
                             userSelect: 'none',
                             touchAction: 'pan-y',
                             pointerEvents: 'auto',
+                            maxWidth: '99vw',
+                            maxHeight: '80vh',
+                            margin: '0 auto',
                           }}
                         >
                           {mediaSetsWithMedia[activeMediaSetIndex].media[
                             activeMediaIndex
                           ].type === 'image' ? (
-                            <NextImage
+                            <img
                               onContextMenu={(e) => e.preventDefault()}
+                              onDragStart={(e) => e.preventDefault()} // NEW: prevent native image dragstart
                               onDrag={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                               }}
-                              draggable="false"
+                              draggable={false}
                               src={
                                 mediaSetsWithMedia[activeMediaSetIndex].media[
                                   activeMediaIndex
@@ -423,43 +433,67 @@ export default function Home() {
                                 ''
                               }
                               alt="Fullscreen Image"
-                              width={1200}
-                              height={1200}
+                              // NEW: stop propagation for touchstart on image
+                              onTouchStart={(e) => e.stopPropagation()}
                               style={{
-                                opacity: lightboxImageIsDragging ? 0.5 : 1,
-                                position: 'relative',
-                                maxWidth: isMobile ? '91.57vw' : 'fit-content',
-                                maxHeight: isMobile ? 'fit-content' : '70vh',
+                                display: 'block',
+                                width: 'auto',
+                                maxWidth: isMobile
+                                  ? '91.57vw'
+                                  : 'calc(100vw - 4rem)',
+                                height: 'auto',
+                                maxHeight: isMobile ? '80vh' : '70vh',
                                 objectFit: 'contain',
-                                transition: `transform ${
-                                  lightboxImageIsDragging ? '0s' : '0.9s'
-                                }, opacity 0.5s`,
+                                opacity: lightboxImageIsDragging ? 0.5 : 1,
+                                transition: `transform ${lightboxImageIsDragging ? '0s' : '0.9s'}, opacity 0.5s`,
                               }}
                             />
                           ) : (
                             <video
-                              width={1200}
-                              height={1200}
                               playsInline
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
+                              onClick={(e) => e.stopPropagation()}
                               autoPlay
                               muted
                               loop
+                              preload="metadata"
                               poster={
                                 mediaSetsWithMedia[activeMediaSetIndex].media[
                                   activeMediaIndex
                                 ].paths.poster?.downloadURL || undefined
                               }
+                              onLoadedData={(e) => {
+                                console.log(
+                                  '[Lightbox] video loaded',
+                                  mediaSetsWithMedia[activeMediaSetIndex].media[
+                                    activeMediaIndex
+                                  ].id,
+                                  e.currentTarget.videoWidth,
+                                  e.currentTarget.videoHeight
+                                );
+                              }}
+                              onError={(e) =>
+                                console.error(
+                                  '[Lightbox] video error',
+                                  mediaSetsWithMedia[activeMediaSetIndex].media[
+                                    activeMediaIndex
+                                  ].id,
+                                  e
+                                )
+                              }
+                              // NEW: stop propagation for touchstart on video
+                              onTouchStart={(e) => e.stopPropagation()}
                               style={{
+                                display: 'block',
                                 opacity: lightboxImageIsDragging ? 0.5 : 1,
-                                position: 'relative',
-                                maxWidth: isMobile ? '99vw' : 'fit-content',
-                                maxHeight: isMobile ? 'fit-content' : '70vh',
+                                width: 'auto',
+                                maxWidth: isMobile
+                                  ? '99vw'
+                                  : 'calc(100vw - 4rem)',
+                                maxHeight: isMobile ? '80vh' : '70vh',
                                 minHeight: '15rem',
                                 objectFit: 'contain',
                                 transition: 'opacity 0.5s',
+                                margin: '0 auto',
                               }}
                             >
                               <source

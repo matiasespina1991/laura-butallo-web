@@ -1,15 +1,16 @@
-// src/app/ThemeRegistry.tsx
-
 'use client';
 
-import React from 'react';
+import * as React from 'react';
+import { CacheProvider } from '@emotion/react';
+import createEmotionCache from './createEmotionCache';
+import { useServerInsertedHTML } from 'next/navigation';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { BorderBottom } from '@mui/icons-material';
 
+// Mantengo tu theme tal cual, solo lo dejo en este archivo para envolverlo.
 const theme = createTheme({
   typography: {
     fontSize: 13,
-    fontFamily: 'Helvetica Neue, Arial, sans-serif',
+    fontFamily: 'Helvetic a Neue, Arial, sans-serif',
   },
   components: {
     MuiToolbar: {
@@ -31,11 +32,6 @@ const theme = createTheme({
           borderBottom: '1px solid rgba(0, 0, 0, 0)',
           marginBottom: '-1px',
           transition: '0.4s ease border-bottom',
-          // ':hover': {
-          //   borderBottom: '1px solid black',
-          //   marginBottom: '-1px',
-          //   backgroundColor: 'inherit',
-          // },
         },
         contained: {
           backgroundColor: 'black',
@@ -50,13 +46,13 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#ffffff', // AppBar background color (white)
+      main: '#ffffff',
     },
     secondary: {
-      main: '#000000', // Button background color (black)
+      main: '#000000',
     },
     text: {
-      primary: '#000000', // Text color (black)
+      primary: '#000000',
     },
   },
 });
@@ -66,5 +62,24 @@ export default function ThemeRegistry({
 }: {
   children: React.ReactNode;
 }) {
-  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+  const [cache] = React.useState(() => createEmotionCache());
+
+  useServerInsertedHTML(() => {
+    const tags = (cache.sheet as any)?.tags ?? [];
+    if (tags.length === 0) return null;
+    const html = tags.map((t: any) => t.textContent).join('');
+    return (
+      <style
+        key="emotion-server-side"
+        data-emotion={`${cache.key}`}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  });
+
+  return (
+    <CacheProvider value={cache}>
+      <ThemeProvider theme={theme}>{children}</ThemeProvider>
+    </CacheProvider>
+  );
 }

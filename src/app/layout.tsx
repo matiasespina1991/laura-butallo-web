@@ -4,9 +4,13 @@ import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
 import Header from './components/Header';
 import ThemeRegistry from './ThemeRegistry';
+import { isMobile } from 'react-device-detect';
 
 import { Box, Typography } from '@mui/material';
-import CSAnimatedCursor from './CSAnimatedCursor';
+import dynamic from 'next/dynamic';
+const CSAnimatedCursor = dynamic(() => import('./CSAnimatedCursor'), {
+  ssr: false,
+});
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -103,7 +107,8 @@ export default function RootLayout({
       </head>
 
       <body className={inter.className}>
-        <CSAnimatedCursor />
+        {/* <CSAnimatedCursor /> */}
+        {!isMobile && <CSAnimatedCursor />}
         <ThemeRegistry>
           <Header />
           <Box mt="64px">{children}</Box>
