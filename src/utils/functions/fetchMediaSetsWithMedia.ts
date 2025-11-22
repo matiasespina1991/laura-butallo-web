@@ -8,7 +8,7 @@ export async function fetchMediaSetsWithMedia(): Promise<
 > {
   // Traemos todos los mediasets
   const mediasetsSnap = await getDocs(
-    query(collection(db, 'mediasets'), orderBy('ordering', 'asc'))
+    query(collection(db, 'mediasets'), orderBy('publishedAt', 'desc'))
   );
   const result: { mediaset: MediaSet; media: Media[] }[] = [];
 

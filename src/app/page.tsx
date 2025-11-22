@@ -266,43 +266,50 @@ export default function Home() {
       <Box px={{ xs: '0rem', sm: '2rem' }} width="100%">
         {mediaSetsWithMedia.length > 0 && (
           <ScrollContainer draggable={false} className={styles.carousel}>
-            {mediaSetsWithMedia.map((setWithMedia, setIndex) => (
-              <motion.div
-                key={setWithMedia.mediaset.id}
-                className={styles.photoSetContainer}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{
-                  duration: 1,
-                  ease: 'easeInOut',
-                  delay: setIndex * 0.12,
-                }}
-              >
-                {setWithMedia.media.length > 0 && (
-                  <Box>
-                    <Grid
-                      sx={{
-                        display: 'grid',
-                        gridTemplateColumns: `repeat(${getGridColumns(setWithMedia.media.length)}, 1fr)`,
-                      }}
-                      gap={isMobile ? '14px' : 3}
-                    >
-                      {setWithMedia.media.map((m, mediaIndex) => (
-                        <Box key={m.id} width="100%" height="100%">
-                          <MediaItem
-                            m={m}
-                            index={mediaIndex}
-                            setIndex={setIndex}
-                            openLightbox={openLightbox}
-                            mediaArray={setWithMedia.media}
-                          />
-                        </Box>
-                      ))}
-                    </Grid>
-                  </Box>
-                )}
-              </motion.div>
-            ))}
+            {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
+              const columns =
+                isMobile && setWithMedia.media.length === 4
+                  ? 2
+                  : getGridColumns(setWithMedia.media.length);
+
+              return (
+                <motion.div
+                  key={setWithMedia.mediaset.id}
+                  className={styles.photoSetContainer}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    duration: 1,
+                    ease: 'easeInOut',
+                    delay: setIndex * 0.12,
+                  }}
+                >
+                  {setWithMedia.media.length > 0 && (
+                    <Box>
+                      <Grid
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                        }}
+                        gap={isMobile ? '14px' : 3}
+                      >
+                        {setWithMedia.media.map((m, mediaIndex) => (
+                          <Box key={m.id} width="100%" height="100%">
+                            <MediaItem
+                              m={m}
+                              index={mediaIndex}
+                              setIndex={setIndex}
+                              openLightbox={openLightbox}
+                              mediaArray={setWithMedia.media}
+                            />
+                          </Box>
+                        ))}
+                      </Grid>
+                    </Box>
+                  )}
+                </motion.div>
+              );
+            })}
           </ScrollContainer>
         )}
 
