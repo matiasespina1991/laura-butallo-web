@@ -36,8 +36,8 @@ export default function Contact() {
           height: {
             xs: '1rem',
             sm: '3rem',
-            md: '4rem',
-            lg: '4rem',
+            md: '3rem',
+            lg: '3.5rem',
             xl: '5rem',
           },
         }}

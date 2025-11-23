@@ -51,9 +51,9 @@ export default function AboutMe() {
               height: {
                 xs: '1rem',
                 sm: '3rem',
-                md: '4rem',
-                lg: '5rem',
-                xl: '6rem',
+                md: '3rem',
+                lg: '3.5rem',
+                xl: '5rem',
               },
             }}
           ></Box>
