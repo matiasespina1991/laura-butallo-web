@@ -40,6 +40,7 @@ export default function AboutMe() {
     <main className={styles.main}>
       <AnimatePresence mode="wait">
         <motion.div
+          className={styles.about_me_container}
           style={{ width: '100%' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -56,13 +57,7 @@ export default function AboutMe() {
               },
             }}
           ></Box>
-          <Box
-            px={{
-              xs: '0.3rem',
-              sm: '0',
-            }}
-            width="100%"
-          >
+          <Box width="100%">
             <Typography
               sx={{
                 fontSize: {

@@ -5,6 +5,7 @@ import { CacheProvider } from '@emotion/react';
 import createEmotionCache from './createEmotionCache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { color } from 'framer-motion';
 
 // Mantengo tu theme tal cual, solo lo dejo en este archivo para envolverlo.
 const theme = createTheme({
@@ -39,6 +40,15 @@ const theme = createTheme({
           ':hover': {
             boxShadow: 'none',
             backgroundColor: '#cacaca',
+          },
+        },
+        outlined: {
+          color: 'black',
+          border: '1px solid white',
+          ':hover': {
+            backgroundColor: '#1e1e1eff',
+            color: 'white',
+            border: '1px solid white',
           },
         },
       },

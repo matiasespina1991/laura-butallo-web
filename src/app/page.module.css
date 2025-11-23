@@ -3,7 +3,14 @@
   flex-direction: column;
   align-items: center;
   padding: 2rem 2rem;
-  min-height: 75vh;
+  min-height: 37rem;
+}
+
+.contact_page_container,
+.about_me_container {
+  padding-left: 0.7rem;
+  padding-right: 0.7rem;
+  padding-bottom: 3rem;
 }
 
 .code {

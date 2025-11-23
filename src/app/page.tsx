@@ -76,7 +76,7 @@ function MediaItem({
             width={600}
             height={600}
             onLoad={handleImageLoad as any}
-            style={{ userSelect: 'none', cursor: 'pointer', display: 'block' }}
+            style={{ userSelect: 'none', display: 'block' }}
             src={m.paths.derivatives.webp_medium?.downloadURL || ''}
             onClick={() => openLightbox(mediaArray, index, setIndex)}
             alt={'Media'}
@@ -97,7 +97,6 @@ function MediaItem({
             onError={handleVideoError}
             style={{
               objectFit: 'cover',
-              cursor: 'pointer',
               width: '100%',
               height: '100%',
               display: 'block',
@@ -262,7 +261,7 @@ export default function Home() {
           },
         }}
       />
-      <Box px={{ xs: '0rem', sm: '2rem' }} width="100%">
+      <Box px={{ xs: '0rem', sm: '2rem' }} pb="6rem" width="100%">
         {mediaSetsWithMedia.length > 0 && (
           <ScrollContainer draggable={false} className={styles.carousel}>
             {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
@@ -392,7 +391,7 @@ export default function Home() {
                         pointerEvents: 'none',
                       }}
                     >
-                      <div
+                      <Box
                         // ref={draggableNodeRef}
                         onClick={(e) => e.stopPropagation()}
                         onTouchStart={(e) => {}}
@@ -404,85 +403,136 @@ export default function Home() {
                           // cursor: isMobile ? 'grab' : 'default',
                           userSelect: 'none',
                           // touchAction: 'pan-y',
+
                           pointerEvents: 'auto',
                           maxWidth: '99vw',
                           maxHeight: '80vh',
                           margin: '0 auto',
                         }}
                       >
-                        {mediaSetsWithMedia[activeMediaSetIndex].media[
-                          activeMediaIndex
-                        ].type === 'image' ? (
-                          <ZoomableImage
-                            className="auto-cursor"
-                            src={
-                              mediaSetsWithMedia[activeMediaSetIndex].media[
-                                activeMediaIndex
-                              ].paths.derivatives.webp_medium?.downloadURL || ''
-                            }
-                            alt="Fullscreen Image"
-                            zoomScale={3}
-                            maxHeight="80vh"
-                          />
-                        ) : (
-                          <video
-                            playsInline
-                            onClick={(e) => e.stopPropagation()}
-                            autoPlay
-                            muted
-                            loop
-                            preload="metadata"
-                            poster={
-                              mediaSetsWithMedia[activeMediaSetIndex].media[
-                                activeMediaIndex
-                              ].paths.poster?.downloadURL || undefined
-                            }
-                            onLoadedData={(e) => {
-                              console.log(
-                                '[Lightbox] video loaded',
-                                mediaSetsWithMedia[activeMediaSetIndex].media[
-                                  activeMediaIndex
-                                ].id,
-                                e.currentTarget.videoWidth,
-                                e.currentTarget.videoHeight
-                              );
+                        <Box
+                          sx={{
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <IconButton
+                            sx={{
+                              position: 'absolute',
+                              top: '1rem',
+                              right: '1rem',
+                              color: 'white',
+                              zIndex: 9999,
+                              opacity: lightboxImageIsDragging ? 0 : 1,
+                              transition: 'opacity 0.3s',
+                              transform: 'scale(1.3)',
                             }}
-                            onError={(e) =>
-                              console.error(
-                                '[Lightbox] video error',
-                                mediaSetsWithMedia[activeMediaSetIndex].media[
-                                  activeMediaIndex
-                                ].id,
-                                e
-                              )
-                            }
-                            // NEW: stop propagation for touchstart on video
-                            onTouchStart={(e) => e.stopPropagation()}
-                            style={{
-                              display: 'block',
-                              opacity: lightboxImageIsDragging ? 0.5 : 1,
-                              width: 'auto',
-                              maxWidth: isMobile
-                                ? '99vw'
-                                : 'calc(100vw - 4rem)',
-                              maxHeight: isMobile ? '80vh' : '70vh',
-                              minHeight: '15rem',
-                              objectFit: 'contain',
-                              transition: 'opacity 0.5s',
-                              margin: '0 auto',
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              closeLightbox();
                             }}
                           >
-                            <source
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              width="35px"
+                              height="35px"
+                            >
+                              <line
+                                x1="6"
+                                y1="6"
+                                x2="18"
+                                y2="18"
+                                stroke="currentColor"
+                                stroke-width="0.6"
+                              />
+                              <line
+                                x1="18"
+                                y1="6"
+                                x2="6"
+                                y2="18"
+                                stroke="currentColor"
+                                stroke-width="0.6"
+                              />
+                            </svg>
+                          </IconButton>
+
+                          {mediaSetsWithMedia[activeMediaSetIndex].media[
+                            activeMediaIndex
+                          ].type === 'image' ? (
+                            <ZoomableImage
+                              className="auto-cursor"
                               src={
                                 mediaSetsWithMedia[activeMediaSetIndex].media[
                                   activeMediaIndex
-                                ].paths.derivatives.webm_720?.downloadURL || ''
+                                ].paths.derivatives.webp_medium?.downloadURL ||
+                                ''
                               }
-                              type="video/webm"
+                              alt="Fullscreen Image"
+                              zoomScale={3}
+                              maxHeight="80vh"
                             />
-                          </video>
-                        )}
-                      </div>
+                          ) : (
+                            <video
+                              playsInline
+                              onClick={(e) => e.stopPropagation()}
+                              autoPlay
+                              muted
+                              loop
+                              preload="metadata"
+                              poster={
+                                mediaSetsWithMedia[activeMediaSetIndex].media[
+                                  activeMediaIndex
+                                ].paths.poster?.downloadURL || undefined
+                              }
+                              onLoadedData={(e) => {
+                                console.log(
+                                  '[Lightbox] video loaded',
+                                  mediaSetsWithMedia[activeMediaSetIndex].media[
+                                    activeMediaIndex
+                                  ].id,
+                                  e.currentTarget.videoWidth,
+                                  e.currentTarget.videoHeight
+                                );
+                              }}
+                              onError={(e) =>
+                                console.error(
+                                  '[Lightbox] video error',
+                                  mediaSetsWithMedia[activeMediaSetIndex].media[
+                                    activeMediaIndex
+                                  ].id,
+                                  e
+                                )
+                              }
+                              // NEW: stop propagation for touchstart on video
+                              onTouchStart={(e) => e.stopPropagation()}
+                              style={{
+                                display: 'block',
+                                opacity: lightboxImageIsDragging ? 0.5 : 1,
+                                width: 'auto',
+                                maxWidth: isMobile
+                                  ? '99vw'
+                                  : 'calc(100vw - 4rem)',
+                                maxHeight: isMobile ? '80vh' : '70vh',
+                                minHeight: '15rem',
+                                objectFit: 'contain',
+                                transition: 'opacity 0.5s',
+                                margin: '0 auto',
+                              }}
+                            >
+                              <source
+                                src={
+                                  mediaSetsWithMedia[activeMediaSetIndex].media[
+                                    activeMediaIndex
+                                  ].paths.derivatives.webm_720?.downloadURL ||
+                                  ''
+                                }
+                                type="video/webm"
+                              />
+                            </video>
+                          )}
+                        </Box>
+                      </Box>
                     </motion.div>
                   </AnimatePresence>
                 </Box>

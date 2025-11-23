@@ -241,6 +241,15 @@ export default function Header() {
               transition: '0.5s',
             }}
           >
+            <Box
+              sx={{
+                width: '100%',
+                position: 'absolute',
+                height: '100%',
+                backdropFilter: 'blur(0.3px)',
+                pointerEvents: 'none',
+              }}
+            ></Box>
             {/* Brand link */}
             <NextLink
               href="/"

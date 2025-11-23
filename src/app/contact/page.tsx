@@ -37,16 +37,17 @@ export default function Contact() {
             xs: '1rem',
             sm: '3rem',
             md: '4rem',
-            lg: '5rem',
-            xl: '6rem',
+            lg: '4rem',
+            xl: '5rem',
           },
         }}
       ></Box>
-      <Box width="100%">
+      <Box className={styles.contact_page_container} width="100%">
         <AnimatePresence mode="wait">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
             exit={{ opacity: 0 }}
           >
             <Stack
@@ -61,7 +62,7 @@ export default function Contact() {
                   overflowWrap: 'break-word',
                   fontSize: {
                     xs: '1.8rem',
-                    sm: '2.8rem',
+                    sm: '2.5rem',
                   },
                 }}
                 fontWeight="bold"
@@ -77,7 +78,7 @@ export default function Contact() {
                       overflowWrap: 'break-word',
                       fontSize: {
                         xs: '1.4rem',
-                        sm: '2.8rem',
+                        sm: '2.5rem',
                       },
                     }}
                     fontWeight="bold"
@@ -90,6 +91,7 @@ export default function Contact() {
                         width: '0.72em',
                         height: '0.72em',
                         marginRight: '0.3em',
+                        mixBlendMode: 'darken',
                       }}
                     />
                     Email
@@ -108,7 +110,7 @@ export default function Contact() {
                       overflowWrap: 'break-word',
                       fontSize: {
                         xs: '1.4rem',
-                        sm: '2.8rem',
+                        sm: '2.5rem',
                       },
                     }}
                     fontWeight="bold"
@@ -121,6 +123,7 @@ export default function Contact() {
                         width: '0.72em',
                         height: '0.72em',
                         marginRight: '0.3em',
+                        mixBlendMode: 'darken',
                       }}
                     />
                     Instagram
@@ -140,7 +143,7 @@ export default function Contact() {
                       overflowWrap: 'break-word',
                       fontSize: {
                         xs: '1.4rem',
-                        sm: '2.8rem',
+                        sm: '2.5rem',
                       },
                     }}
                     fontWeight="bold"
@@ -153,6 +156,7 @@ export default function Contact() {
                         width: '0.72em',
                         height: '0.72em',
                         marginRight: '0.3em',
+                        mixBlendMode: 'darken',
                       }}
                     />
                     Linktree
@@ -171,7 +175,7 @@ export default function Contact() {
                       overflowWrap: 'break-word',
                       fontSize: {
                         xs: '1.4rem',
-                        sm: '2.8rem',
+                        sm: '2.5rem',
                       },
                     }}
                     fontWeight="bold"
@@ -184,6 +188,7 @@ export default function Contact() {
                         width: '0.72em',
                         height: '0.72em',
                         marginRight: '0.3em',
+                        mixBlendMode: 'darken',
                       }}
                     />
                     Behance
