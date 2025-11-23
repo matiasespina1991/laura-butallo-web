@@ -21,8 +21,8 @@ export default function NotFound() {
             xs: '0rem',
             sm: '4rem',
             md: '5rem',
-            lg: '5.5rem',
-            xl: '7rem',
+            lg: '5rem',
+            xl: '6rem',
           },
         }}
       />
@@ -36,7 +36,9 @@ export default function NotFound() {
           alignItems: 'center',
         }}
       >
-        <h1 style={{ fontSize: '4rem', margin: 0 }}>404</h1>
+        <h1 style={{ fontSize: '3.6rem', fontWeight: 'bold', margin: 0 }}>
+          404
+        </h1>
         <Box height="0.5rem" />
         <p>The page you are looking for does not exist.</p>
 

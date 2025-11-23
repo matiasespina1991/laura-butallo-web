@@ -1,3 +1,4 @@
+// triggers/onUploadVideo.ts
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 import admin from 'firebase-admin';
 import {
@@ -26,18 +27,47 @@ export const onVideoFinalize = onObjectFinalized(
     maxInstances: 10,
   },
   async (event) => {
+    const object = event.data;
+    if (!object) return;
+
     try {
-      const object = event.data;
-      if (!object) return;
       const contentType = object.contentType ?? '';
       if (!contentType.startsWith('video/')) return;
 
       const storagePath = object.name!;
       if (!storagePath.startsWith('uploads/videos/')) return;
-      const localPath = await downloadToTmp(storagePath);
 
       const db = getDb();
       const mediaId = db.collection('media').doc().id;
+      const now = admin.firestore.Timestamp.now();
+
+      // Create initial doc with processed: false
+      const initialDoc: Media = {
+        id: mediaId,
+        mediaSetId: null,
+        type: 'video',
+        storagePath,
+        title: '',
+        description: '',
+        paths: {
+          original: { storagePath, downloadURL: null },
+          derivatives: {},
+        },
+        width: 0,
+        height: 0,
+        duration: 0,
+        mimeType: contentType,
+        sizeBytes: object.size ?? undefined,
+        codec: null,
+        bitrate: null,
+        createdAt: now,
+        modifiedAt: now,
+        processed: false,
+      };
+
+      await createAssetDoc(initialDoc);
+
+      const localPath = await downloadToTmp(storagePath);
       const tmpBase = '/tmp';
       const bucket = admin.storage().bucket();
 
@@ -47,14 +77,14 @@ export const onVideoFinalize = onObjectFinalized(
         { name: '1080', height: 1080 },
       ];
 
-      // probe
+      // Probe metadata
       const meta = await probeMetadata(localPath);
       const format = meta.format || {};
       const duration = format.duration
         ? Math.round(format.duration)
         : undefined;
 
-      // Poster
+      // Generate poster
       const posterLocal = `${tmpBase}/${Date.now()}-poster.webp`;
       await generatePoster(localPath, posterLocal);
       const posterStoragePath = `temp-assets/${mediaId}/poster.webp`;
@@ -67,10 +97,11 @@ export const onVideoFinalize = onObjectFinalized(
         });
       await safeUnlink(posterLocal);
 
-      // Derivatives
+      // Transcode resolutions
       const derivativePaths: {
         [key: string]: { storagePath: string; downloadURL: string | null };
       } = {};
+
       for (const r of resolutions) {
         const outLocal = `${tmpBase}/${Date.now()}-${r.name}.webm`;
         await transcodeToWebM(localPath, outLocal, r.height);
@@ -87,48 +118,31 @@ export const onVideoFinalize = onObjectFinalized(
         await safeUnlink(outLocal);
       }
 
-      // Original
-      const [originalDownloadURL] = await bucket
-        .file(storagePath)
-        .getSignedUrl({
-          action: 'read',
-          expires: '03-01-2500',
-        });
-
-      // Delete original uploaded file
+      // Delete original uploaded file (keeping storagePath for record)
       await bucket
         .file(storagePath)
         .delete()
         .catch(() => {});
 
-      const now = admin.firestore.Timestamp.now();
-
-      const doc: Media = {
-        id: mediaId,
-        mediaSetId: null,
-        type: 'video',
-        storagePath,
-        paths: {
-          original: { storagePath, downloadURL: originalDownloadURL },
-          derivatives: derivativePaths,
-          poster: {
+      // Update document with derivatives, poster, and processed: true
+      await db
+        .collection('media')
+        .doc(mediaId)
+        .update({
+          'paths.derivatives': derivativePaths,
+          'paths.poster': {
             storagePath: posterStoragePath,
             downloadURL: posterDownloadURL,
           },
-        },
-        width: meta.streams?.[0]?.width,
-        height: meta.streams?.[0]?.height,
-        duration,
-        mimeType: contentType,
-        sizeBytes: object.size ?? undefined,
-        codec: 'vp9',
-        bitrate: format.bit_rate,
-        createdAt: now,
-        modifiedAt: now,
-        processed: true,
-      };
+          width: meta.streams?.[0]?.width ?? 0,
+          height: meta.streams?.[0]?.height ?? 0,
+          duration,
+          codec: 'vp9',
+          bitrate: format.bit_rate ?? null,
+          modifiedAt: admin.firestore.Timestamp.now(),
+          processed: true,
+        } as any);
 
-      await createAssetDoc(doc);
       await safeUnlink(localPath);
     } catch (err) {
       console.error('onVideoFinalize error:', err);

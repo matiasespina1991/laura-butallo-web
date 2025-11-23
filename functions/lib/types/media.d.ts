@@ -13,6 +13,8 @@ export interface AssetPaths {
 export interface Media {
     id: string;
     mediaSetId: string | null;
+    title: string;
+    description?: string;
     type: MediaType;
     storagePath: string;
     paths: AssetPaths;

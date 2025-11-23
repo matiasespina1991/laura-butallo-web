@@ -1,21 +1,25 @@
 'use client';
 
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 
 type Props = {
-  src: string;
+  lowSrc: string;
+  highSrc?: string;
   alt?: string;
   zoomScale?: number;
-  maxHeight?: string; // e.g. '80vh'
+  maxHeight?: string;
   className?: string;
+  switchToHighOnZoom?: boolean;
 };
 
-export default function ZoomableImage({
-  src,
+export default function ZoomeableImage({
+  lowSrc,
+  highSrc,
   alt = '',
   zoomScale = 2.2,
   maxHeight = '80vh',
   className,
+  switchToHighOnZoom = true,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -31,9 +35,9 @@ export default function ZoomableImage({
     const el = imgRef.current;
     if (!el) return { x: 50, y: 50 };
     const rect = el.getBoundingClientRect();
-    const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
-    const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
-    return { x: (x / rect.width) * 100, y: (y / rect.height) * 100 };
+    const px = Math.max(0, Math.min(rect.width, clientX - rect.left));
+    const py = Math.max(0, Math.min(rect.height, clientY - rect.top));
+    return { x: (px / rect.width) * 100, y: (py / rect.height) * 100 };
   }, []);
 
   const handleClick = useCallback(
@@ -41,15 +45,10 @@ export default function ZoomableImage({
       if (touchDeviceRef.current) return;
       e.stopPropagation();
       const { x, y } = coordsFromEvent(e.clientX, e.clientY);
-      if (!zoomed) {
-        setOrigin({ x, y });
-        setZoomed(true);
-      } else {
-        setZoomed(false);
-        setOrigin({ x: 50, y: 50 });
-      }
+      setOrigin({ x, y });
+      setZoomed((z) => !z);
     },
-    [coordsFromEvent, zoomed]
+    [coordsFromEvent]
   );
 
   const handleMouseMove = useCallback(
@@ -62,10 +61,7 @@ export default function ZoomableImage({
     [coordsFromEvent, zoomed]
   );
 
-  const handleMouseEnter = useCallback(() => {
-    setHover(true);
-  }, []);
-
+  const handleMouseEnter = useCallback(() => setHover(true), []);
   const handleMouseLeave = useCallback(() => {
     setHover(false);
     setZoomed(false);
@@ -82,6 +78,7 @@ export default function ZoomableImage({
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (e.touches.length !== 1) return;
+      e.stopPropagation();
       touchDeviceRef.current = true;
       const t = e.touches[0];
       const { x, y } = coordsFromEvent(t.clientX, t.clientY);
@@ -94,8 +91,7 @@ export default function ZoomableImage({
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (!zoomed) return;
-      if (e.touches.length !== 1) return;
+      if (!zoomed || e.touches.length !== 1) return;
       const t = e.touches[0];
       const { x, y } = coordsFromEvent(t.clientX, t.clientY);
       setOrigin({ x, y });
@@ -112,11 +108,56 @@ export default function ZoomableImage({
     }
   }, [zoomed]);
 
+  // start with lowSrc
+  useEffect(() => {
+    const img = imgRef.current;
+    if (!img) return;
+    if (img.src && img.src.includes(lowSrc)) return;
+    img.src = lowSrc;
+  }, [lowSrc]);
+
+  // preload and switch to highSrc when zoomed
+  useEffect(() => {
+    if (!switchToHighOnZoom) return;
+    if (!highSrc) return;
+    const img = imgRef.current;
+    if (!img) return;
+    if (!zoomed) {
+      // when unzooming, switch back to lowSrc to save memory/bandwidth if needed
+      if (img.src && !img.src.includes(lowSrc)) {
+        img.src = lowSrc;
+      }
+      return;
+    }
+
+    // if already using highSrc, nothing to do
+    if (img.src && img.src.includes(highSrc)) return;
+
+    // preload high
+    let canceled = false;
+    const pre = new Image();
+    pre.onload = () => {
+      if (canceled) return;
+      try {
+        // swap displayed src to the high-res image
+        if (imgRef.current) imgRef.current.src = highSrc;
+      } catch {}
+    };
+    pre.onerror = () => {
+      canceled = true;
+    };
+    pre.src = highSrc;
+
+    return () => {
+      canceled = true;
+    };
+  }, [zoomed, highSrc, lowSrc, switchToHighOnZoom]);
+
   const imgStyle: React.CSSProperties = {
     display: 'block',
     width: 'auto',
     maxWidth: '99vw',
-    maxHeight: maxHeight,
+    maxHeight,
     height: 'auto',
     objectFit: 'contain',
     transformOrigin: `${origin.x}% ${origin.y}%`,
@@ -125,6 +166,7 @@ export default function ZoomableImage({
     cursor: zoomed ? 'zoom-out' : hover ? 'zoom-in' : 'default',
     userSelect: 'none',
     pointerEvents: 'auto',
+    touchAction: 'none',
     margin: '0 auto',
     zIndex: 1000,
   };
@@ -136,8 +178,10 @@ export default function ZoomableImage({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    maxHeight: maxHeight,
+    maxHeight,
     width: '100%',
+    touchAction: 'none',
+    overscrollBehavior: 'contain',
   };
 
   return (
@@ -153,7 +197,6 @@ export default function ZoomableImage({
     >
       <img
         ref={imgRef}
-        src={src}
         alt={alt}
         draggable={false}
         onClick={handleClick}

@@ -50,6 +50,17 @@ export default function Header() {
       setDrawerOpen(open);
     };
 
+  // Handle brand click: if already on home, smoothly scroll to top instead of navigating.
+  const handleBrandClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // If current path is home, prevent navigation and scroll to top smoothly.
+    if (pathname === '/') {
+      e.preventDefault();
+      // Use window.scrollTo for smooth scroll to top.
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    // Otherwise, let NextLink handle navigation normally.
+  };
+
   const drawerList = () => (
     <Box
       sx={{ width: '100vw' }}
@@ -101,8 +112,8 @@ export default function Header() {
 
         <Box sx={{ height: '1rem' }} />
 
-        {/* About Me */}
-        <ListItemButton component={NextLink} href="/obras" prefetch>
+        {/* Works */}
+        <ListItemButton component={NextLink} href="/works" prefetch>
           <ListItemText
             primary={
               <Typography
@@ -126,8 +137,7 @@ export default function Header() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {/* Usar &nbsp; elimina el corte entre palabras */}
-                Obras
+                Works
               </Typography>
             }
           />
@@ -153,14 +163,13 @@ export default function Header() {
                 pt={{ xs: '0.5rem', sm: '3rem' }}
                 letterSpacing="-0.04em"
                 component="div"
-                noWrap // <-- clave
+                noWrap
                 sx={{
-                  flexGrow: 0, // <-- que no se estire
+                  flexGrow: 0,
                   display: 'inline-flex',
-                  whiteSpace: 'nowrap', // <-- y no permita cortes
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {/* Usar &nbsp; elimina el corte entre palabras */}
                 About&nbsp;Me
               </Typography>
             }
@@ -241,19 +250,23 @@ export default function Header() {
               transition: '0.5s',
             }}
           >
-            <Box
-              sx={{
-                width: '100%',
-                position: 'absolute',
-                height: '100%',
-                backdropFilter: 'blur(0.3px)',
-                pointerEvents: 'none',
-              }}
-            ></Box>
+            {!isMobile && (
+              <Box
+                sx={{
+                  width: '100%',
+                  position: 'absolute',
+                  height: '100%',
+                  backdropFilter: 'blur(0.3px)',
+                  pointerEvents: 'none',
+                }}
+              ></Box>
+            )}
+
             {/* Brand link */}
             <NextLink
               href="/"
               prefetch
+              onClick={handleBrandClick}
               style={{
                 width: '100%',
                 textDecoration: 'none',
@@ -304,8 +317,6 @@ export default function Header() {
             </>
           ) : (
             <Stack direction="row" gap={4}>
-              {/* Do NOT wrap Button with <Link>. Use component={NextLink}. */}
-
               <Button
                 component={NextLink}
                 href="/"
@@ -330,11 +341,11 @@ export default function Header() {
                 href="/works"
                 prefetch
                 variant="text"
-                sx={{ textTransform: 'unset' }}
+                sx={{ textTransform: 'unset', whiteSpace: 'nowrap' }}
                 color="inherit"
               >
                 <span>
-                  Obras&nbsp; <span>▼</span>
+                  Works&nbsp; <span>▼</span>
                 </span>
               </Button>
               <Button
