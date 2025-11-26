@@ -69,3 +69,40 @@ a {
     overscroll-behavior-y: none;
   }
 }
+
+.burger {
+  width: 35px;
+  height: 35px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.burger__line {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #121212;
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.6, 0.3, 1),
+    opacity 0.25s;
+  position: relative;
+}
+.burger__line + .burger__line {
+  margin-top: 7px;
+}
+
+/* open state */
+.burger.is-open .top {
+  transform: translateY(9px) rotate(45deg);
+}
+.burger.is-open .middle {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.burger.is-open .bottom {
+  transform: translateY(-9px) rotate(-45deg);
+}

@@ -1,14 +1,13 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import CloseIcon from '@mui/icons-material/Close';
 import Box from '@mui/material/Box';
 import { Stack } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import ListItemText from '@mui/material/ListItemText';
@@ -20,8 +19,10 @@ import { usePathname } from 'next/navigation';
 import NextLink from 'next/link';
 import { MinimalMenuIcon } from './MinimalMenuIcon';
 import { MinimalCloseIcon } from './MinimalCloseIcon';
+import BurgerIcon from './BurgerIcon';
 
 export default function Header() {
+  // principal state/hooks (siempre en el top)
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [worksDropdownOpen, setWorksDropdownOpen] = useState(false);
@@ -31,6 +32,17 @@ export default function Header() {
   const pathname = usePathname();
   const [isHome, setIsHome] = useState<boolean>(true);
 
+  // --- Hooks para el dropdown fuera del AppBar (moved before any early return) ---
+  const worksButtonRef = useRef<HTMLButtonElement | null>(null);
+  const portalRef = useRef<HTMLDivElement | null>(null);
+  const [dropdownRect, setDropdownRect] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  // efectos que usan esos hooks
   useEffect(() => {
     setIsHome(pathname === '/');
   }, [pathname]);
@@ -39,6 +51,63 @@ export default function Header() {
     setIsMounted(true);
   }, []);
 
+  // Synchronous measurement function
+  const updateDropdownRect = () => {
+    if (!worksButtonRef.current) return;
+    const rect = worksButtonRef.current.getBoundingClientRect();
+    setDropdownRect({
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    });
+  };
+
+  useEffect(() => {
+    if (worksDropdownOpen) {
+      updateDropdownRect();
+    }
+  }, [worksDropdownOpen, isMobile, isHome]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (worksDropdownOpen) updateDropdownRect();
+    };
+    const handleScroll = () => {
+      if (worksDropdownOpen) updateDropdownRect();
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [worksDropdownOpen]);
+
+  // Close when clicking outside
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        worksDropdownOpen &&
+        !worksButtonRef.current?.contains(target) &&
+        !portalRef.current?.contains(target)
+      ) {
+        setWorksDropdownOpen(false);
+      }
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setWorksDropdownOpen(false);
+    };
+    document.addEventListener('mousedown', handleDocumentClick);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+      document.removeEventListener('keydown', handleKey);
+    };
+  }, [worksDropdownOpen]);
+
+  // --- resto del componente ---
   const toggleDrawer =
     (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
       if (
@@ -289,6 +358,7 @@ export default function Header() {
     </Box>
   );
 
+  // Early return (seguimos manteniéndolo), pero ahora TODOS los hooks se han declarado arriba
   if (!isMounted) return null;
 
   return (
@@ -421,30 +491,52 @@ export default function Header() {
                   alt="Home"
                 />
               </Button>
+              <BurgerIcon />
 
-              <Box
-                position="relative"
-                onMouseEnter={() => setWorksDropdownOpen(true)}
-                onMouseLeave={() => setWorksDropdownOpen(false)}
-                sx={{
-                  display: 'inline-block',
-                }}
-              >
+              <Box position="relative" sx={{ display: 'inline-block' }}>
                 <Button
+                  ref={worksButtonRef}
                   variant="text"
                   sx={{
                     textTransform: 'unset',
                     whiteSpace: 'nowrap',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
+                    gap: '0.35rem',
                     padding: '6px 8px',
                   }}
                   color="inherit"
+                  onMouseEnter={() => {
+                    // medir justo antes de abrir para que la posición sea correcta
+                    updateDropdownRect();
+                    setWorksDropdownOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    setTimeout(() => {
+                      const isOverPortal = Boolean(
+                        portalRef.current &&
+                          typeof (portalRef.current as Element).matches ===
+                            'function' &&
+                          (portalRef.current as Element).matches(':hover')
+                      );
+                      if (!isOverPortal) setWorksDropdownOpen(false);
+                    }, 50);
+                  }}
+                  onClick={() => {
+                    // si vamos a abrir, medir primero para tener coords correctas
+                    if (!worksDropdownOpen) {
+                      updateDropdownRect();
+                      // for a tiny delay to ensure state updated before painting (optional)
+                      setTimeout(() => setWorksDropdownOpen(true), 0);
+                    } else {
+                      setWorksDropdownOpen(false);
+                    }
+                  }}
                 >
                   Works
                   <span
                     style={{
+                      fontSize: '0.59rem',
                       transform: worksDropdownOpen
                         ? 'rotate(180deg)'
                         : 'rotate(0deg)',
@@ -457,68 +549,80 @@ export default function Header() {
                   </span>
                 </Button>
 
-                <AnimatePresence>
-                  {worksDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                        backdropFilter: 'blur(8px)',
-                        borderRadius: '8px',
-                        minWidth: '160px',
-                        marginTop: '0.5rem',
-                        zIndex: 1000,
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        isolation: 'isolate',
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          isolation: 'isolate',
-                        }}
-                      >
-                        {worksCategoriesItems.map((item, index) => (
-                          <Button
-                            key={item.href}
-                            component={NextLink}
-                            href={item.href}
-                            prefetch
-                            variant="text"
-                            color="inherit"
+                {/* Dropdown renderizado en portal — fondo BLANCO y textos NEGROS */}
+                {isMounted &&
+                  dropdownRect &&
+                  createPortal(
+                    <AnimatePresence>
+                      {worksDropdownOpen && (
+                        <motion.div
+                          ref={portalRef}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.18 }}
+                          onMouseEnter={() => setWorksDropdownOpen(true)}
+                          onMouseLeave={() => setWorksDropdownOpen(false)}
+                          style={{
+                            position: 'fixed',
+                            left: Math.max(8, dropdownRect.left) + 'px',
+                            top:
+                              dropdownRect.top + dropdownRect.height + 4 + 'px',
+                            backgroundColor: '#f0efefcb',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: '8px',
+                            minWidth: Math.max(160, dropdownRect.width),
+                            zIndex: 100,
+                            border: '1px solid rgba(0, 0, 0, 0.12)',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            isolation: 'isolate',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <Box
                             sx={{
-                              textTransform: 'unset',
-                              justifyContent: 'flex-start',
-                              px: '1.5rem',
-                              py: '0.75rem',
-                              fontSize: '1rem',
-                              transition: 'all 0.2s ease',
+                              display: 'flex',
+                              flexDirection: 'column',
                               isolation: 'isolate',
-                              mixBlendMode: 'normal',
-                              borderBottom:
-                                index < worksCategoriesItems.length - 1
-                                  ? '1px solid rgba(255, 255, 255, 0.05)'
-                                  : 'none',
-                              '&:hover': {
-                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                              },
                             }}
-                            onClick={() => setWorksDropdownOpen(false)}
                           >
-                            {item.label}
-                          </Button>
-                        ))}
-                      </Box>
-                    </motion.div>
+                            {worksCategoriesItems.map((item, index) => (
+                              <Button
+                                key={item.href}
+                                component={NextLink}
+                                href={item.href}
+                                prefetch
+                                variant="text"
+                                color="inherit"
+                                sx={{
+                                  color: '#000000',
+                                  textTransform: 'unset',
+                                  justifyContent: 'flex-start',
+                                  px: '1.25rem',
+                                  py: '0.65rem',
+                                  fontSize: '1rem',
+                                  transition: 'background-color 0.18s ease',
+                                  isolation: 'isolate',
+                                  mixBlendMode: 'normal',
+                                  borderBottom:
+                                    index < worksCategoriesItems.length - 1
+                                      ? '1px solid rgba(0, 0, 0, 0.06)'
+                                      : 'none',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(0,0,0,0.04)',
+                                  },
+                                }}
+                                onClick={() => setWorksDropdownOpen(false)}
+                              >
+                                {item.label}
+                              </Button>
+                            ))}
+                          </Box>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>,
+                    document.body
                   )}
-                </AnimatePresence>
               </Box>
 
               <Button
