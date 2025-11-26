@@ -485,6 +485,7 @@ export default function Header() {
                   style={{
                     transform: 'translate(11px, -0.2px)',
                     filter: 'invert(1)',
+                    isolation: 'isolate',
                     width: '1.9rem',
                   }}
                   src="/images/icons/home/cueva.png"
@@ -570,7 +571,7 @@ export default function Header() {
                               dropdownRect.top + dropdownRect.height + 4 + 'px',
                             backgroundColor: '#f0efefcb',
                             backdropFilter: 'blur(10px)',
-                            borderRadius: '8px',
+                            borderRadius: '12px',
                             minWidth: Math.max(160, dropdownRect.width),
                             zIndex: 100,
                             border: '1px solid rgba(0, 0, 0, 0.12)',
@@ -600,7 +601,7 @@ export default function Header() {
                                   justifyContent: 'flex-start',
                                   px: '1.25rem',
                                   py: '0.65rem',
-                                  fontSize: '1rem',
+                                  fontSize: '0.9rem',
                                   transition: 'background-color 0.18s ease',
                                   isolation: 'isolate',
                                   mixBlendMode: 'normal',
