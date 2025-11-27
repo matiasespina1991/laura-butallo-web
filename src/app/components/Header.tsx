@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -20,6 +20,10 @@ import NextLink from 'next/link';
 import { MinimalMenuIcon } from './MinimalMenuIcon';
 import { MinimalCloseIcon } from './MinimalCloseIcon';
 import BurgerIcon from './BurgerIcon';
+import { ThemeContext } from '../ThemeRegistry';
+import { useThemeTransition } from '@/components/ui/shadcn-io/theme-toggle-button';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 export default function Header() {
   // principal state/hooks (siempre en el top)
@@ -31,6 +35,52 @@ export default function Header() {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const pathname = usePathname();
   const [isHome, setIsHome] = useState<boolean>(true);
+  const { toggleTheme, mode } = useContext(ThemeContext);
+
+  // Custom transition function with top-right origin
+  const startTransitionFromTopRight = () => {
+    const styleId = `theme-transition-${Date.now()}`;
+    const style = document.createElement('style');
+    style.id = styleId;
+
+    const css = `
+      @supports (view-transition-name: root) {
+        ::view-transition-old(root) { 
+          animation: none;
+        }
+        ::view-transition-new(root) {
+          animation: circle-expand 0.8s ease-out;
+          transform-origin: top right;
+        }
+        @keyframes circle-expand {
+          from {
+            clip-path: circle(0% at 100% 0%);
+          }
+          to {
+            clip-path: circle(150% at 100% 0%);
+          }
+        }
+      }
+    `;
+
+    style.textContent = css;
+    document.head.appendChild(style);
+
+    if ('startViewTransition' in document) {
+      (document as any).startViewTransition(() => {
+        toggleTheme();
+      });
+    } else {
+      toggleTheme();
+    }
+
+    setTimeout(() => {
+      const styleEl = document.getElementById(styleId);
+      if (styleEl) {
+        styleEl.remove();
+      }
+    }, 1000);
+  };
 
   // --- Hooks para el dropdown fuera del AppBar (moved before any early return) ---
   const worksButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -473,26 +523,18 @@ export default function Header() {
                 alignItems: 'center',
               }}
             >
-              <Button
-                component={NextLink}
-                href="/"
-                prefetch
-                variant="text"
-                sx={{ textTransform: 'unset', justifyContent: 'right' }}
+              <IconButton
+                onClick={startTransitionFromTopRight}
                 color="inherit"
+                aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
               >
-                <img
-                  style={{
-                    transform: 'translate(11px, -0.2px)',
-                    filter: 'invert(1)',
-                    isolation: 'isolate',
-                    width: '1.9rem',
-                  }}
-                  src="/images/icons/home/cueva.png"
-                  alt="Home"
-                />
-              </Button>
-              <BurgerIcon />
+                {mode === 'light' ? (
+                  <DarkModeIcon sx={{ fontSize: '1.1rem' }} />
+                ) : (
+                  <LightModeIcon sx={{ fontSize: '1.1rem' }} />
+                )}
+              </IconButton>
+              {!isMobile ? null : <BurgerIcon />}
 
               <Box position="relative" sx={{ display: 'inline-block' }}>
                 <Button

@@ -4,11 +4,9 @@ import * as React from 'react';
 import { CacheProvider } from '@emotion/react';
 import createEmotionCache from './createEmotionCache';
 import { useServerInsertedHTML } from 'next/navigation';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { color } from 'framer-motion';
+import { ThemeProvider, createTheme, PaletteMode } from '@mui/material/styles';
 
-// Mantengo tu theme tal cual, solo lo dejo en este archivo para envolverlo.
-const theme = createTheme({
+const getDesignTokens = (mode: PaletteMode) => ({
   typography: {
     fontSize: 13,
     fontFamily: 'Helvetic a Neue, Arial, sans-serif',
@@ -35,36 +33,46 @@ const theme = createTheme({
           transition: '0.4s ease border-bottom',
         },
         contained: {
-          backgroundColor: 'black',
-          color: 'white',
+          backgroundColor: mode === 'light' ? 'black' : 'white',
+          color: mode === 'light' ? 'white' : 'black',
           ':hover': {
             boxShadow: 'none',
-            backgroundColor: '#cacaca',
+            backgroundColor: mode === 'light' ? '#cacaca' : '#333333',
           },
         },
         outlined: {
-          color: 'black',
-          border: '1px solid white',
+          color: mode === 'light' ? 'black' : 'white',
+          border: `1px solid ${mode === 'light' ? 'white' : 'black'}`,
           ':hover': {
-            backgroundColor: '#1e1e1eff',
-            color: 'white',
-            border: '1px solid white',
+            backgroundColor: mode === 'light' ? '#1e1e1eff' : '#e0e0e0',
+            color: mode === 'light' ? 'white' : 'black',
+            border: `1px solid ${mode === 'light' ? 'white' : 'black'}`,
           },
         },
       },
     },
   },
   palette: {
+    mode,
     primary: {
-      main: '#ffffff',
+      main: mode === 'light' ? '#ffffff' : '#000000',
     },
     secondary: {
-      main: '#000000',
+      main: mode === 'light' ? '#000000' : '#ffffff',
     },
     text: {
-      primary: '#000000',
+      primary: mode === 'light' ? '#000000' : '#ffffff',
+    },
+    background: {
+      default: mode === 'light' ? '#ffffff' : '#121212',
+      paper: mode === 'light' ? '#ffffff' : '#1e1e1e',
     },
   },
+});
+
+export const ThemeContext = React.createContext({
+  toggleTheme: () => {},
+  mode: 'light' as PaletteMode,
 });
 
 export default function ThemeRegistry({
@@ -73,6 +81,36 @@ export default function ThemeRegistry({
   children: React.ReactNode;
 }) {
   const [cache] = React.useState(() => createEmotionCache());
+  const [mode, setMode] = React.useState<PaletteMode>('light');
+
+  React.useEffect(() => {
+    const savedMode = localStorage.getItem('themeMode') as PaletteMode;
+    if (savedMode) {
+      setMode(savedMode);
+    }
+  }, []);
+
+  // Aplicar/remover clase 'dark' al elemento html
+  React.useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement;
+      if (mode === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    }
+  }, [mode]);
+
+  const toggleTheme = React.useCallback(() => {
+    setMode((prevMode) => {
+      const newMode = prevMode === 'light' ? 'dark' : 'light';
+      localStorage.setItem('themeMode', newMode);
+      return newMode;
+    });
+  }, []);
+
+  const theme = React.useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
 
   useServerInsertedHTML(() => {
     const tags = (cache.sheet as any)?.tags ?? [];
@@ -89,7 +127,9 @@ export default function ThemeRegistry({
 
   return (
     <CacheProvider value={cache}>
-      <ThemeProvider theme={theme}>{children}</ThemeProvider>
+      <ThemeContext.Provider value={{ toggleTheme, mode }}>
+        <ThemeProvider theme={theme}>{children}</ThemeProvider>
+      </ThemeContext.Provider>
     </CacheProvider>
   );
 }
