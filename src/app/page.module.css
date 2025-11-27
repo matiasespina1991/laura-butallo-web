@@ -23,9 +23,8 @@
 
 .carousel {
   display: flex;
-
   flex-direction: column;
-  gap: 1.3rem;
+  gap: 16px;
   width: 100%;
 }
 

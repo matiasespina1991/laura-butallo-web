@@ -126,6 +126,7 @@ function MediaItem({
             style={{
               userSelect: 'none',
               display: 'block',
+              borderRadius: '6px',
             }}
             src={lowSrc || ''}
             onClick={() => openLightbox(mediaArray, index, setIndex)}
@@ -169,6 +170,7 @@ function MediaItem({
               width: '100%',
               height: '100%',
               display: 'block',
+              borderRadius: '10px',
             }}
             onClick={() => openLightbox(mediaArray, index, setIndex)}
           >
@@ -353,7 +355,7 @@ export default function Home() {
                           display: 'grid',
                           gridTemplateColumns: `repeat(${columns}, 1fr)`,
                         }}
-                        gap={isMobileQuery ? '14px' : 3}
+                        gap={isMobileQuery ? '14px' : '16px'}
                       >
                         {setWithMedia.media.map((m, mediaIndex) => (
                           <Box key={m.id} width="100%" height="100%">
