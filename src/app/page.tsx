@@ -126,7 +126,7 @@ function MediaItem({
             style={{
               userSelect: 'none',
               display: 'block',
-              borderRadius: '6px',
+              borderRadius: isMobileDevice ? '8px' : '10px',
             }}
             src={lowSrc || ''}
             onClick={() => openLightbox(mediaArray, index, setIndex)}
@@ -170,7 +170,7 @@ function MediaItem({
               width: '100%',
               height: '100%',
               display: 'block',
-              borderRadius: '10px',
+              borderRadius: isMobileDevice ? '8px' : '10px',
             }}
             onClick={() => openLightbox(mediaArray, index, setIndex)}
           >

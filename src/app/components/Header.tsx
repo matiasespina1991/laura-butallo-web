@@ -494,7 +494,27 @@ export default function Header() {
           </Typography>
 
           {isMobile ? (
-            <>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: '0.3rem',
+              }}
+            >
+              <IconButton
+                onClick={startTransitionFromTopRight}
+                color="inherit"
+                sx={{
+                  mt: { xs: '0.6rem', sm: '0rem' },
+                  mr: { xs: '0.5rem', sm: '0rem' },
+                }}
+                aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
+              >
+                {mode === 'light' ? (
+                  <DarkModeIcon sx={{ fontSize: '1.6rem' }} />
+                ) : (
+                  <LightModeIcon sx={{ fontSize: '1.6rem' }} />
+                )}
+              </IconButton>
               <IconButton
                 edge="end"
                 color="inherit"
@@ -514,7 +534,7 @@ export default function Header() {
               >
                 {drawerList()}
               </Drawer>
-            </>
+            </Box>
           ) : (
             <Stack
               direction="row"

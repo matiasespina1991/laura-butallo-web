@@ -95,7 +95,7 @@ export default function RootLayout({
         <meta name="twitter:description" content={DESCRIPTION} />
         <meta name="twitter:image" content={OG_IMAGE} />
 
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#ededed" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
 
         <link rel="icon" href="/favicon.ico" />
@@ -116,8 +116,10 @@ export default function RootLayout({
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '10rem',
-                backgroundColor: 'black',
-                color: 'white',
+                backgroundColor: 'rgb(var(--background-rgb))',
+                color: 'rgb(var(--foreground-rgb))',
+                transition: 'background-color 0.3s ease, color 0.3s ease',
+                borderTop: '1px solid rgba(128, 128, 128, 0.15)',
               }}
             >
               <Box

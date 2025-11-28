@@ -81,6 +81,10 @@ body {
 }
 
 html {
+  background-color: rgb(var(--foreground-rgb));
+}
+
+html.dark {
   background-color: rgb(var(--background-rgb));
 }
 
