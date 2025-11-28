@@ -6,6 +6,10 @@
   min-height: calc(100vh - 13rem);
 }
 
+.main.homePage {
+  min-height: 100vh;
+}
+
 .lightboxOpen {
   pointer-events: none;
 }
@@ -72,6 +76,9 @@
   .main {
     padding: 1.7rem 1.2rem;
     min-height: calc(100vh - 20.5rem);
+  }
+  .main.homePage {
+    min-height: 100vh;
   }
   .carousel {
     gap: 12px;

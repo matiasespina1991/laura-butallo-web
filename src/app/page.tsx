@@ -315,14 +315,14 @@ export default function Home() {
   }, [lightboxOpen, handleNextMedia, handlePreviousMedia]);
 
   return (
-    <main className={styles.main}>
+    <main className={`${styles.main} ${styles.homePage}`}>
       <Box
         sx={{
           height: {
             xs: '0rem',
             sm: '4rem',
             md: '5rem',
-            lg: '5.5rem',
+            lg: '5rem',
             xl: '7rem',
           },
         }}
