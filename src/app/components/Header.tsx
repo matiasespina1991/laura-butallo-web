@@ -29,6 +29,7 @@ export default function Header() {
   // principal state/hooks (siempre en el top)
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const [worksDropdownOpen, setWorksDropdownOpen] = useState(false);
   const [worksDrawerExpanded, setWorksDrawerExpanded] = useState(false);
   const theme = useTheme();
@@ -85,6 +86,7 @@ export default function Header() {
   // --- Hooks para el dropdown fuera del AppBar (moved before any early return) ---
   const worksButtonRef = useRef<HTMLButtonElement | null>(null);
   const portalRef = useRef<HTMLDivElement | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [dropdownRect, setDropdownRect] = useState<{
     left: number;
     top: number;
@@ -99,6 +101,7 @@ export default function Header() {
 
   useEffect(() => {
     setIsMounted(true);
+    setTimeout(() => setHasAnimated(true), 1500);
   }, []);
 
   // Synchronous measurement function
@@ -440,7 +443,7 @@ export default function Header() {
       }}
     >
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={hasAnimated ? { opacity: 1 } : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.5 }}
       >
@@ -599,20 +602,20 @@ export default function Header() {
                     }}
                     color="inherit"
                     onMouseEnter={() => {
-                      // medir justo antes de abrir para que la posición sea correcta
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                        hoverTimeoutRef.current = null;
+                      }
                       updateDropdownRect();
                       setWorksDropdownOpen(true);
                     }}
                     onMouseLeave={() => {
-                      setTimeout(() => {
-                        const isOverPortal = Boolean(
-                          portalRef.current &&
-                            typeof (portalRef.current as Element).matches ===
-                              'function' &&
-                            (portalRef.current as Element).matches(':hover')
-                        );
-                        if (!isOverPortal) setWorksDropdownOpen(false);
-                      }, 50);
+                      if (hoverTimeoutRef.current) {
+                        clearTimeout(hoverTimeoutRef.current);
+                      }
+                      hoverTimeoutRef.current = setTimeout(() => {
+                        setWorksDropdownOpen(false);
+                      }, 150);
                     }}
                     onClick={() => {
                       // si vamos a abrir, medir primero para tener coords correctas
@@ -653,8 +656,21 @@ export default function Header() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.18 }}
-                            onMouseEnter={() => setWorksDropdownOpen(true)}
-                            onMouseLeave={() => setWorksDropdownOpen(false)}
+                            onMouseEnter={() => {
+                              if (hoverTimeoutRef.current) {
+                                clearTimeout(hoverTimeoutRef.current);
+                                hoverTimeoutRef.current = null;
+                              }
+                              setWorksDropdownOpen(true);
+                            }}
+                            onMouseLeave={() => {
+                              if (hoverTimeoutRef.current) {
+                                clearTimeout(hoverTimeoutRef.current);
+                              }
+                              hoverTimeoutRef.current = setTimeout(() => {
+                                setWorksDropdownOpen(false);
+                              }, 150);
+                            }}
                             style={{
                               position: 'fixed',
                               left: Math.max(8, dropdownRect.left) + 'px',

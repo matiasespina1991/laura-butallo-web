@@ -77,6 +77,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Prevent FOUC (Flash of Unstyled Content) for dark mode */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const savedMode = localStorage.getItem('themeMode');
+                if (savedMode === 'dark') {
+                  document.documentElement.classList.add('dark');
+                }
+              })();
+            `,
+          }}
+        />
         {/* Explicit meta tags for crawlers that might not use Next metadata API */}
         <meta name="description" content={DESCRIPTION} />
         <link rel="canonical" href={SITE_URL} />
@@ -108,38 +121,6 @@ export default function RootLayout({
         <ThemeRegistry>
           <Header />
           <Box mt="64px">{children}</Box>
-
-          <Box>
-            <footer
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: isMobile ? '6rem' : '10rem',
-                backgroundColor: 'rgb(var(--background-rgb))',
-                color: 'rgb(var(--foreground-rgb))',
-                transition: 'background-color 0.3s ease, color 0.3s ease',
-                borderTop: '1px solid rgba(128, 127, 127, 0.16)',
-              }}
-            >
-              <Box
-                sx={{
-                  p: '3.5rem',
-                  textAlign: 'center',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                <Typography fontSize="0.55rem">
-                  Laura Butallo © {new Date().getFullYear()}
-                </Typography>
-
-                <Typography fontSize="0.55rem">
-                  Designed by <b>Cymatics Ideas</b>
-                </Typography>
-              </Box>
-            </footer>
-          </Box>
         </ThemeRegistry>
       </body>
     </html>
