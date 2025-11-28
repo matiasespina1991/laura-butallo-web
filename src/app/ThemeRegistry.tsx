@@ -4,7 +4,8 @@ import * as React from 'react';
 import { CacheProvider } from '@emotion/react';
 import createEmotionCache from './createEmotionCache';
 import { useServerInsertedHTML } from 'next/navigation';
-import { ThemeProvider, createTheme, PaletteMode } from '@mui/material/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { PaletteMode } from '@mui/material';
 
 const getDesignTokens = (mode: PaletteMode) => ({
   typography: {
@@ -103,7 +104,7 @@ export default function ThemeRegistry({
   }, [mode]);
 
   const toggleTheme = React.useCallback(() => {
-    setMode((prevMode) => {
+    setMode((prevMode: string) => {
       const newMode = prevMode === 'light' ? 'dark' : 'light';
       localStorage.setItem('themeMode', newMode);
       return newMode;
