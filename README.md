@@ -46,12 +46,5 @@ npm error Missing: jest@30.2.0 from lock file
 
 - Multilanguage
 
-- Switch dark/light
-  https://www.shadcn.io/button/theme-toggle
-
 - Menu de obras y exhibiciones como aparece acá:
   https://lucianaflorio.com/Artworks-1
-
-- Probar video (webp)
-
-- Probar imagen o video en modo preview para cuando se hace hover en un menu item.
