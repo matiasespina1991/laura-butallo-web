@@ -2,11 +2,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem 2rem;
-  min-height: calc(100vh - 13rem);
+  min-height: calc(100vh - 3rem);
+  justify-content: space-between;
 }
 
-.main.homePage {
+.main.homePage,
+.main.notFound {
   min-height: 100vh;
 }
 
@@ -17,7 +18,14 @@
 .about_me_container {
   padding-left: 0.7rem;
   padding-right: 0.7rem;
-  padding-bottom: 3rem;
+  padding-bottom: 1rem;
+}
+
+@media (max-width: 600px) {
+  .contact_page_container,
+  .about_me_container {
+    padding-bottom: 0;
+  }
 }
 
 .code {
@@ -74,12 +82,17 @@
 
 @media (max-width: 600px) {
   .main {
-    padding: 1.7rem 1.2rem;
-    min-height: calc(100vh - 20.5rem);
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
+  .main.contactPage {
+    min-height: calc(100vh - 12rem);
+    padding-bottom: 0;
   }
   .main.homePage {
     min-height: 100vh;
   }
+
   .carousel {
     gap: 12px;
   }

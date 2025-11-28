@@ -16,6 +16,7 @@ import { MinimalLeftArrowIcon } from './components/MinimalLeftArrowIcon';
 import { MinimalRightArrowIcon } from './components/MinimalRightArrowIcon';
 import ZoomableImage from './components/ZoomeableImage';
 import ZoomeableVideo from './components/ZoomeableVideo';
+import Footer from './components/Footer';
 
 function chooseVideoSources(mediaItem: Media, useMobilePriorities: boolean) {
   const s = mediaItem.paths?.derivatives || {};
@@ -319,7 +320,7 @@ export default function Home() {
       <Box
         sx={{
           height: {
-            xs: '0rem',
+            xs: '2.2rem',
             sm: '4rem',
             md: '5rem',
             lg: '5rem',
@@ -328,7 +329,7 @@ export default function Home() {
         }}
       />
       <Box
-        px={{ xs: '0rem', sm: '2rem' }}
+        px={{ xs: '1.2rem', sm: '2rem' }}
         pb={{ xs: '0rem', sm: '6rem' }}
         width="100%"
       >
@@ -604,6 +605,14 @@ export default function Home() {
             )}
         </AnimatePresence>
       </Box>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.5 }}
+        style={{ width: '100%', marginTop: '4rem' }}
+      >
+        <Footer />
+      </motion.div>
     </main>
   );
 }

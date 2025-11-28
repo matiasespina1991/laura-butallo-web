@@ -8,10 +8,6 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
 import { Stack } from '@mui/material';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemButton from '@mui/material/ListItemButton';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,14 +20,13 @@ import { ThemeContext } from '../ThemeRegistry';
 import { useThemeTransition } from '@/components/ui/shadcn-io/theme-toggle-button';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import MobileDrawer from './MobileDrawer';
 
 export default function Header() {
   // principal state/hooks (siempre en el top)
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [hasAnimated, setHasAnimated] = useState(false);
   const [worksDropdownOpen, setWorksDropdownOpen] = useState(false);
-  const [worksDrawerExpanded, setWorksDrawerExpanded] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const pathname = usePathname();
@@ -101,7 +96,6 @@ export default function Header() {
 
   useEffect(() => {
     setIsMounted(true);
-    setTimeout(() => setHasAnimated(true), 1500);
   }, []);
 
   // Synchronous measurement function
@@ -160,19 +154,6 @@ export default function Header() {
     };
   }, [worksDropdownOpen]);
 
-  // --- resto del componente ---
-  const toggleDrawer =
-    (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
-      if (
-        event.type === 'keydown' &&
-        ((event as React.KeyboardEvent).key === 'Tab' ||
-          (event as React.KeyboardEvent).key === 'Shift')
-      ) {
-        return;
-      }
-      setDrawerOpen(open);
-    };
-
   const handleBrandClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (pathname === '/') {
       e.preventDefault();
@@ -185,248 +166,6 @@ export default function Header() {
     { label: 'Caves', href: '/works?category=caves' },
     { label: 'Landscapes', href: '/works?category=landscapes' },
   ];
-
-  const drawerList = () => (
-    <Box
-      sx={{
-        width: '100vw',
-        backgroundColor: 'rgb(var(--background-rgb))',
-        color: 'rgb(var(--foreground-rgb))',
-        minHeight: '100vh',
-      }}
-      role="presentation"
-      onKeyDown={toggleDrawer(false)}
-    >
-      <List sx={{ pl: '0.5rem' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            paddingTop: '0.7rem',
-            paddingRight: '0.8rem',
-          }}
-        >
-          <IconButton
-            aria-label="close menu"
-            onClick={toggleDrawer(false)}
-            sx={{ color: 'rgb(var(--foreground-rgb))' }}
-          >
-            <MinimalCloseIcon />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ height: '2.8rem' }} />
-
-        {/* Home */}
-        <ListItemButton
-          component={NextLink}
-          href="/"
-          prefetch
-          onClick={toggleDrawer(false)}
-        >
-          <ListItemText
-            primary={
-              <Typography
-                variant="h3"
-                fontWeight="500"
-                fontFamily="Helvetica Neue, sans-serif"
-                fontSize={{
-                  xs: '36px',
-                  sm: '50px',
-                  md: '82px',
-                  lg: '82px',
-                  xl: '82px',
-                }}
-                pt={{ xs: '0.5rem', sm: '3rem' }}
-                letterSpacing="-0.04em"
-                component="div"
-                sx={{ flexGrow: 1 }}
-              >
-                Home
-              </Typography>
-            }
-          />
-        </ListItemButton>
-
-        <Box sx={{ height: '1rem' }} />
-
-        {/* Works - EXPANDIBLE */}
-        {process.env.NODE_ENV === 'development' && (
-          <>
-            <ListItemButton
-              onClick={(e) => {
-                e.preventDefault();
-                setWorksDrawerExpanded(!worksDrawerExpanded);
-              }}
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <ListItemText
-                primary={
-                  <>
-                    <Typography
-                      variant="h3"
-                      fontWeight="500"
-                      fontFamily="Helvetica Neue, sans-serif"
-                      fontSize={{
-                        xs: '36px',
-                        sm: '50px',
-                        md: '82px',
-                        lg: '82px',
-                        xl: '82px',
-                      }}
-                      pt={{ xs: '0.5rem', sm: '3rem' }}
-                      letterSpacing="-0.04em"
-                      component="div"
-                      noWrap
-                      sx={{
-                        flexGrow: 0,
-                        display: 'inline-flex',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      Works
-                    </Typography>
-                  </>
-                }
-              />
-            </ListItemButton>
-
-            {/* Submenu expandible */}
-            <AnimatePresence>
-              {worksDrawerExpanded && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Box
-                    sx={{
-                      pl: '2rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}
-                  >
-                    {worksCategoriesItems.map((item) => (
-                      <ListItemButton
-                        key={item.href}
-                        component={NextLink}
-                        href={item.href}
-                        prefetch
-                        onClick={() => {
-                          setWorksDrawerExpanded(false);
-                          setDrawerOpen(false);
-                        }}
-                      >
-                        <ListItemText
-                          primary={
-                            <Typography
-                              variant="h4"
-                              fontWeight="400"
-                              fontFamily="Helvetica Neue, sans-serif"
-                              fontSize={{
-                                xs: '24px',
-                                sm: '32px',
-                                md: '48px',
-                                lg: '48px',
-                                xl: '48px',
-                              }}
-                              letterSpacing="-0.04em"
-                              component="div"
-                              sx={{ opacity: 0.8 }}
-                            >
-                              {item.label}
-                            </Typography>
-                          }
-                        />
-                      </ListItemButton>
-                    ))}
-                  </Box>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </>
-        )}
-
-        <Box sx={{ height: '1rem' }} />
-
-        {/* About Me */}
-        <ListItemButton
-          component={NextLink}
-          href="/about-me"
-          prefetch
-          onClick={toggleDrawer(false)}
-        >
-          <ListItemText
-            primary={
-              <Typography
-                variant="h3"
-                fontWeight="500"
-                fontFamily="Helvetica Neue, sans-serif"
-                fontSize={{
-                  xs: '36px',
-                  sm: '50px',
-                  md: '82px',
-                  lg: '82px',
-                  xl: '82px',
-                }}
-                pt={{ xs: '0.5rem', sm: '3rem' }}
-                letterSpacing="-0.04em"
-                component="div"
-                noWrap
-                sx={{
-                  flexGrow: 0,
-                  display: 'inline-flex',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                About&nbsp;Me
-              </Typography>
-            }
-          />
-        </ListItemButton>
-
-        <Box sx={{ height: '1rem' }} />
-
-        {/* Contact */}
-        <ListItemButton
-          component={NextLink}
-          href="/contact"
-          prefetch
-          onClick={toggleDrawer(false)}
-        >
-          <ListItemText
-            primary={
-              <Typography
-                variant="h3"
-                fontWeight="500"
-                fontFamily="Helvetica Neue, sans-serif"
-                fontSize={{
-                  xs: '36px',
-                  sm: '50px',
-                  md: '82px',
-                  lg: '82px',
-                  xl: '82px',
-                }}
-                pt={{ xs: '0.5rem', sm: '3rem' }}
-                letterSpacing="-0.04em"
-                component="div"
-                sx={{ flexGrow: 1 }}
-              >
-                Contact
-              </Typography>
-            }
-          />
-        </ListItemButton>
-
-        <Box sx={{ height: '1rem' }} />
-      </List>
-    </Box>
-  );
 
   // Early return (seguimos manteniéndolo), pero ahora TODOS los hooks se han declarado arriba
   if (!isMounted) return null;
@@ -443,78 +182,93 @@ export default function Header() {
       }}
     >
       <motion.div
-        initial={hasAnimated ? { opacity: 1 } : { opacity: 0 }}
+        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 0.5 }}
       >
         <Toolbar
           sx={{
             height: isMobile ? '78px' : '101px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}
           variant="dense"
         >
-          <Typography
-            variant="h3"
-            fontWeight="bold"
-            fontFamily="Helvetica Neue, sans-serif"
-            pl="0.3rem"
-            pt="1.1rem"
-            color="white"
-            letterSpacing="-0.04em"
-            component="div"
-            sx={{
-              flexGrow: 1,
-
-              marginTop: isHome ? '0rem' : '0.75rem;',
-              fontSize: isHome
-                ? { xs: '36px', sm: '50px', md: '82px', lg: '82px', xl: '82px' }
-                : '20px !important',
-              ...(!isHome && { pt: '0rem !important' }),
-              transition: '0.5s',
-            }}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1.5 }}
           >
-            {!isMobile ||
-              (mode === 'dark' && (
-                <Box
-                  sx={{
-                    width: '100%',
-                    position: 'absolute',
-                    height: '100%',
-                    backdropFilter: 'blur(0.3px)',
-                    pointerEvents: 'none',
-                  }}
-                ></Box>
-              ))}
+            <Typography
+              variant="h3"
+              fontWeight="bold"
+              fontFamily="Helvetica Neue, sans-serif"
+              pl="0.3rem"
+              pt="1.1rem"
+              color="white"
+              letterSpacing="-0.04em"
+              component="div"
+              sx={{
+                flexGrow: 1,
 
-            <NextLink
-              href="/"
-              prefetch
-              onClick={handleBrandClick}
-              style={{
-                width: '100%',
-                textDecoration: 'none',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
+                marginTop: isHome ? '0rem' : '0.75rem;',
+                fontSize: isHome
+                  ? {
+                      xs: '36px',
+                      sm: '50px',
+                      md: '82px',
+                      lg: '82px',
+                      xl: '82px',
+                    }
+                  : '20px !important',
+                ...(!isHome && { pt: '0rem !important' }),
+                transition: '0.5s',
               }}
             >
-              <Box
-                component="span"
-                sx={{
-                  whiteSpace: 'pre-wrap',
-                  fontWeight: '400',
-                  overflow: 'hidden',
-                  width: isHome ? '0rem' : '1.5rem',
-                  transition: '0.5s',
-                  transitionDelay: isHome ? '0.5s' : '0.5s',
-                  fontSize: isHome ? '40px' : '20px',
+              {!isMobile ||
+                (mode === 'dark' && (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      position: 'absolute',
+                      height: '100%',
+                      backdropFilter: 'blur(0.3px)',
+                      pointerEvents: 'none',
+                    }}
+                  ></Box>
+                ))}
+
+              <NextLink
+                href="/"
+                prefetch
+                onClick={handleBrandClick}
+                style={{
+                  width: '100%',
+                  textDecoration: 'none',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
               >
-                ←{' '}
-              </Box>
-              Laura Butallo
-            </NextLink>
-          </Typography>
+                <Box
+                  component="span"
+                  sx={{
+                    whiteSpace: 'pre-wrap',
+                    fontWeight: '400',
+                    overflow: 'hidden',
+                    width: isHome ? '0rem' : '1.5rem',
+                    transition: '0.5s',
+                    transitionDelay: isHome ? '0.5s' : '0.5s',
+                    fontSize: isHome ? '40px' : '20px',
+                  }}
+                >
+                  ←{' '}
+                </Box>
+                Laura Butallo
+              </NextLink>
+            </Typography>
+          </motion.div>
 
           {isMobile ? (
             <Box
@@ -548,17 +302,15 @@ export default function Header() {
                   mr: { xs: '-0.3rem', sm: '0rem' },
                 }}
                 aria-label="menu"
-                onClick={toggleDrawer(true)}
+                onClick={() => setDrawerOpen(true)}
               >
                 <MinimalMenuIcon />
               </IconButton>
-              <Drawer
-                anchor="right"
+              <MobileDrawer
                 open={drawerOpen}
-                onClose={toggleDrawer(false)}
-              >
-                {drawerList()}
-              </Drawer>
+                onClose={() => setDrawerOpen(false)}
+                worksCategoriesItems={worksCategoriesItems}
+              />
             </Box>
           ) : (
             <Stack
