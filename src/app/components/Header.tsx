@@ -461,6 +461,8 @@ export default function Header() {
             component="div"
             sx={{
               flexGrow: 1,
+
+              marginTop: isHome ? '0rem' : '0.75rem;',
               fontSize: isHome
                 ? { xs: '36px', sm: '50px', md: '82px', lg: '82px', xl: '82px' }
                 : '20px !important',
