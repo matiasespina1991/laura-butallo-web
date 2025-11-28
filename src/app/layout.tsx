@@ -119,7 +119,7 @@ export default function RootLayout({
                 backgroundColor: 'rgb(var(--background-rgb))',
                 color: 'rgb(var(--foreground-rgb))',
                 transition: 'background-color 0.3s ease, color 0.3s ease',
-                borderTop: '1px solid rgba(128, 128, 128, 0.15)',
+                borderTop: '1px solid rgba(128, 127, 127, 0.16)',
               }}
             >
               <Box

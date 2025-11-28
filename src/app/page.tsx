@@ -327,7 +327,11 @@ export default function Home() {
           },
         }}
       />
-      <Box px={{ xs: '0rem', sm: '2rem' }} pb="6rem" width="100%">
+      <Box
+        px={{ xs: '0rem', sm: '2rem' }}
+        pb={{ xs: '0rem', sm: '6rem' }}
+        width="100%"
+      >
         {mediaSetsWithMedia.length > 0 && (
           <ScrollContainer draggable={false} className={styles.carousel}>
             {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
