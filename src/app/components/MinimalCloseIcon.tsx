@@ -18,7 +18,7 @@ export function MinimalCloseIcon(props: React.ComponentProps<typeof Box>) {
           left: '0',
           width: '100%',
           height: '1px',
-          backgroundColor: 'black',
+          backgroundColor: 'currentColor',
           transform: 'translateY(-50%) rotate(45deg)',
         }}
       />
@@ -29,7 +29,7 @@ export function MinimalCloseIcon(props: React.ComponentProps<typeof Box>) {
           left: '0',
           width: '100%',
           height: '1px',
-          backgroundColor: 'black',
+          backgroundColor: 'currentColor',
           transform: 'translateY(-50%) rotate(-45deg)',
         }}
       />

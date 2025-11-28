@@ -158,6 +158,7 @@ export default function ZoomeableImage({
     width: 'auto',
     maxWidth: '99vw',
     maxHeight,
+    borderRadius: '8px',
     height: 'auto',
     objectFit: 'contain',
     transformOrigin: `${origin.x}% ${origin.y}%`,

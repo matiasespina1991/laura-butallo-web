@@ -185,7 +185,12 @@ export default function Header() {
 
   const drawerList = () => (
     <Box
-      sx={{ width: '100vw' }}
+      sx={{
+        width: '100vw',
+        backgroundColor: 'rgb(var(--background-rgb))',
+        color: 'rgb(var(--foreground-rgb))',
+        minHeight: '100vh',
+      }}
       role="presentation"
       onKeyDown={toggleDrawer(false)}
     >
@@ -198,7 +203,11 @@ export default function Header() {
             paddingRight: '0.8rem',
           }}
         >
-          <IconButton aria-label="close menu" onClick={toggleDrawer(false)}>
+          <IconButton
+            aria-label="close menu"
+            onClick={toggleDrawer(false)}
+            sx={{ color: 'rgb(var(--foreground-rgb))' }}
+          >
             <MinimalCloseIcon />
           </IconButton>
         </Box>

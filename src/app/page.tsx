@@ -384,18 +384,6 @@ export default function Home() {
             activeMediaSetIndex !== null && (
               <motion.div
                 onClick={closeLightbox}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onTouchStart={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onTouchMove={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -421,18 +409,6 @@ export default function Home() {
                 }}
               >
                 <div
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  onTouchMove={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
                   style={{
                     position: 'absolute',
                     inset: 0,
