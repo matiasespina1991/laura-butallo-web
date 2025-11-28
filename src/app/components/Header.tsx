@@ -460,17 +460,18 @@ export default function Header() {
               transition: '0.5s',
             }}
           >
-            {!isMobile && (
-              <Box
-                sx={{
-                  width: '100%',
-                  position: 'absolute',
-                  height: '100%',
-                  backdropFilter: 'blur(0.3px)',
-                  pointerEvents: 'none',
-                }}
-              ></Box>
-            )}
+            {!isMobile ||
+              (mode === 'dark' && (
+                <Box
+                  sx={{
+                    width: '100%',
+                    position: 'absolute',
+                    height: '100%',
+                    backdropFilter: 'blur(0.3px)',
+                    pointerEvents: 'none',
+                  }}
+                ></Box>
+              ))}
 
             <NextLink
               href="/"
@@ -510,6 +511,7 @@ export default function Header() {
               }}
             >
               <IconButton
+                disableRipple
                 onClick={startTransitionFromTopRight}
                 color="inherit"
                 sx={{
@@ -525,6 +527,7 @@ export default function Header() {
                 )}
               </IconButton>
               <IconButton
+                disableRipple
                 edge="end"
                 color="inherit"
                 sx={{
@@ -554,6 +557,7 @@ export default function Header() {
               }}
             >
               <IconButton
+                disableRipple
                 onClick={startTransitionFromTopRight}
                 color="inherit"
                 aria-label={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
@@ -569,6 +573,7 @@ export default function Header() {
               {process.env.NODE_ENV === 'development' && (
                 <Box position="relative" sx={{ display: 'inline-block' }}>
                   <Button
+                    disableRipple
                     ref={worksButtonRef}
                     variant="text"
                     sx={{
@@ -578,6 +583,9 @@ export default function Header() {
                       alignItems: 'center',
                       gap: '0.35rem',
                       padding: '6px 8px',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                      },
                     }}
                     color="inherit"
                     onMouseEnter={() => {
@@ -645,12 +653,16 @@ export default function Header() {
                                 dropdownRect.height +
                                 4 +
                                 'px',
-                              backgroundColor: '#f0efefcb',
+                              backgroundColor:
+                                mode === 'dark' ? '#1a1a1ae6' : '#f0efefcb',
                               backdropFilter: 'blur(10px)',
                               borderRadius: '12px',
                               minWidth: Math.max(160, dropdownRect.width),
                               zIndex: 100,
-                              border: '1px solid rgba(0, 0, 0, 0.12)',
+                              border:
+                                mode === 'dark'
+                                  ? '1px solid rgba(128, 128, 128, 0.3)'
+                                  : '1px solid rgba(0, 0, 0, 0.12)',
                               boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                               isolation: 'isolate',
                               overflow: 'hidden',
@@ -665,6 +677,7 @@ export default function Header() {
                             >
                               {worksCategoriesItems.map((item, index) => (
                                 <Button
+                                  disableRipple
                                   key={item.href}
                                   component={NextLink}
                                   href={item.href}
@@ -672,7 +685,8 @@ export default function Header() {
                                   variant="text"
                                   color="inherit"
                                   sx={{
-                                    color: '#000000',
+                                    color:
+                                      mode === 'dark' ? '#ffffff' : '#000000',
                                     textTransform: 'unset',
                                     justifyContent: 'flex-start',
                                     px: '1.25rem',
@@ -683,10 +697,15 @@ export default function Header() {
                                     mixBlendMode: 'normal',
                                     borderBottom:
                                       index < worksCategoriesItems.length - 1
-                                        ? '1px solid rgba(0, 0, 0, 0.06)'
+                                        ? mode === 'dark'
+                                          ? '1px solid rgba(128, 128, 128, 0.2)'
+                                          : '1px solid rgba(0, 0, 0, 0.06)'
                                         : 'none',
                                     '&:hover': {
-                                      backgroundColor: 'rgba(0,0,0,0.04)',
+                                      backgroundColor:
+                                        mode === 'dark'
+                                          ? 'rgba(255,255,255,0.1)'
+                                          : 'rgba(0,0,0,0.04)',
                                     },
                                   }}
                                   onClick={() => setWorksDropdownOpen(false)}
@@ -705,11 +724,17 @@ export default function Header() {
 
               {process.env.NODE_ENV === 'development' && (
                 <Button
+                  disableRipple
                   component={NextLink}
                   href="/works"
                   prefetch
                   variant="text"
-                  sx={{ textTransform: 'unset' }}
+                  sx={{
+                    textTransform: 'unset',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                  }}
                   color="inherit"
                 >
                   <span>Exhibiciones</span>
@@ -717,22 +742,34 @@ export default function Header() {
               )}
 
               <Button
+                disableRipple
                 component={NextLink}
                 href="/about-me"
                 prefetch
                 variant="text"
-                sx={{ textTransform: 'unset' }}
+                sx={{
+                  textTransform: 'unset',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                }}
                 color="inherit"
               >
                 <span>About&nbsp;Me</span>
               </Button>
 
               <Button
+                disableRipple
                 component={NextLink}
                 href="/contact"
                 prefetch
                 variant="text"
-                sx={{ textTransform: 'unset' }}
+                sx={{
+                  textTransform: 'unset',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                }}
                 color="inherit"
               >
                 <span>Contact</span>

@@ -135,7 +135,7 @@ export default function RootLayout({
                 </Typography>
 
                 <Typography fontSize="0.6rem">
-                  Designed by <b>Cymatics Ideas</b>™
+                  Designed by <b>Cymatics Ideas</b>
                 </Typography>
               </Box>
             </footer>

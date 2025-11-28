@@ -4,11 +4,13 @@ import { Box, Button, Stack, Typography } from '@mui/material';
 import styles from '../page.module.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { getContactData } from '@/utils/functions/getContactData';
 import { ContactData } from '@/utils/types/types';
+import { ThemeContext } from '../ThemeRegistry';
 
 export default function Contact() {
+  const { mode } = useContext(ThemeContext);
   const [contactData, setContactData] = useState<ContactData>({
     contact_email: '',
     whatsapp_number: '',
@@ -86,12 +88,12 @@ export default function Contact() {
                   >
                     <img
                       src="/images/icons/arrows/arrow_contact_light.png"
-                      alt="Linktree"
+                      alt="Email"
                       style={{
                         width: '0.72em',
                         height: '0.72em',
                         marginRight: '0.3em',
-                        mixBlendMode: 'darken',
+                        filter: mode === 'dark' ? 'invert(1)' : 'none',
                       }}
                     />
                     Email
@@ -123,7 +125,7 @@ export default function Contact() {
                         width: '0.72em',
                         height: '0.72em',
                         marginRight: '0.3em',
-                        mixBlendMode: 'darken',
+                        filter: mode === 'dark' ? 'invert(1)' : 'none',
                       }}
                     />
                     Instagram
@@ -156,7 +158,7 @@ export default function Contact() {
                         width: '0.72em',
                         height: '0.72em',
                         marginRight: '0.3em',
-                        mixBlendMode: 'darken',
+                        filter: mode === 'dark' ? 'invert(1)' : 'none',
                       }}
                     />
                     Linktree
@@ -188,7 +190,7 @@ export default function Contact() {
                         width: '0.72em',
                         height: '0.72em',
                         marginRight: '0.3em',
-                        mixBlendMode: 'darken',
+                        filter: mode === 'dark' ? 'invert(1)' : 'none',
                       }}
                     />
                     Behance

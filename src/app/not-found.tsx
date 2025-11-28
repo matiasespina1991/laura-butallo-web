@@ -49,10 +49,14 @@ export default function NotFound() {
           sx={{
             padding: '0.5rem 1rem',
             width: '11rem',
-            border: '2px solid black',
+            border: '2px solid rgb(var(--foreground-rgb))',
             borderRadius: '0.5rem',
             textTransform: 'none',
             fontSize: '1rem',
+            color: 'rgb(var(--foreground-rgb))',
+            '&:hover': {
+              border: '2px solid rgb(var(--foreground-rgb))',
+            },
           }}
         >
           Back to Home

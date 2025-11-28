@@ -2,13 +2,15 @@
 
 import { Box } from '@mui/material';
 import AnimatedCursor from 'react-animated-cursor';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { isMobile } from 'react-device-detect';
+import { ThemeContext } from './ThemeRegistry';
 
 export default function CSAnimatedCursor() {
   const [hidden, setHidden] = useState(false);
   const rafRef = useRef<number | null>(null);
+  const { mode } = useContext(ThemeContext);
 
   useEffect(() => {
     if (isMobile) return; // no cursor on mobile
