@@ -226,7 +226,7 @@ export default function Header() {
               <Typography
                 variant="h3"
                 fontWeight="500"
-                fontFamily="Helvetica Neue"
+                fontFamily="Helvetica Neue, sans-serif"
                 fontSize={{
                   xs: '36px',
                   sm: '50px',
@@ -265,7 +265,7 @@ export default function Header() {
                 <Typography
                   variant="h3"
                   fontWeight="500"
-                  fontFamily="Helvetica Neue"
+                  fontFamily="Helvetica Neue, sans-serif"
                   fontSize={{
                     xs: '36px',
                     sm: '50px',
@@ -318,7 +318,7 @@ export default function Header() {
                         <Typography
                           variant="h4"
                           fontWeight="400"
-                          fontFamily="Helvetica Neue"
+                          fontFamily="Helvetica Neue, sans-serif"
                           fontSize={{
                             xs: '24px',
                             sm: '32px',
@@ -355,7 +355,7 @@ export default function Header() {
               <Typography
                 variant="h3"
                 fontWeight="500"
-                fontFamily="Helvetica Neue"
+                fontFamily="Helvetica Neue, sans-serif"
                 fontSize={{
                   xs: '36px',
                   sm: '50px',
@@ -393,7 +393,7 @@ export default function Header() {
               <Typography
                 variant="h3"
                 fontWeight="500"
-                fontFamily="Helvetica Neue"
+                fontFamily="Helvetica Neue, sans-serif"
                 fontSize={{
                   xs: '36px',
                   sm: '50px',
@@ -445,7 +445,7 @@ export default function Header() {
           <Typography
             variant="h3"
             fontWeight="bold"
-            fontFamily="Helvetica Neue"
+            fontFamily="Helvetica Neue, sans-serif"
             pl="0.3rem"
             pt="1.1rem"
             color="white"
