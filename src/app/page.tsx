@@ -91,7 +91,7 @@ function MediaItem({
 
   const handleVideoLoaded = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const t = e.currentTarget;
-    console.log('[MediaItem] video loaded', m.id, t.videoWidth, t.videoHeight);
+
     setLoaded(true);
   };
 

@@ -1,6 +1,5 @@
 // app/layout.tsx
 import './globals.css';
-import { Inter } from 'next/font/google';
 import type { Metadata } from 'next';
 import Header from './components/Header';
 import ThemeRegistry from './ThemeRegistry';
@@ -11,8 +10,6 @@ import dynamic from 'next/dynamic';
 const CSAnimatedCursor = dynamic(() => import('./CSAnimatedCursor'), {
   ssr: false,
 });
-
-const inter = Inter({ subsets: ['latin'] });
 
 const SITE_URL =
   'https://laura-butallo-web-backend--laura-butallo-web.us-central1.hosted.app/';
@@ -106,7 +103,7 @@ export default function RootLayout({
         <link rel="manifest" href="/site.webmanifest" />
       </head>
 
-      <body className={inter.className}>
+      <body>
         {!isMobile && <CSAnimatedCursor />}
         <ThemeRegistry>
           <Header />

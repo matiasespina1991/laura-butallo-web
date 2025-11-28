@@ -438,6 +438,7 @@ export default function Header() {
             fontWeight="bold"
             fontFamily="Helvetica Neue"
             pl="0.3rem"
+            pt="1.1rem"
             color="white"
             letterSpacing="-0.04em"
             component="div"
@@ -536,148 +537,156 @@ export default function Header() {
               </IconButton>
               {!isMobile ? null : <BurgerIcon />}
 
-              <Box position="relative" sx={{ display: 'inline-block' }}>
-                <Button
-                  ref={worksButtonRef}
-                  variant="text"
-                  sx={{
-                    textTransform: 'unset',
-                    whiteSpace: 'nowrap',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    padding: '6px 8px',
-                  }}
-                  color="inherit"
-                  onMouseEnter={() => {
-                    // medir justo antes de abrir para que la posición sea correcta
-                    updateDropdownRect();
-                    setWorksDropdownOpen(true);
-                  }}
-                  onMouseLeave={() => {
-                    setTimeout(() => {
-                      const isOverPortal = Boolean(
-                        portalRef.current &&
-                          typeof (portalRef.current as Element).matches ===
-                            'function' &&
-                          (portalRef.current as Element).matches(':hover')
-                      );
-                      if (!isOverPortal) setWorksDropdownOpen(false);
-                    }, 50);
-                  }}
-                  onClick={() => {
-                    // si vamos a abrir, medir primero para tener coords correctas
-                    if (!worksDropdownOpen) {
-                      updateDropdownRect();
-                      // for a tiny delay to ensure state updated before painting (optional)
-                      setTimeout(() => setWorksDropdownOpen(true), 0);
-                    } else {
-                      setWorksDropdownOpen(false);
-                    }
-                  }}
-                >
-                  Works
-                  <span
-                    style={{
-                      fontSize: '0.59rem',
-                      transform: worksDropdownOpen
-                        ? 'rotate(180deg)'
-                        : 'rotate(0deg)',
-                      transition: 'transform 0.3s ease',
+              {process.env.NODE_ENV === 'development' && (
+                <Box position="relative" sx={{ display: 'inline-block' }}>
+                  <Button
+                    ref={worksButtonRef}
+                    variant="text"
+                    sx={{
+                      textTransform: 'unset',
+                      whiteSpace: 'nowrap',
                       display: 'inline-flex',
                       alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '6px 8px',
+                    }}
+                    color="inherit"
+                    onMouseEnter={() => {
+                      // medir justo antes de abrir para que la posición sea correcta
+                      updateDropdownRect();
+                      setWorksDropdownOpen(true);
+                    }}
+                    onMouseLeave={() => {
+                      setTimeout(() => {
+                        const isOverPortal = Boolean(
+                          portalRef.current &&
+                            typeof (portalRef.current as Element).matches ===
+                              'function' &&
+                            (portalRef.current as Element).matches(':hover')
+                        );
+                        if (!isOverPortal) setWorksDropdownOpen(false);
+                      }, 50);
+                    }}
+                    onClick={() => {
+                      // si vamos a abrir, medir primero para tener coords correctas
+                      if (!worksDropdownOpen) {
+                        updateDropdownRect();
+                        // for a tiny delay to ensure state updated before painting (optional)
+                        setTimeout(() => setWorksDropdownOpen(true), 0);
+                      } else {
+                        setWorksDropdownOpen(false);
+                      }
                     }}
                   >
-                    ▼
-                  </span>
-                </Button>
+                    Works
+                    <span
+                      style={{
+                        fontSize: '0.59rem',
+                        transform: worksDropdownOpen
+                          ? 'rotate(180deg)'
+                          : 'rotate(0deg)',
+                        transition: 'transform 0.3s ease',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      ▼
+                    </span>
+                  </Button>
 
-                {/* Dropdown renderizado en portal — fondo BLANCO y textos NEGROS */}
-                {isMounted &&
-                  dropdownRect &&
-                  createPortal(
-                    <AnimatePresence>
-                      {worksDropdownOpen && (
-                        <motion.div
-                          ref={portalRef}
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.18 }}
-                          onMouseEnter={() => setWorksDropdownOpen(true)}
-                          onMouseLeave={() => setWorksDropdownOpen(false)}
-                          style={{
-                            position: 'fixed',
-                            left: Math.max(8, dropdownRect.left) + 'px',
-                            top:
-                              dropdownRect.top + dropdownRect.height + 4 + 'px',
-                            backgroundColor: '#f0efefcb',
-                            backdropFilter: 'blur(10px)',
-                            borderRadius: '12px',
-                            minWidth: Math.max(160, dropdownRect.width),
-                            zIndex: 100,
-                            border: '1px solid rgba(0, 0, 0, 0.12)',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                            isolation: 'isolate',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              flexDirection: 'column',
+                  {/* Dropdown renderizado en portal — fondo BLANCO y textos NEGROS */}
+                  {isMounted &&
+                    dropdownRect &&
+                    createPortal(
+                      <AnimatePresence>
+                        {worksDropdownOpen && (
+                          <motion.div
+                            ref={portalRef}
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.18 }}
+                            onMouseEnter={() => setWorksDropdownOpen(true)}
+                            onMouseLeave={() => setWorksDropdownOpen(false)}
+                            style={{
+                              position: 'fixed',
+                              left: Math.max(8, dropdownRect.left) + 'px',
+                              top:
+                                dropdownRect.top +
+                                dropdownRect.height +
+                                4 +
+                                'px',
+                              backgroundColor: '#f0efefcb',
+                              backdropFilter: 'blur(10px)',
+                              borderRadius: '12px',
+                              minWidth: Math.max(160, dropdownRect.width),
+                              zIndex: 100,
+                              border: '1px solid rgba(0, 0, 0, 0.12)',
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                               isolation: 'isolate',
+                              overflow: 'hidden',
                             }}
                           >
-                            {worksCategoriesItems.map((item, index) => (
-                              <Button
-                                key={item.href}
-                                component={NextLink}
-                                href={item.href}
-                                prefetch
-                                variant="text"
-                                color="inherit"
-                                sx={{
-                                  color: '#000000',
-                                  textTransform: 'unset',
-                                  justifyContent: 'flex-start',
-                                  px: '1.25rem',
-                                  py: '0.65rem',
-                                  fontSize: '0.9rem',
-                                  transition: 'background-color 0.18s ease',
-                                  isolation: 'isolate',
-                                  mixBlendMode: 'normal',
-                                  borderBottom:
-                                    index < worksCategoriesItems.length - 1
-                                      ? '1px solid rgba(0, 0, 0, 0.06)'
-                                      : 'none',
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(0,0,0,0.04)',
-                                  },
-                                }}
-                                onClick={() => setWorksDropdownOpen(false)}
-                              >
-                                {item.label}
-                              </Button>
-                            ))}
-                          </Box>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>,
-                    document.body
-                  )}
-              </Box>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                isolation: 'isolate',
+                              }}
+                            >
+                              {worksCategoriesItems.map((item, index) => (
+                                <Button
+                                  key={item.href}
+                                  component={NextLink}
+                                  href={item.href}
+                                  prefetch
+                                  variant="text"
+                                  color="inherit"
+                                  sx={{
+                                    color: '#000000',
+                                    textTransform: 'unset',
+                                    justifyContent: 'flex-start',
+                                    px: '1.25rem',
+                                    py: '0.65rem',
+                                    fontSize: '0.9rem',
+                                    transition: 'background-color 0.18s ease',
+                                    isolation: 'isolate',
+                                    mixBlendMode: 'normal',
+                                    borderBottom:
+                                      index < worksCategoriesItems.length - 1
+                                        ? '1px solid rgba(0, 0, 0, 0.06)'
+                                        : 'none',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(0,0,0,0.04)',
+                                    },
+                                  }}
+                                  onClick={() => setWorksDropdownOpen(false)}
+                                >
+                                  {item.label}
+                                </Button>
+                              ))}
+                            </Box>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>,
+                      document.body
+                    )}
+                </Box>
+              )}
 
-              <Button
-                component={NextLink}
-                href="/works"
-                prefetch
-                variant="text"
-                sx={{ textTransform: 'unset' }}
-                color="inherit"
-              >
-                <span>Exhibiciones</span>
-              </Button>
+              {process.env.NODE_ENV === 'development' && (
+                <Button
+                  component={NextLink}
+                  href="/works"
+                  prefetch
+                  variant="text"
+                  sx={{ textTransform: 'unset' }}
+                  color="inherit"
+                >
+                  <span>Exhibiciones</span>
+                </Button>
+              )}
+
               <Button
                 component={NextLink}
                 href="/about-me"
