@@ -115,7 +115,7 @@ export default function RootLayout({
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '10rem',
+                height: isMobile ? '6rem' : '10rem',
                 backgroundColor: 'rgb(var(--background-rgb))',
                 color: 'rgb(var(--foreground-rgb))',
                 transition: 'background-color 0.3s ease, color 0.3s ease',
@@ -130,11 +130,11 @@ export default function RootLayout({
                   flexDirection: 'column',
                 }}
               >
-                <Typography fontSize="0.6rem">
+                <Typography fontSize="0.55rem">
                   Laura Butallo © {new Date().getFullYear()}
                 </Typography>
 
-                <Typography fontSize="0.6rem">
+                <Typography fontSize="0.55rem">
                   Designed by <b>Cymatics Ideas</b>
                 </Typography>
               </Box>
