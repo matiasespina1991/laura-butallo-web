@@ -199,6 +199,10 @@ export default function Header() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.5 }}
+            style={{
+              WebkitTransform: 'translateZ(0)',
+              transform: 'translateZ(0)',
+            }}
           >
             <Typography
               variant="h3"
@@ -211,7 +215,8 @@ export default function Header() {
               component="div"
               sx={{
                 flexGrow: 1,
-
+                WebkitTransform: 'translateZ(0)',
+                transform: 'translateZ(0)',
                 marginTop: isHome ? '0rem' : '0.75rem;',
                 fontSize: isHome
                   ? {
@@ -249,6 +254,8 @@ export default function Header() {
                   color: 'white',
                   display: 'flex',
                   alignItems: 'center',
+                  WebkitTransform: 'translateZ(0)',
+                  transform: 'translateZ(0)',
                 }}
               >
                 <Box
@@ -261,6 +268,8 @@ export default function Header() {
                     transition: '0.5s',
                     transitionDelay: isHome ? '0.5s' : '0.5s',
                     fontSize: isHome ? '40px' : '20px',
+                    WebkitTransform: 'translateZ(0)',
+                    transform: 'translateZ(0)',
                   }}
                 >
                   ←{' '}

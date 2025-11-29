@@ -76,8 +76,9 @@
 
 .backButton:hover {
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.86);
-  color: white;
+  background-color: var(--button-hover-bg);
+  color: var(--button-hover-text);
+  border: 2px solid var(--button-hover-bg);
 }
 
 @media (max-width: 600px) {

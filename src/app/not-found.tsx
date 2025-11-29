@@ -53,17 +53,15 @@ export default function NotFound() {
           <Button
             variant="outlined"
             href="/"
+            className={styles.backButton}
             sx={{
               padding: '0.5rem 1rem',
               width: '11rem',
-              border: '2px solid rgb(var(--foreground-rgb))',
+              border: '2px solid var(--foreground)',
               borderRadius: '0.5rem',
               textTransform: 'none',
               fontSize: '1rem',
-              color: 'rgb(var(--foreground-rgb))',
-              '&:hover': {
-                border: '2px solid rgb(var(--foreground-rgb))',
-              },
+              color: 'var(--foreground)',
             }}
           >
             Back to Home
