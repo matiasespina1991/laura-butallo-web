@@ -104,7 +104,7 @@ export default function MobileDrawer({
 
                 {/* Home */}
                 <motion.div
-                  initial={{ opacity: 0, y: -5, filter: 'blur(5px)' }}
+                  initial={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                   transition={{ duration: 0.4, delay: 0, ease: 'easeOut' }}
                 >
@@ -144,7 +144,7 @@ export default function MobileDrawer({
                   <>
                     <Box sx={{ height: '1rem' }} />
                     <motion.div
-                      initial={{ opacity: 0, y: -5, filter: 'blur(5px)' }}
+                      initial={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
                       animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                       transition={{
                         duration: 0.4,
@@ -251,7 +251,7 @@ export default function MobileDrawer({
 
                 {/* About Me */}
                 <motion.div
-                  initial={{ opacity: 0, y: -5, filter: 'blur(5px)' }}
+                  initial={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                   transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
                 >
@@ -295,7 +295,7 @@ export default function MobileDrawer({
 
                 {/* Contact */}
                 <motion.div
-                  initial={{ opacity: 0, y: -5, filter: 'blur(5px)' }}
+                  initial={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                   transition={{ duration: 0.4, delay: 0.3, ease: 'easeOut' }}
                 >
