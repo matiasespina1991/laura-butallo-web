@@ -5,9 +5,10 @@ export function MinimalCloseIcon(props: React.ComponentProps<typeof Box>) {
     <Box
       {...props}
       sx={{
-        width: '2.4rem',
-        height: '2.4rem',
+        width: '2.3rem',
+        height: '2.2rem',
         position: 'relative',
+
         ...props.sx,
       }}
     >
