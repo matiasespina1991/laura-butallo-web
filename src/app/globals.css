@@ -50,15 +50,11 @@
     'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
   --foreground: oklch(0% 0 0);
   --background: oklch(93% 0 0);
-  --button-hover-bg: rgba(0, 0, 0, 0.86);
-  --button-hover-text: white;
 }
 
 :root.dark {
   --foreground: oklch(100% 0 0);
   --background: oklch(20% 0 0);
-  --button-hover-bg: rgba(255, 255, 255, 0.86);
-  --button-hover-text: black;
 }
 
 * {

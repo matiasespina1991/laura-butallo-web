@@ -209,11 +209,14 @@ export default function Header() {
               fontWeight="bold"
               fontFamily="Helvetica Neue, sans-serif"
               pl="0.3rem"
-              pt="1.1rem"
               color="white"
               letterSpacing="-0.04em"
               component="div"
               sx={{
+                pt: {
+                  xl: '1.6rem',
+                  xs: '1.1rem',
+                },
                 flexGrow: 1,
                 WebkitTransform: 'translateZ(0)',
                 transform: 'translateZ(0)',
