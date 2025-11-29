@@ -115,14 +115,9 @@ function MediaItem({
       >
         <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
           <NextImage
-            onContextMenu={(e) => e.preventDefault()}
             draggable={false}
             width={600}
             height={600}
-            onContextMenuCapture={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
             onLoad={handleImageLoad as any}
             style={{
               userSelect: 'none',
@@ -356,6 +351,7 @@ export default function Home() {
                   {setWithMedia.media.length > 0 && (
                     <Box>
                       <Grid
+                        className="media-grid"
                         sx={{
                           display: 'grid',
                           gridTemplateColumns: `repeat(${columns}, 1fr)`,

@@ -65,6 +65,19 @@ export default function CSAnimatedCursor() {
           outerScale={2}
           outerAlpha={0}
           trailingSpeed={5}
+          clickables={[
+            'a',
+            'button',
+            'input[type="text"]',
+            'input[type="email"]',
+            'input[type="number"]',
+            'input[type="submit"]',
+            'label[for]',
+            'select',
+            'textarea',
+            '.media-grid img',
+            '.media-grid video',
+          ]}
           innerStyle={{
             backgroundColor: 'white',
             filter: 'opacity(0.9)',
