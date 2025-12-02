@@ -1,0 +1,11 @@
+runConfig:
+  # overrides for dev environment
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 5
+
+env:
+  - variable: NEXT_PUBLIC_DEPLOY_ENV
+    value: dev
+    availability:
+      - BUILD
