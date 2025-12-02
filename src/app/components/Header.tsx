@@ -161,6 +161,10 @@ export default function Header() {
     }
   };
 
+  const isDevBranch =
+    process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF === 'dev' ||
+    process.env.NODE_ENV === 'development';
+
   const worksCategoriesItems = [
     { label: 'All', href: '/works' },
     { label: 'Caves', href: '/works?category=caves' },
@@ -347,7 +351,7 @@ export default function Header() {
               </IconButton>
               {!isMobile ? null : <BurgerIcon />}
 
-              {process.env.NODE_ENV === 'development' && (
+              {isDevBranch && (
                 <Box position="relative" sx={{ display: 'inline-block' }}>
                   <Button
                     disableRipple
@@ -512,7 +516,7 @@ export default function Header() {
                 </Box>
               )}
 
-              {process.env.NODE_ENV === 'development' && (
+              {isDevBranch && (
                 <Button
                   disableRipple
                   component={NextLink}

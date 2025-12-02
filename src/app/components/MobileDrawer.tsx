@@ -17,6 +17,10 @@ interface MobileDrawerProps {
   worksCategoriesItems: Array<{ label: string; href: string }>;
 }
 
+const isDevBranch =
+  process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF === 'dev' ||
+  process.env.NODE_ENV === 'development';
+
 export default function MobileDrawer({
   open,
   onClose,
@@ -140,7 +144,7 @@ export default function MobileDrawer({
                 </motion.div>
 
                 {/* Works - EXPANDIBLE */}
-                {process.env.NODE_ENV === 'development' && (
+                {isDevBranch && (
                   <>
                     <Box sx={{ height: '1rem' }} />
                     <motion.div
