@@ -22,6 +22,10 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import MobileDrawer from './MobileDrawer';
 
+const isDevBranch =
+  process.env.NEXT_PUBLIC_DEPLOY_ENV === 'dev' ||
+  process.env.NODE_ENV === 'development';
+
 export default function Header() {
   // principal state/hooks (siempre en el top)
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -96,6 +100,7 @@ export default function Header() {
 
   useEffect(() => {
     setIsMounted(true);
+    console.log(process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REFs);
   }, []);
 
   // Synchronous measurement function
@@ -160,10 +165,6 @@ export default function Header() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
-
-  const isDevBranch =
-    process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF === 'dev' ||
-    process.env.NODE_ENV === 'development';
 
   const worksCategoriesItems = [
     { label: 'All', href: '/works' },
