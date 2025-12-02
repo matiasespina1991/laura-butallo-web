@@ -30,7 +30,6 @@ export default function Contact() {
 
   useEffect(() => {
     fetchContactData();
-    document.title = 'Laura Butallo | Contact';
   }, []);
 
   return (

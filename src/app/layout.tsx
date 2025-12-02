@@ -20,7 +20,10 @@ const DESCRIPTION =
   'Laura Butallo a.k.a Aura is an Argentinean digital artist, dedicated to the creation of abstract 3D ecosystems. She fuses colours, textures and shapes to create dreamlike and fluid worlds, where there is no human presence. Aura is also a DJ and multimedia designer. Currently she is also experimenting with artificial intelligence to push the limits of her worlds and magical caves.';
 
 export const metadata: Metadata = {
-  title: SITE_NAME,
+  title: {
+    default: `${SITE_NAME} | Home`,
+    template: `${SITE_NAME} | %s`,
+  },
   description: DESCRIPTION,
   applicationName: SITE_NAME,
   authors: [{ name: 'Laura Butallo' }],
@@ -111,7 +114,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#ededed" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
