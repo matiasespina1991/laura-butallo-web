@@ -35,6 +35,7 @@ export default function AboutMe() {
 
   useEffect(() => {
     fetchAboutMeData();
+    document.title = 'Laura Butallo | About Me';
   }, []);
 
   return (

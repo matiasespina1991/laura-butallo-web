@@ -310,6 +310,10 @@ export default function Home() {
     }
   }, [lightboxOpen, handleNextMedia, handlePreviousMedia]);
 
+  useEffect(() => {
+    document.title = 'Laura Butallo | Home';
+  }, []);
+
   return (
     <main className={`${styles.main} ${styles.homePage}`}>
       <Box

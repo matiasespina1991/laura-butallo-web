@@ -15,6 +15,10 @@ import {
 } from '@mui/material';
 
 export default function NotFound() {
+  useEffect(() => {
+    document.title = 'Laura Butallo | 404';
+  }, []);
+
   return (
     <main className={`${styles.main} ${styles.notFound}`}>
       <Box
