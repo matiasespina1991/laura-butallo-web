@@ -13,6 +13,8 @@ type Props = {
   muted?: boolean;
   autoPlay?: boolean;
   switchToHighOnZoom?: boolean;
+  onLowSrcError?: () => void;
+  onHighSrcError?: () => void;
 };
 
 export default function ZoomeableVideo({
@@ -26,6 +28,8 @@ export default function ZoomeableVideo({
   muted = true,
   autoPlay = true,
   switchToHighOnZoom = true,
+  onLowSrcError,
+  onHighSrcError,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -121,6 +125,14 @@ export default function ZoomeableVideo({
     setZoomed(false);
     setOrigin({ x: 50, y: 50 });
   }, []);
+
+  const handleVideoError = useCallback(() => {
+    if (zoomed) {
+      onHighSrcError?.();
+    } else {
+      onLowSrcError?.();
+    }
+  }, [zoomed, onHighSrcError, onLowSrcError]);
 
   const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(
     null
@@ -294,9 +306,10 @@ export default function ZoomeableVideo({
         onClick={handleClick}
         onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onDragStart={(e) => e.preventDefault()}
-        style={videoStyle}
+      onTouchMove={handleTouchMove}
+      onDragStart={(e) => e.preventDefault()}
+      onError={handleVideoError}
+      style={videoStyle}
       />
     </div>
   );

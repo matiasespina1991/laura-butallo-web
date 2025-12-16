@@ -10,6 +10,8 @@ type Props = {
   maxHeight?: string;
   className?: string;
   switchToHighOnZoom?: boolean;
+  onLowSrcError?: () => void;
+  onHighSrcError?: () => void;
 };
 
 export default function ZoomeableImage({
@@ -20,6 +22,8 @@ export default function ZoomeableImage({
   maxHeight = '80vh',
   className,
   switchToHighOnZoom = true,
+  onLowSrcError,
+  onHighSrcError,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -145,13 +149,14 @@ export default function ZoomeableImage({
     };
     pre.onerror = () => {
       canceled = true;
+      onHighSrcError?.();
     };
     pre.src = highSrc;
 
     return () => {
       canceled = true;
     };
-  }, [zoomed, highSrc, lowSrc, switchToHighOnZoom]);
+  }, [zoomed, highSrc, lowSrc, switchToHighOnZoom, onHighSrcError]);
 
   const imgStyle: React.CSSProperties = {
     display: 'block',
@@ -206,6 +211,7 @@ export default function ZoomeableImage({
         onTouchMove={handleTouchMove}
         style={imgStyle}
         onDragStart={(e) => e.preventDefault()}
+        onError={onLowSrcError}
       />
     </div>
   );

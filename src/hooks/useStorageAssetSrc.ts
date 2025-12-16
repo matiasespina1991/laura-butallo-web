@@ -1,0 +1,94 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AssetFile } from '@/utils/types/media';
+import {
+  buildStorageUrl,
+  clearCachedSignedUrl,
+  getCachedSignedUrl,
+  resolveSignedUrl,
+} from '@/utils/storage/assetUrl';
+
+type Mode = 'none' | 'storage' | 'signed';
+
+export function useStorageAssetSrc(asset?: AssetFile | null) {
+  const storagePath = asset?.storagePath ?? '';
+  const storageUrl = useMemo(
+    () => buildStorageUrl(storagePath) || '',
+    [storagePath]
+  );
+  const cachedSigned = useMemo(
+    () => (storagePath ? getCachedSignedUrl(storagePath) : null),
+    [storagePath]
+  );
+  const initialSrc = cachedSigned || storageUrl;
+
+  const [src, setSrc] = useState(initialSrc);
+  const [mode, setMode] = useState<Mode>(() => {
+    if (!storagePath) return 'none';
+    return cachedSigned ? 'signed' : 'storage';
+  });
+
+  const triedSignedRef = useRef<boolean>(Boolean(cachedSigned));
+  const resolvingRef = useRef<Promise<void> | null>(null);
+
+  useEffect(() => {
+    setSrc(initialSrc);
+    if (!storagePath) {
+      setMode('none');
+    } else {
+      setMode(cachedSigned ? 'signed' : 'storage');
+    }
+    triedSignedRef.current = Boolean(cachedSigned);
+  }, [initialSrc, storagePath, cachedSigned]);
+
+  const attemptSigned = useCallback(async () => {
+    if (!storagePath) return;
+    if (resolvingRef.current) return resolvingRef.current;
+    const promise = (async () => {
+      triedSignedRef.current = true;
+      try {
+        const signedUrl = await resolveSignedUrl(storagePath);
+        setSrc(signedUrl);
+        setMode('signed');
+      } catch (err) {
+        console.error(
+          '[useStorageAssetSrc] Signed URL resolution failed',
+          storagePath,
+          err
+        );
+        clearCachedSignedUrl(storagePath);
+        setSrc(storageUrl);
+        setMode(storageUrl ? 'storage' : 'none');
+        triedSignedRef.current = false;
+      } finally {
+        resolvingRef.current = null;
+      }
+    })();
+    resolvingRef.current = promise;
+    return promise;
+  }, [storagePath, storageUrl]);
+
+  const handleError = useCallback(() => {
+    if (!storagePath) return;
+    if (mode === 'storage') {
+      if (triedSignedRef.current) {
+        return;
+      }
+      attemptSigned();
+    } else if (mode === 'signed') {
+      clearCachedSignedUrl(storagePath);
+      triedSignedRef.current = false;
+      setSrc(storageUrl);
+      setMode(storageUrl ? 'storage' : 'none');
+    }
+  }, [attemptSigned, mode, storagePath, storageUrl]);
+
+  return {
+    src,
+    usingSignedUrl: mode === 'signed',
+    hasSource: Boolean(src),
+    handleError,
+    forceSigned: attemptSigned,
+  };
+}

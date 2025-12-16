@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styles from './page.module.css';
 import { MediaSet } from '@/utils/types/mediaset';
 import { Media } from '@/utils/types/media';
@@ -16,47 +16,9 @@ import { MinimalLeftArrowIcon } from './components/MinimalLeftArrowIcon';
 import { MinimalRightArrowIcon } from './components/MinimalRightArrowIcon';
 import ZoomableImage from './components/ZoomeableImage';
 import ZoomeableVideo from './components/ZoomeableVideo';
+import { selectImageAssets, selectVideoAssets } from '@/utils/media/assetSelectors';
+import { useStorageAssetSrc } from '@/hooks/useStorageAssetSrc';
 import Footer from './components/Footer';
-
-function chooseVideoSources(mediaItem: Media, useMobilePriorities: boolean) {
-  const s = mediaItem.paths?.derivatives || {};
-  const v360 = s.webm_360?.downloadURL || '';
-  const v720 = s.webm_720?.downloadURL || '';
-  const v1080 = s.webm_1080?.downloadURL || '';
-
-  let lowSrc = '';
-  let highSrc = '';
-
-  if (useMobilePriorities) {
-    lowSrc = v360 || v720 || v1080;
-    highSrc = v720 || v1080 || v360;
-  } else {
-    lowSrc = v720 || v1080 || v360;
-    highSrc = v1080 || v720 || v360;
-  }
-
-  return { lowSrc, highSrc };
-}
-
-function chooseImageSources(mediaItem: Media, useMobilePriorities: boolean) {
-  const s = mediaItem.paths?.derivatives || {};
-  const webp360 = s.webp_360?.downloadURL || s.webp_small?.downloadURL || '';
-  const webp720 = s.webp_720?.downloadURL || s.webp_medium?.downloadURL || '';
-  const webp1080 = s.webp_1080?.downloadURL || s.webp_large?.downloadURL || '';
-  const original = mediaItem.paths?.original?.downloadURL || '';
-
-  let lowSrc = '';
-  let highSrc = '';
-
-  if (useMobilePriorities) {
-    lowSrc = webp720 || webp1080 || original;
-    highSrc = webp720 || webp1080 || webp360 || original;
-  } else {
-    lowSrc = webp720 || webp1080 || webp360 || original;
-    highSrc = webp1080 || webp720 || webp360 || original;
-  }
-  return { lowSrc, highSrc };
-}
 
 type MediaWithHandlers = {
   m: Media;
@@ -70,113 +32,202 @@ type MediaWithHandlers = {
   mediaArray: Media[];
 };
 
-function MediaItem({
+function MediaItem(props: MediaWithHandlers) {
+  if (props.m.type === 'image') {
+    return <ImageGridItem {...props} />;
+  }
+  return <VideoGridItem {...props} />;
+}
+
+function ImageGridItem({
   m,
   index,
   setIndex,
   openLightbox,
   mediaArray,
 }: MediaWithHandlers) {
-  const [loaded, setLoaded] = useState<boolean>(false);
+  const [loaded, setLoaded] = useState(false);
+  const isMobileDevice = isMobile;
 
   useEffect(() => {
     setLoaded(false);
-  }, [
-    m.paths?.derivatives?.webp_medium?.downloadURL,
-    m.paths?.derivatives?.webm_720?.downloadURL,
-  ]);
+  }, [m.id]);
+
+  const sources = useMemo(
+    () => selectImageAssets(m, isMobileDevice),
+    [m, isMobileDevice]
+  );
+  const lowImage = useStorageAssetSrc(sources.low ?? sources.original);
 
   const handleImageLoad = () => {
     setLoaded(true);
   };
 
-  const handleVideoLoaded = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const t = e.currentTarget;
+  const handleImageError = () => {
+    lowImage.handleError();
+  };
 
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.985 }}
+      animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
+      transition={{ delay: 0.9 + setIndex * 0.5, duration: 1.1 }}
+    >
+      <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
+        <NextImage
+          draggable={false}
+          width={600}
+          height={600}
+          onLoad={handleImageLoad as any}
+          style={{
+            userSelect: 'none',
+            display: 'block',
+            borderRadius: isMobileDevice ? '8px' : '10px',
+          }}
+          src={lowImage.src || ''}
+          onError={handleImageError}
+          onClick={() => openLightbox(mediaArray, index, setIndex)}
+          alt={'Media'}
+          className={styles.photoSetImage}
+          priority={false}
+        />
+      </Box>
+    </motion.div>
+  );
+}
+
+function VideoGridItem({
+  m,
+  index,
+  setIndex,
+  openLightbox,
+  mediaArray,
+}: MediaWithHandlers) {
+  const [loaded, setLoaded] = useState(false);
+  const isMobileDevice = isMobile;
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [m.id]);
+
+  const sources = useMemo(
+    () => selectVideoAssets(m, isMobileDevice),
+    [m, isMobileDevice]
+  );
+  const videoSource = useStorageAssetSrc(sources.low);
+  const posterSource = useStorageAssetSrc(sources.poster);
+
+  const handleVideoLoaded = () => {
     setLoaded(true);
   };
 
-  const handleVideoError = (e: any) => {
+  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     console.error('[MediaItem] video error', m.id, e);
-    setLoaded(true);
+    videoSource.handleError();
   };
 
-  // choose thumbnail / preview source using same philosophy: low for mobile, medium/720 for desktop
-  const isMobileDevice = isMobile; // from react-device-detect
-  if (m.type === 'image') {
-    const { lowSrc } = chooseImageSources(m, isMobileDevice);
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.985 }}
-        animate={
-          loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }
-        }
-        transition={{ delay: 0.9 + setIndex * 0.5, duration: 1.1 }}
-      >
-        <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
-          <NextImage
-            draggable={false}
-            width={600}
-            height={600}
-            onLoad={handleImageLoad as any}
-            style={{
-              userSelect: 'none',
-              display: 'block',
-              borderRadius: isMobileDevice ? '8px' : '10px',
-            }}
-            src={lowSrc || ''}
-            onClick={() => openLightbox(mediaArray, index, setIndex)}
-            alt={'Media'}
-            className={styles.photoSetImage}
-            priority={false}
-          />
-        </Box>
-      </motion.div>
-    );
-  } else {
-    const { lowSrc } = chooseVideoSources(m, isMobileDevice);
-    const posterSrc =
-      m.paths?.poster?.downloadURL ||
-      lowSrc ||
-      m.paths?.derivatives?.webp_medium?.downloadURL ||
-      '';
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.985 }}
+      animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
+      transition={{ delay: 0.9 + setIndex * 0.5, duration: 1.1 }}
+    >
+      <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
+        <video
+          width="100%"
+          height="100%"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          poster={posterSource.src || undefined}
+          onLoadedData={handleVideoLoaded}
+          onError={handleVideoError}
+          style={{
+            objectFit: 'cover',
+            width: '100%',
+            height: '100%',
+            display: 'block',
+            borderRadius: isMobileDevice ? '8px' : '10px',
+          }}
+          onClick={() => openLightbox(mediaArray, index, setIndex)}
+        >
+          <source src={videoSource.src || ''} type="video/webm" />
+          Your browser does not support video.
+        </video>
+      </Box>
+    </motion.div>
+  );
+}
 
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.985 }}
-        animate={
-          loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }
-        }
-        transition={{ delay: 0.9 + setIndex * 0.5, duration: 1.1 }}
-      >
-        <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
-          <video
-            width="100%"
-            height="100%"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            poster={posterSrc || undefined}
-            onLoadedData={handleVideoLoaded}
-            onError={handleVideoError}
-            style={{
-              objectFit: 'cover',
-              width: '100%',
-              height: '100%',
-              display: 'block',
-              borderRadius: isMobileDevice ? '8px' : '10px',
-            }}
-            onClick={() => openLightbox(mediaArray, index, setIndex)}
-          >
-            <source src={lowSrc || ''} type="video/webm" />
-            Your browser does not support video.
-          </video>
-        </Box>
-      </motion.div>
-    );
+type LightboxMediaProps = {
+  media: Media;
+  isMobileQuery: boolean;
+  isMobileDevice: boolean;
+};
+
+function LightboxMediaContent(props: LightboxMediaProps) {
+  if (props.media.type === 'image') {
+    return <LightboxImageContent {...props} />;
   }
+  return <LightboxVideoContent {...props} />;
+}
+
+function LightboxImageContent({
+  media,
+  isMobileQuery,
+  isMobileDevice,
+}: LightboxMediaProps) {
+  const sources = useMemo(
+    () => selectImageAssets(media, isMobileDevice),
+    [media, isMobileDevice]
+  );
+  const lowImage = useStorageAssetSrc(sources.low ?? sources.original);
+  const highImage = useStorageAssetSrc(sources.high ?? sources.original);
+
+  return (
+    <ZoomableImage
+      className="auto-cursor"
+      lowSrc={lowImage.src || ''}
+      highSrc={highImage.src || undefined}
+      alt="Fullscreen Image"
+      zoomScale={2.5}
+      maxHeight={isMobileQuery ? '80vh' : '70vh'}
+      onLowSrcError={lowImage.handleError}
+      onHighSrcError={highImage.handleError}
+    />
+  );
+}
+
+function LightboxVideoContent({
+  media,
+  isMobileQuery,
+  isMobileDevice,
+}: LightboxMediaProps) {
+  const sources = useMemo(
+    () => selectVideoAssets(media, isMobileDevice),
+    [media, isMobileDevice]
+  );
+  const lowVideo = useStorageAssetSrc(sources.low);
+  const highVideo = useStorageAssetSrc(sources.high);
+  const posterSource = useStorageAssetSrc(sources.poster);
+
+  return (
+    <ZoomeableVideo
+      className="auto-cursor"
+      lowSrc={lowVideo.src || ''}
+      highSrc={highVideo.src || undefined}
+      poster={posterSource.src || undefined}
+      zoomScale={isMobileDevice ? 2 : 3}
+      maxHeight={isMobileQuery ? '80vh' : '70vh'}
+      autoPlay={true}
+      muted={true}
+      loop={true}
+      onLowSrcError={lowVideo.handleError}
+      onHighSrcError={highVideo.handleError}
+    />
+  );
 }
 
 export default function Home() {
@@ -537,42 +588,13 @@ export default function Home() {
                               mediaSetsWithMedia[activeMediaSetIndex].media[
                                 activeMediaIndex
                               ];
-                            if (media.type === 'image') {
-                              const { lowSrc, highSrc } = chooseImageSources(
-                                media,
-                                isMobile
-                              );
-                              return (
-                                <ZoomableImage
-                                  className="auto-cursor"
-                                  lowSrc={lowSrc}
-                                  highSrc={highSrc}
-                                  alt="Fullscreen Image"
-                                  zoomScale={2.5}
-                                  maxHeight={isMobileQuery ? '80vh' : '70vh'}
-                                />
-                              );
-                            } else {
-                              const { lowSrc, highSrc } = chooseVideoSources(
-                                media,
-                                isMobile // use isMobile from react-device-detect to decide priorities
-                              );
-                              return (
-                                <ZoomeableVideo
-                                  className="auto-cursor"
-                                  lowSrc={lowSrc}
-                                  highSrc={highSrc}
-                                  poster={
-                                    media.paths.poster?.downloadURL || undefined
-                                  }
-                                  zoomScale={isMobile ? 2 : 3}
-                                  maxHeight={isMobileQuery ? '80vh' : '70vh'}
-                                  autoPlay={true}
-                                  muted={true}
-                                  loop={true}
-                                />
-                              );
-                            }
+                            return (
+                              <LightboxMediaContent
+                                media={media}
+                                isMobileQuery={isMobileQuery}
+                                isMobileDevice={isMobile}
+                              />
+                            );
                           })()}
                         </Box>
                       </Box>
