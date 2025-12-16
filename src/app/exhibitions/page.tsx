@@ -16,42 +16,91 @@ type Exhibition = {
   title: string;
   meta?: string;
   paragraphs: string[];
-  videoMedia?: Media;
+  videoMedias?: Media[];
 };
 
 const driftingLandscapesMedia: Media = {
-  id: 'EFxgQNfUljdThLR1pvHh',
+  id: 'E8LksG9GKq7qoQsbtHYt',
   mediaSetId: null,
   type: 'video',
   title: 'Drifting Landscapes – Video',
   description: '',
-  storagePath: 'uploads/videos/DriftingLandscapes_Belgica (2).mov',
+  storagePath: 'uploads/videos/DriftingLandscapes_Belgica.mov',
   paths: {
     original: {
-      storagePath: 'uploads/videos/DriftingLandscapes_Belgica (2).mov',
+      storagePath: 'uploads/videos/DriftingLandscapes_Belgica.mov',
       downloadURL: null,
     },
     derivatives: {
       webm_360: {
-        storagePath: 'temp-assets/EFxgQNfUljdThLR1pvHh/video_360.webm',
+        storagePath: 'temp-assets/E8LksG9GKq7qoQsbtHYt/video_360.webm',
         downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/EFxgQNfUljdThLR1pvHh/video_360.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=qMDdFeG1JLRyeF2bgqpPzTMjGb2V4QbXpnRlR5I%2FNql2eGEzShlnhVDdfvyGSv75rFzYf92381ojiga3DEQMQruhieqT19ZGB02fdy%2FZCpuFzEnrsaHhJnJEIiQHpAZV%2FQaJSEHbN5iCHhx9HJoV1tzCmpbCjLImb6E%2BtdfJkXBR4Si2VIaQH81zl%2FdQI7jIeirtg7vtR96A%2FoPfMI8%2BiQLurONYVzvD0A3S7tMJvCcYYre01W9IzKTebHLvmU%2BBfvM0ifPBqFNAYdEjI4PZsaGSMZZDBhLga44kOlp9jgmBkHVqgtycrG4TBmn38t%2FO8SZwfyqMt%2Bk1L2XCDxGuJA%3D%3D',
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/E8LksG9GKq7qoQsbtHYt/video_360.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=hH8tXQtrJEETRrGx%2BuigziLzDqJLfzqkMItYo0%2BSiV9t8Jm9ZI3SAYFgGqxmXAjbv3%2BTxoy8xygsWmO%2BHKnecEuUK%2FvJMLyPCimaq%2BBPC0sYqWNR3cAN8PYg7ZiDHe6JVLEy%2F4gvyzq%2BqcarWD%2F6uoFTiGi4gDdogsteI6XM%2FU1wSc0RbpiaIm249vmK81r5zlzV3Z1ijphPvDqNAh1gCq0TcOsM5CDOzz1wFOE%2F5QesGq2E5TCJmGFHmR8dRJsB7%2BK1%2B4OhcylO3DOSo1cNvzQPMRvTu%2B54uqNMwsIbV0lcyms0N8K9KzcszA5XGL%2FbpB0n7C3LChs6elx0en6cFw%3D%3D',
       },
       webm_720: {
-        storagePath: 'temp-assets/EFxgQNfUljdThLR1pvHh/video_720.webm',
+        storagePath: 'temp-assets/E8LksG9GKq7qoQsbtHYt/video_720.webm',
         downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/EFxgQNfUljdThLR1pvHh/video_720.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=VMMkV3lKoC6eDO9w5gdSk2CTsiutb5T93n0Zoe1avf%2F7j2z6QdIeadtCfGmtDuFzaXVD1o1CRH3ZxCVCNQr9lAem%2BUYtzBxgNx6OJtKHfK84eBl%2F0Q%2BjtI8IZDc84PqP57ySbIwTI36%2BmicWTa84efeE%2BIxTBJr2qVKfWgYNsByEmNtuZUTViFCD1BkgzjuY30oJonz%2FXPdmuKhflQ2pYGOd0RVC1qJPUTteiGbUsh%2FIl7YsKB5vZwBU8%2BG9FdpGyeLr4MbT5T4wDdXd2YbGbX317ew72GYCvtPTdhPOpoeaRUzLVRGeXzt6e%2FOHMCz9L0QyRtpY8fTOIkKdhWsL%2Bw%3D%3D',
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/E8LksG9GKq7qoQsbtHYt/video_720.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=ZP2Xc750zhAIKoFoFfRJ64lGa%2FuTtXnwGcjt4X2%2FRofFSXWj8Ojzn7uAtN1CwkU0%2BF%2Bn343lwXkhRw7J1ljLNJX7axv9Vt38p0wbTog7bBMoBZDO3rGDMHV2xozFr41vqay88afKjHpPbiZW%2B0J37y8TFe%2FilSl851OpZifHWHzibiW5To%2BZ%2BwCMkHKoyZvrGA3BUDQgz608hSsEsueaE%2FR4hbrBfSk08Qg89qZScnMIIxR9c%2BPGsXXJxKum7KpXRrnEAzxmmDw8sOJKk0p8a8THIxI84ECHcpTC6Nb0r%2FeUojlzk9ecETZr%2FHgXSa2zBHiluG3qn%2BWCeu2m3H6qeA%3D%3D',
       },
       webm_1080: {
-        storagePath: 'temp-assets/EFxgQNfUljdThLR1pvHh/video_1080.webm',
+        storagePath: 'temp-assets/E8LksG9GKq7qoQsbtHYt/video_1080.webm',
         downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/EFxgQNfUljdThLR1pvHh/video_1080.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=pgidz7yiMjwWQop75yi9r1j9FfyMwtl55KXtZG3q0zGXy1%2BejL5drZ0Huj7tYB73y1rnJA97Br5mExN7QN1t7lHsDAnczgpjkCWjRnpiPo1iYDh%2Bgv7ngDbqkHbcmLBas6rEWzf%2FZVug7tXaRtgjdHDQTA2oo0SSwifqLz5zj6LcZRnT84JpbTVidxLZDDF4f9vW4vRb%2BUJHdmv5tAeMgXBRWIz9IMP8WU8ccOKF36UGrkMkQf9ZdPS8RRKHXQkw1zoJixA4gYTT%2BfYHTvr68uHqNZYbxvG0L0CNClreSlBF%2FJwf7FNBN6f3%2BAQpGrZvkrEhGKYnrXAAsydxKHI%2BdQ%3D%3D',
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/E8LksG9GKq7qoQsbtHYt/video_1080.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=NBImeRqNXArZFIX%2BDitKEUX0zDJwvgHStm3X%2BYKUPyB%2BMisA%2BB8BQlt2ONNuxWm7aLkOmxu2r0hacUw6GvxEXKkP0qhUKkyvLNTo7wBC4NIWCaO%2F8DANKz8V0FAkIZAZlNXOWF6hObzTD3cslefhsyZfS%2BWaH4ue5XizbwgEtedMrdWnm%2FSN%2FSB0eW6Z7%2BXS%2BykjHVaHSXs35huXso2o91791E1XZLvn0sb5NIbbl85CkKtSx8%2BiMEXV2ZKzT38csJETGkjOl7gRiIMYS71n1Em8NBaQJasnIL3jhHDh9WhqwzOVZYAWojJDM%2B1iV8l99G1EU6mKcQ0fBJ2VP24uEQ%3D%3D',
       },
     },
     poster: {
-      storagePath: 'temp-assets/EFxgQNfUljdThLR1pvHh/poster.webp',
+      storagePath: 'temp-assets/E8LksG9GKq7qoQsbtHYt/poster.webp',
       downloadURL:
-        'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/EFxgQNfUljdThLR1pvHh/poster.webp?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=tRQJ%2F8Afs4T41903vMLqedszPR70Ipe2rFYW0QoXKqhC1dCG0iQa2G8xxrmRevAEvFh3r0h8u8MVrGFiQf%2FW1lNItO2IXOhJaqmZ65S9ij5cir%2FqFSjlinw4uMq%2FbUAKlY5QwP1ItBEOOosjjobSYvJXIoo46oepuwl4TAcPk9cfeFT%2BILFUd2oC1GIa4YHb2vRzXwAkrIoL3ocDAX2%2BuvAsGbzCV8CZjyMgWHgIJj%2BJ7VI8K%2Fc2vdoMu2n8IVMA8LJycjdQED2jcUH3bDjL78J2iY%2BkkAnB9Y%2FDuVcZahSUmRT%2BfCUuJN8Xh%2Bfg27Cx79b5e9Yxjr6RUA5fH0qBhQ%3D%3D',
+        'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/E8LksG9GKq7qoQsbtHYt/poster.webp?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=IlCCiaOLCd3MfoyiI8dw0USxTdpMXs6IQP5SMvE2PMpv3qtsNqdhI3ZwVEpQWKp2NQLTzjzWuMD4U8JvuECBJmWemklWz4Tf4Fgg3xBP%2Fy37sLnsVNiS5IXyJ4QavWfip8ci07UShTPylMX4qUwRO27xdQg68OhKtgwx5hnVSYDcb2UvQlDHFgLGPo1O4o5QoNXNX5uNYkj%2FHrKOuGfPkEdy7hGUmbKc0ZOE3kkCx7UFDgfI%2BtNc51WyWvSbdw%2F%2Bm7mM7AFEUz7GRGYkhd8iBjBJVH7rP3tORwyuKFtmmYd1HMgm7AL%2FGY4Q8y3ah9mfFPApUz0pgku7R6Dyzwojrg%3D%3D',
+    },
+  },
+  width: 3840,
+  height: 2160,
+  duration: 19,
+  mimeType: 'video/quicktime',
+  sizeBytes: 134345156,
+  blurHash: null,
+  codec: 'vp9',
+  bitrate: 58095202,
+  createdAt: Timestamp.fromMillis(Date.parse('2025-12-16T17:32:43+01:00')),
+  modifiedAt: Timestamp.fromMillis(Date.parse('2025-12-16T17:50:55+01:00')),
+  processed: true,
+  deletedAt: null,
+};
+
+const driftingLandscapesEncoreMedia: Media = {
+  id: 'zITPMtpfsmwZOZi4w4Qp',
+  mediaSetId: null,
+  type: 'video',
+  title: 'Drifting Landscapes – Video B',
+  description: '',
+  storagePath: 'uploads/videos/DriftingLandscapes_Belgica_2.mov',
+  paths: {
+    original: {
+      storagePath: 'uploads/videos/DriftingLandscapes_Belgica_2.mov',
+      downloadURL: null,
+    },
+    derivatives: {
+      webm_360: {
+        storagePath: 'temp-assets/zITPMtpfsmwZOZi4w4Qp/video_360.webm',
+        downloadURL:
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/zITPMtpfsmwZOZi4w4Qp/video_360.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=oZgKMu0%2BFBlwOswtOCkY42y62SHFleCNa8o%2B%2FNvhquEi9HtrLqeMA0yAf%2FhRbg34E5lgL%2B31nx8VEaA6xndc6Xs3Uw0zf%2BR4T29cn23JKtJcYHiCIF1YE3%2Be4AugfXbkZNk5VfLA1%2B3Ui6X8K%2Fa0KICqJmxIgQ96J9UQ8KKBdepXhVVBAHsF%2BePX%2BVgzVo%2F1%2BCqdmGWoAn5ZG%2B0pdNy0JxHt1Bl9hNszP5NW7UGD9FW1lqmOUpMwMQsyLaWqrzkxiyVWbfkFI7Tn7%2BKkL4MwKptTfDYC5muYuJ%2B9gcRs2fs0CEx%2BLEHAr5McCIjFyM8ZyFCd4XaDbkc5EzvGt6t91g%3D%3D',
+      },
+      webm_720: {
+        storagePath: 'temp-assets/zITPMtpfsmwZOZi4w4Qp/video_720.webm',
+        downloadURL:
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/zITPMtpfsmwZOZi4w4Qp/video_720.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=koSNd%2B%2F5BhUWuLMJZtQyaaQb3E8Cfo5vyvcc9Lli5CVWIYVLYFGp%2BcRTPuZ%2Fgi99WVZ3%2Fs7YF2pbEejGhZWzETDCLY5hWBS7ByeXwjSLDZHq6VCUZUTyvDBVgO4pgvp9LrzD%2FuCct8jTTjXem3HB8pfnSU7JVNYH9WMjNKpa27IWUsDfdOP5APOSETOMF4drtykqvtGCCfybqw0syDliR822zF9i4jSN%2BEakwtYsIaNv0I%2BpXCRJ8lXS3MtT5Ohi2l1Z8ufpTtdG3C7cxIv7zixliimzTpWN38VGcJBIIdMSI7j2qAMgFX4HRJ%2BwdC0BO40JbJl%2FKpOkCm8XJqh7%2Bw%3D%3D',
+      },
+      webm_1080: {
+        storagePath: 'temp-assets/zITPMtpfsmwZOZi4w4Qp/video_1080.webm',
+        downloadURL:
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/zITPMtpfsmwZOZi4w4Qp/video_1080.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=PUM%2FgFrSGhmZgizrW%2FK0I%2Fm8qrSbvQ0TtBT%2Fxr9wJnzbvF%2FFmSh7Jf09Osg2FfbYjVB2OGBZOEmJw13IsW%2BKaVyKaa7tfvNL9mK%2BuRP41TUDgxSjTZ7ik6OsYhIoD8Evf3%2F1wXSw%2B8dwIzfV%2B9hh2tUldJRUYrfBOOwcUOnarKn21TL1wFMDWhcRjIr88oPxFfjPLgreoi67S%2FrMpItmFjqXMkHpBxaRdTidIPLzcV3zH8tYGpQfHynWUBqh4sFqb2KGhWW7eh8I1fj1i4%2FbkkAI08V1u68TUuu5v29vgXsotb6R3XsUFsDZclqTq9CeKtfwb5%2Bg85gzsNZf3zhq1A%3D%3D',
+      },
+    },
+    poster: {
+      storagePath: 'temp-assets/zITPMtpfsmwZOZi4w4Qp/poster.webp',
+      downloadURL:
+        'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/zITPMtpfsmwZOZi4w4Qp/poster.webp?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=T%2BGNs2GjRud73TlLrzC41rqTOqsZWxM7JGzr0Iih14qohKDrYi%2BQeXtdGlonalBxts%2F8lYpl4uYqgpi8O4KfuhafEV95JhZC7xNPgZl096UQLowNA%2FtCwPdwsC3uheSgLEN5TZ475pMNseikRChSj4%2ByxZkhkGFL%2FIM%2B3mC%2Fbx0TJLcWVy4FrluMLEp%2BSIOOotYOvdHHmEYBpxgl3oHTuK%2FtHj%2BK6cq%2BEmHiXqg7skqJPUTglzDpPKsO8k5clZmBXa57saPArVzDRQbT0FvH1azYcBqJGmUytb4cHGhQHFmCjdZLbhN4l4yzE3r6%2BUXUdnEDTk0GVwzyVeIB96u%2BOQ%3D%3D',
     },
   },
   width: 3840,
@@ -62,8 +111,57 @@ const driftingLandscapesMedia: Media = {
   blurHash: null,
   codec: 'vp9',
   bitrate: 57969576,
-  createdAt: Timestamp.fromMillis(Date.parse('2025-12-16T16:08:17Z')),
-  modifiedAt: Timestamp.fromMillis(Date.parse('2025-12-16T16:11:25Z')),
+  createdAt: Timestamp.fromMillis(Date.parse('2025-12-16T17:32:11+01:00')),
+  modifiedAt: Timestamp.fromMillis(Date.parse('2025-12-16T17:40:09+01:00')),
+  processed: true,
+  deletedAt: null,
+};
+
+const artOnTezosMedia: Media = {
+  id: 'CsNx0GADEpqxahMxRs2T',
+  mediaSetId: null,
+  type: 'video',
+  title: 'Art on Tezos – Installation',
+  description: '',
+  storagePath: 'uploads/videos/CRTIstallation_Snippet.mp4',
+  paths: {
+    original: {
+      storagePath: 'uploads/videos/CRTIstallation_Snippet.mp4',
+      downloadURL: null,
+    },
+    derivatives: {
+      webm_360: {
+        storagePath: 'temp-assets/CsNx0GADEpqxahMxRs2T/video_360.webm',
+        downloadURL:
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/CsNx0GADEpqxahMxRs2T/video_360.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=sM7dKvTDzGE0lXOdrzTgG3C4DbbhPYpRvUn7UWujjSMQxi8G50kzjs0FhBbNfY6ice76YCQo3AmIRqzE9L218yB16P2uGQFOB6s9ABrZ%2ByBG%2BP5x%2Fdy%2F9PN48V6dULuhVwUyxlr33LImmxAN5slxWAKDPLkI4QjOJKuiQskzFKZlyr9MSM80W12cGW1TiZv7ufYuS23rXl%2FcFfUEWt81kHHeXOccEAKGal027gcUlUw1jnxjypwOnZVtLCNKOXnrCQjfIC2%2FT5YmqsFbOvVJjy1zQjVSNyW1CTgoj1kUP0uDb3lxZKxNBXuqXlL8o2DISHDCEbs07vb3l%2FJIs9%2Fg0A%3D%3D',
+      },
+      webm_720: {
+        storagePath: 'temp-assets/CsNx0GADEpqxahMxRs2T/video_720.webm',
+        downloadURL:
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/CsNx0GADEpqxahMxRs2T/video_720.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=cWjZebtyNmZ0ftjY0UWcy3dtqUKWKIC%2BVJuljAlzHXxcNZMwABryFFeoxHxSlEdqmbOBajc2Ao0S7TUgnSXz0N0GXOTwuE%2B6m6RLXNHc%2FOZuJuoHtJYSQ8aT2mrtziIAB86vE134PK%2FCrGNGH3%2FRd6ZwzAe0FyCTSAec%2BBH2UlEsc0k2Us1wwpF8VzV1FEQI2Nb9SW%2B%2BrBgDOZ28T0YnvrkiskIKPTb39JGT7OG5R5Vozplx4h%2BzsLGMQrvZj6XzYNsmUyJ290fDbmFwwi5NhrpCKTSjB%2B%2FJQIueeD6n%2BZsWiBeeG5uZ3W%2FJf%2Fmt69eSuMBdQyzWDYEMvjXRrUB96g%3D%3D',
+      },
+      webm_1080: {
+        storagePath: 'temp-assets/CsNx0GADEpqxahMxRs2T/video_1080.webm',
+        downloadURL:
+          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/CsNx0GADEpqxahMxRs2T/video_1080.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=Ve7QEKYMZkvb1oujDPKFP20JvugV35wM5RViFib1WYuEG413wTLE1ZKRf07L9AO1LDz%2FdjJMZ2BUDmlK3UtXoivRmzgBeCj4sMC%2B%2Fu3dZSKIcodeLat2GMYyTg5gDSYdqbiaw7HFoixDPtL1X%2BcnwAMtDgNo65vreM5FGOFYwOpwxTK5NymQhCS7uCXEferhaoNw9lx%2F2Zz%2FR2eWyqyLKa%2BepiReyueufWp9aslJCIt9Klw7ISFCoeEosC8ZM0%2BVQygXbVUUuH5hR3DerhxvR3s01UgRBeEvFRaCYwQXMmeDXsFYopvLTJ6vgN7TkB7WjYEvfZkPYlKK7fHTfN3qSw%3D%3D',
+      },
+    },
+    poster: {
+      storagePath: 'temp-assets/CsNx0GADEpqxahMxRs2T/poster.webp',
+      downloadURL:
+        'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/CsNx0GADEpqxahMxRs2T/poster.webp?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=kBti1k%2FXrQ9%2BFHsPAZ1g3lxSbzEjgkUuHzZkM0iBMJA8IvpAoiHMUupnna93Pa%2BxVmOlPQFgUbGWSPt1m124HKsxst0aNvQDm43%2BMSLxNq1d9iUOW74kZQ%2F5eIlQNBY9PgTMop0g3hNb2ehXVaBXQBU0EwK70PMEcnkbUMnhmpm7pF3AuEW66n6ZztUTAXSlgzDbaVpAdiXhzmv6dkH5ax2iN1%2F%2FP%2B84r1PgAe2Hgz%2F%2FSy2xOeDSJ1CY6sx6yiUTdgaPvY%2BMVeiWpk7%2BvUPZlBTYNhoiEK9ypa7Q6nh2gdeIMwQlE3M9tCTFH1DCduaUwVR1rSqtFHfplNw4yFR1gw%3D%3D',
+    },
+  },
+  width: 1920,
+  height: 1080,
+  duration: 82,
+  mimeType: 'video/mp4',
+  sizeBytes: 103431359,
+  blurHash: null,
+  codec: 'vp9',
+  bitrate: 10050987,
+  createdAt: Timestamp.fromMillis(Date.parse('2025-12-16T18:03:27+01:00')),
+  modifiedAt: Timestamp.fromMillis(Date.parse('2025-12-16T18:27:27+01:00')),
   processed: true,
   deletedAt: null,
 };
@@ -76,7 +174,10 @@ const exhibitions: Exhibition[] = [
       'En DRIFTING LANDSCAPES, la curadora @dianedrubay explora cómo han cambiado (nuestras ideas sobre) los paisajes en un contexto de fragilidad ecológica y acelerado crecimiento tecnológico. La exposición reúne a artistas que conciben el paisaje no como un telón de fondo apacible, sino como un espacio de disrupción: un territorio activo y en disputa, donde la tecnología y el impacto humano colisionan.',
       'Todas las obras de esta exposición forman parte de la colección personal de NFT de Diane, y todos los artistas participantes son personas a quienes he seguido de cerca (y coleccionado) durante los últimos años.',
     ],
-    videoMedia: driftingLandscapesMedia,
+    videoMedias: [
+      driftingLandscapesMedia,
+      //   driftingLandscapesEncoreMedia,
+    ],
   },
   {
     title: 'Art on Tezos – Installation',
@@ -86,6 +187,7 @@ const exhibitions: Exhibition[] = [
       'The atmosphere was determined, collaborative, and warm. A brief look back. Organized by @NewtroArts.',
       'Together with OHDE, we had the opportunity to work on the construction of the impressive CRT tree installation. Our mission was to create the roots of the tree and the mutant decoration that adorned the large structure. It was a joint effort between the team of artists who worked on the televisions and Marian and Flopa, who were in charge of the aerial network of branches.',
     ],
+    videoMedias: [artOnTezosMedia],
   },
 ];
 
@@ -117,7 +219,7 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
         height="100%"
         autoPlay
         loop
-        muted
+        // muted
         playsInline
         preload="metadata"
         controls={showControls}
@@ -277,7 +379,7 @@ export default function Exhibitions() {
                                   </>
                                 );
 
-                                if (!exhibition.videoMedia) {
+                                if (!exhibition.videoMedias?.length) {
                                   return textContent;
                                 }
 
@@ -308,9 +410,20 @@ export default function Exhibitions() {
                                         },
                                       }}
                                     >
-                                      <ExhibitionVideoPlayer
-                                        media={exhibition.videoMedia}
-                                      />
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          gap: '2rem',
+                                        }}
+                                      >
+                                        {exhibition.videoMedias.map((media) => (
+                                          <ExhibitionVideoPlayer
+                                            key={media.id}
+                                            media={media}
+                                          />
+                                        ))}
+                                      </Box>
                                     </Box>
                                   </Box>
                                 );
