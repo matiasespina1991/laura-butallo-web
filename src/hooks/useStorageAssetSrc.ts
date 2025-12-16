@@ -11,8 +11,16 @@ import {
 
 type Mode = 'none' | 'direct' | 'storage' | 'signed';
 
-export function useStorageAssetSrc(asset?: AssetFile | null) {
-  const directUrl = asset?.downloadURL ?? '';
+type Options = {
+  preferDirect?: boolean;
+};
+
+export function useStorageAssetSrc(
+  asset?: AssetFile | null,
+  options?: Options
+) {
+  const preferDirect = options?.preferDirect ?? true;
+  const directUrl = preferDirect ? asset?.downloadURL ?? '' : '';
   const storagePath = asset?.storagePath ?? '';
   const storageUrl = useMemo(
     () => buildStorageUrl(storagePath) || '',

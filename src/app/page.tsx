@@ -212,8 +212,8 @@ function LightboxVideoContent({
     () => selectVideoAssets(media, isMobileDevice),
     [media, isMobileDevice]
   );
-  const lowVideo = useStorageAssetSrc(sources.low);
-  const highVideo = useStorageAssetSrc(sources.high);
+  const lowVideo = useStorageAssetSrc(sources.low, { preferDirect: false });
+  const highVideo = useStorageAssetSrc(sources.high, { preferDirect: false });
   const posterSource = useStorageAssetSrc(sources.poster);
 
   return (
