@@ -16,7 +16,10 @@ import { MinimalLeftArrowIcon } from './components/MinimalLeftArrowIcon';
 import { MinimalRightArrowIcon } from './components/MinimalRightArrowIcon';
 import ZoomableImage from './components/ZoomeableImage';
 import ZoomeableVideo from './components/ZoomeableVideo';
-import { selectImageAssets, selectVideoAssets } from '@/utils/media/assetSelectors';
+import {
+  selectImageAssets,
+  selectVideoAssets,
+} from '@/utils/media/assetSelectors';
 import { useStorageAssetSrc } from '@/hooks/useStorageAssetSrc';
 import Footer from './components/Footer';
 
@@ -142,6 +145,7 @@ function VideoGridItem({
           playsInline
           preload="metadata"
           poster={posterSource.src || undefined}
+          src={videoSource.src || undefined}
           onLoadedData={handleVideoLoaded}
           onError={handleVideoError}
           style={{
@@ -153,7 +157,6 @@ function VideoGridItem({
           }}
           onClick={() => openLightbox(mediaArray, index, setIndex)}
         >
-          <source src={videoSource.src || ''} type="video/webm" />
           Your browser does not support video.
         </video>
       </Box>
@@ -570,7 +573,7 @@ export default function Home() {
                                 x2="18"
                                 y2="18"
                                 stroke="currentColor"
-                                stroke-width="0.6"
+                                strokeWidth="0.6"
                               />
                               <line
                                 x1="18"
@@ -578,7 +581,7 @@ export default function Home() {
                                 x2="6"
                                 y2="18"
                                 stroke="currentColor"
-                                stroke-width="0.6"
+                                strokeWidth="0.6"
                               />
                             </svg>
                           </IconButton>

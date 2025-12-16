@@ -9,9 +9,10 @@ import {
   resolveSignedUrl,
 } from '@/utils/storage/assetUrl';
 
-type Mode = 'none' | 'storage' | 'signed';
+type Mode = 'none' | 'direct' | 'storage' | 'signed';
 
 export function useStorageAssetSrc(asset?: AssetFile | null) {
+  const directUrl = asset?.downloadURL ?? '';
   const storagePath = asset?.storagePath ?? '';
   const storageUrl = useMemo(
     () => buildStorageUrl(storagePath) || '',
@@ -21,10 +22,11 @@ export function useStorageAssetSrc(asset?: AssetFile | null) {
     () => (storagePath ? getCachedSignedUrl(storagePath) : null),
     [storagePath]
   );
-  const initialSrc = cachedSigned || storageUrl;
+  const initialSrc = directUrl || cachedSigned || storageUrl;
 
   const [src, setSrc] = useState(initialSrc);
   const [mode, setMode] = useState<Mode>(() => {
+    if (directUrl) return 'direct';
     if (!storagePath) return 'none';
     return cachedSigned ? 'signed' : 'storage';
   });
@@ -34,13 +36,15 @@ export function useStorageAssetSrc(asset?: AssetFile | null) {
 
   useEffect(() => {
     setSrc(initialSrc);
-    if (!storagePath) {
+    if (directUrl) {
+      setMode('direct');
+    } else if (!storagePath) {
       setMode('none');
     } else {
       setMode(cachedSigned ? 'signed' : 'storage');
     }
     triedSignedRef.current = Boolean(cachedSigned);
-  }, [initialSrc, storagePath, cachedSigned]);
+  }, [initialSrc, storagePath, cachedSigned, directUrl]);
 
   const attemptSigned = useCallback(async () => {
     if (!storagePath) return;
@@ -69,9 +73,18 @@ export function useStorageAssetSrc(asset?: AssetFile | null) {
     return promise;
   }, [storagePath, storageUrl]);
 
+  const fallbackToStorage = useCallback(() => {
+    setSrc(storageUrl);
+    setMode(storageUrl ? 'storage' : 'none');
+  }, [storageUrl]);
+
   const handleError = useCallback(() => {
     if (!storagePath) return;
-    if (mode === 'storage') {
+    if (mode === 'direct') {
+      fallbackToStorage();
+      triedSignedRef.current = false;
+      attemptSigned();
+    } else if (mode === 'storage') {
       if (triedSignedRef.current) {
         return;
       }
@@ -79,10 +92,10 @@ export function useStorageAssetSrc(asset?: AssetFile | null) {
     } else if (mode === 'signed') {
       clearCachedSignedUrl(storagePath);
       triedSignedRef.current = false;
-      setSrc(storageUrl);
-      setMode(storageUrl ? 'storage' : 'none');
+      fallbackToStorage();
+      attemptSigned();
     }
-  }, [attemptSigned, mode, storagePath, storageUrl]);
+  }, [attemptSigned, fallbackToStorage, mode, storagePath]);
 
   return {
     src,
