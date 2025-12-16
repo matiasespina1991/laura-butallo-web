@@ -22,6 +22,15 @@ const exhibitions: Exhibition[] = [
       'Todas las obras de esta exposición forman parte de la colección personal de NFT de Diane, y todos los artistas participantes son personas a quienes he seguido de cerca (y coleccionado) durante los últimos años.',
     ],
   },
+  {
+    title: 'Art on Tezos – Installation',
+    meta: 'November 2025 · Estudio Aquel, Argentina',
+    paragraphs: [
+      'The Art on Tezos satellite event in Buenos Aires reminded us what drives this ecosystem: artists coming together, sharing space, and expanding the possibilities of digital art.',
+      'The atmosphere was determined, collaborative, and warm. A brief look back. Organized by @NewtroArts.',
+      'Together with OHDE, we had the opportunity to work on the construction of the impressive CRT tree installation. Our mission was to create the roots of the tree and the mutant decoration that adorned the large structure. It was a joint effort between the team of artists who worked on the televisions and Marian and Flopa, who were in charge of the aerial network of branches.',
+    ],
+  },
 ];
 
 export default function Exhibitions() {
