@@ -20,7 +20,7 @@ export function useStorageAssetSrc(
   options?: Options
 ) {
   const preferDirect = options?.preferDirect ?? true;
-  const directUrl = preferDirect ? asset?.downloadURL ?? '' : '';
+  const directUrl = preferDirect ? (asset?.downloadURL ?? '') : '';
   const storagePath = asset?.storagePath ?? '';
   const storageUrl = useMemo(
     () => buildStorageUrl(storagePath) || '',
