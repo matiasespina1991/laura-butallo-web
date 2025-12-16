@@ -521,7 +521,7 @@ export default function Header() {
                 <Button
                   disableRipple
                   component={NextLink}
-                  href="/works"
+                  href="/exhibitions"
                   prefetch
                   variant="text"
                   sx={{
@@ -532,7 +532,7 @@ export default function Header() {
                   }}
                   color="inherit"
                 >
-                  <span>Exhibiciones</span>
+                  <span>Exhibitions</span>
                 </Button>
               )}
 
