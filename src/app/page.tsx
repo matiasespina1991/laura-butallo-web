@@ -51,6 +51,7 @@ function ImageGridItem({
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
   const isMobileDevice = isMobile;
+  const imageRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     setLoaded(false);
@@ -61,6 +62,13 @@ function ImageGridItem({
     [m, isMobileDevice]
   );
   const lowImage = useStorageAssetSrc(sources.low ?? sources.original);
+
+  useEffect(() => {
+    const img = imageRef.current;
+    if (img && img.complete) {
+      setLoaded(true);
+    }
+  }, [lowImage.src]);
 
   const handleImageError = () => {
     lowImage.handleError();
@@ -74,6 +82,7 @@ function ImageGridItem({
     >
       <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
         <NextImage
+          ref={imageRef}
           draggable={false}
           width={600}
           height={600}
