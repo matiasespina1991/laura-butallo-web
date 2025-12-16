@@ -62,10 +62,6 @@ function ImageGridItem({
   );
   const lowImage = useStorageAssetSrc(sources.low ?? sources.original);
 
-  const handleImageLoad = () => {
-    setLoaded(true);
-  };
-
   const handleImageError = () => {
     lowImage.handleError();
   };
@@ -81,7 +77,8 @@ function ImageGridItem({
           draggable={false}
           width={600}
           height={600}
-          onLoad={handleImageLoad as any}
+          onLoad={() => setLoaded(true)}
+          onLoadingComplete={() => setLoaded(true)}
           style={{
             userSelect: 'none',
             display: 'block',
