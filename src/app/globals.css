@@ -50,6 +50,24 @@
     'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
   --foreground: oklch(0% 0 0);
   --background: oklch(93% 0 0);
+  --card: #ffffff;
+  --card-foreground: #020817;
+  --popover: #ffffff;
+  --popover-foreground: #020817;
+  --primary: #111827;
+  --primary-foreground: #f8fafc;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #e0f2fe;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #1d4ed8;
+  --radius: 0.75rem;
 }
 
 :root.dark {
@@ -99,6 +117,33 @@ a {
   text-decoration: none;
   display: contents;
   width: 100%;
+}
+
+.admin-app,
+.admin-app * {
+  cursor: auto !important;
+}
+
+.admin-app {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f172a;
+  --primary-foreground: #f8fafc;
+  --secondary: #eff6ff;
+  --secondary-foreground: #082f49;
+  --muted: #e2e8f0;
+  --muted-foreground: #475569;
+  --accent: #dbeafe;
+  --accent-foreground: #082f49;
+  --destructive: #f43f5e;
+  --destructive-foreground: #f8fafc;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #2563eb;
 }
 
 /* 
