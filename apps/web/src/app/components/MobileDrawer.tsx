@@ -253,6 +253,50 @@ export default function MobileDrawer({
 
                 <Box sx={{ height: '1rem' }} />
 
+                {/* Exhibitions */}
+                <motion.div
+                  initial={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  transition={{ duration: 0.4, delay: 0.2, ease: 'easeOut' }}
+                >
+                  <ListItemButton
+                    component={NextLink}
+                    href="/exhibitions"
+                    prefetch
+                    onClick={handleClose}
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography
+                          variant="h3"
+                          fontWeight="500"
+                          fontFamily="Helvetica Neue, sans-serif"
+                          fontSize={{
+                            xs: '36px',
+                            sm: '50px',
+                            md: '82px',
+                            lg: '82px',
+                            xl: '82px',
+                          }}
+                          pt={{ xs: '0.5rem', sm: '3rem' }}
+                          letterSpacing="-0.04em"
+                          component="div"
+                          noWrap
+                          sx={{
+                            flexGrow: 0,
+                            display: 'inline-flex',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Exhibitions
+                        </Typography>
+                      }
+                    />
+                  </ListItemButton>
+                </motion.div>
+
+                <Box sx={{ height: '1rem' }} />
+
                 {/* About Me */}
                 <motion.div
                   initial={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
