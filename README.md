@@ -1,50 +1,22 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Laura Butallo Monorepo
 
-## Getting Started
+This repo now houses multiple apps plus Firebase Functions:
 
-First, run the development server:
+- `apps/web` – public Next.js site (original project)
+- `apps/admin` – dashboard app (WIP placeholder)
+- `functions` – Firebase Cloud Functions
 
-```bash
-npm run dev
-```
+## Commands
 
-## Deploy Cloud Functions
-
-Use command:
+From the repo root you can run:
 
 ```bash
-npm run deploy-functions
+npm run dev:web
+npm run build:web
+npm run dev:admin
+npm run deploy:functions
 ```
 
-Or if you want to do it manually:
+Or `cd` into each app and use the regular `npm run dev`, `npm run build`, etc.
 
-From /functions/:
-
-```bash
-rm -rf lib
-npx tsc
-```
-
-This command above will compile the TS functions into JS.
-
-Then run:
-
-```bash
-rm -rf lib
-npx tsc
-```
-
-If you get an error similar to this one:
-
-```bash
-Build failed with status: FAILURE and message: npm error code EUSAGE
-npm error
-npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
-npm error
-npm error Missing: jest@30.2.0 from lock file
-```
-
-- Multilanguage
-
-- Menu de obras y exhibiciones como aparece acá:
-  https://lucianaflorio.com/Artworks-1
+> Remember to install dependencies inside each app folder (`apps/web`, `apps/admin`).

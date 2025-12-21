@@ -1,9 +1,14 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
+node_modules
 /node_modules
+<<<<<<< HEAD
 /apps/admin/node_modules
 /apps/web/node_modules
+=======
+**/node_modules
+>>>>>>> monorepo/setup
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -13,9 +18,14 @@
 
 # next.js
 /.next/
+**/.next/
 /out/
+<<<<<<< HEAD
 /apps/admin/.next/
 /apps/web/.next/
+=======
+**/out/
+>>>>>>> monorepo/setup
 
 # production
 /build

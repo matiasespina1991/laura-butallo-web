@@ -4,12 +4,12 @@
 
 # Nombres de los archivos del proyecto Next.js
 files=(
-    "src/app/page.tsx"
-    "src/app/layout.tsx"
-    "src/app/view/[id]/page.tsx"
-    "src/app/globals.css"
-    "src/app/page.module.css"
-    "package.json"
+    "apps/web/src/app/page.tsx"
+    "apps/web/src/app/layout.tsx"
+    "apps/web/src/app/view/[id]/page.tsx"
+    "apps/web/src/app/globals.css"
+    "apps/web/src/app/page.module.css"
+    "apps/web/package.json"
 )
 
 # Archivo de salida
@@ -21,8 +21,12 @@ output_file="_combined.txt"
 # Concatenar los archivos
 for file in "${files[@]}"
 do
-    cat "$file" >> $output_file
-    echo "" >> $output_file # Agregar una línea en blanco entre archivos
+    if [ -f "$file" ]; then
+        cat "$file" >> $output_file
+        echo "" >> $output_file # Agregar una línea en blanco entre archivos
+    else
+        echo "Skipping missing file: $file" >> $output_file
+    fi
 done
 
 echo "Files concatenated into $output_file"

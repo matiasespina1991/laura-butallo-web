@@ -1,3 +1,5 @@
+sourceDir: apps/web
+
 runConfig:
   # overrides for dev environment
   cpu: 1

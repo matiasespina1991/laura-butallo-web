@@ -1,4 +1,7 @@
 # Settings for Backend (on Cloud Run).
+# The admin dashboard lives in a separate app under apps/admin,
+# so point App Hosting at the public site inside apps/web.
+sourceDir: apps/web
 # See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 runConfig:
   minInstances: 0
@@ -33,4 +36,3 @@ env:
 # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
 # - variable: MY_SECRET
 #   secret: mySecretRef
-

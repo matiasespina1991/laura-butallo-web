@@ -9,7 +9,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "source": ".",
+    "source": "apps/web",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -22,7 +22,7 @@
   },
   "apphosting": {
     "backendId": "laura-butallo-web-backend",
-    "rootDir": "/",
+    "rootDir": "apps/web",
     "ignore": [
       "node_modules",
       ".git",
