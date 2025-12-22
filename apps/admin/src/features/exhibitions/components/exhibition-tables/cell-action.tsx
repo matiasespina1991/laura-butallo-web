@@ -9,13 +9,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Exhibition } from '@/constants/exhibitions';
+import type { ExhibitionRow } from '@/features/exhibitions/types';
 import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 interface CellActionProps {
-  data: Exhibition;
+  data: ExhibitionRow;
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
