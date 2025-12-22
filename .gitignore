@@ -3,12 +3,7 @@
 # dependencies
 node_modules
 /node_modules
-<<<<<<< HEAD
-/apps/admin/node_modules
-/apps/web/node_modules
-=======
 **/node_modules
->>>>>>> monorepo/setup
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -20,12 +15,8 @@ node_modules
 /.next/
 **/.next/
 /out/
-<<<<<<< HEAD
 /apps/admin/.next/
 /apps/web/.next/
-=======
-**/out/
->>>>>>> monorepo/setup
 
 # production
 /build
