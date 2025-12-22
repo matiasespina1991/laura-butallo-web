@@ -1,3 +1,5 @@
+'use client';
+
 import PageContainer from '@/components/layout/page-container';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -8,6 +10,7 @@ import {
   CardAction,
   CardFooter
 } from '@/components/ui/card';
+import { useDemoSession } from '@/contexts/demo-session';
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import React from 'react';
 
@@ -22,11 +25,17 @@ export default function OverViewLayout({
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
 }) {
+  const { user } = useDemoSession();
+  const firstName =
+    user?.fullName?.trim().split(/\s+/)[0] || 'Admin';
+
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-2'>
         <div className='flex items-center justify-between space-y-2'>
-          <h2 className='text-2xl font-bold tracking-tight'>Hola, Laura 👋</h2>
+          <h2 className='text-2xl font-bold tracking-tight'>
+            Hola, {firstName} 👋
+          </h2>
         </div>
 
         <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
