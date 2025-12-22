@@ -9,7 +9,8 @@ import {
   type User,
   type UserCredential
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 type PlanTier = 'starter' | 'pro' | 'enterprise';
 
@@ -76,28 +77,77 @@ const demoOrganizations: DemoOrganization[] = [
 
 const DemoSessionContext = createContext<DemoSessionContextValue | null>(null);
 
-function mapFirebaseUser(user: User): DemoUser {
+type AuthorizedUser = {
+  email: string;
+  role?: DemoUser['role'];
+};
+
+function mapFirebaseUser(user: User, role: DemoUser['role']): DemoUser {
   const email = user.email ?? '';
   return {
     id: user.uid,
     fullName: user.displayName ?? email ?? 'Admin',
     emailAddresses: [{ emailAddress: email }],
     imageUrl: user.photoURL ?? undefined,
-    role: 'admin'
+    role
   };
 }
 
 export function DemoSessionProvider({ children }: { children: React.ReactNode }) {
   const [activeOrgId, setActiveOrgId] = useState(demoOrganizations[0].id);
-  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<DemoUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
+    let active = true;
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setFirebaseUser(user);
-      setAuthReady(true);
+      if (!active) return;
+      setAuthReady(false);
+
+      if (!user) {
+        setFirebaseUser(null);
+        setAuthReady(true);
+        return;
+      }
+
+      const checkAuthorized = async () => {
+        try {
+          const snap = await getDoc(doc(db, 'config', 'default'));
+          const data = snap.data() as {
+            authorizedUsers?: AuthorizedUser[];
+          };
+          const authorizedUsers = data?.authorizedUsers ?? [];
+          const email = (user.email ?? '').toLowerCase();
+          const match = authorizedUsers.find(
+            (entry) => entry.email?.toLowerCase() === email
+          );
+
+          if (!match) {
+            await firebaseSignOut(auth);
+            if (!active) return;
+            setFirebaseUser(null);
+            setAuthReady(true);
+            return;
+          }
+
+          const role = match.role ?? 'viewer';
+          setFirebaseUser(mapFirebaseUser(user, role));
+          setAuthReady(true);
+        } catch (error) {
+          console.error('[Auth] authorization check failed', error);
+          await firebaseSignOut(auth);
+          if (!active) return;
+          setFirebaseUser(null);
+          setAuthReady(true);
+        }
+      };
+
+      void checkAuthorized();
     });
-    return unsubscribe;
+    return () => {
+      active = false;
+      unsubscribe();
+    };
   }, []);
 
   const value = useMemo(() => {
@@ -106,7 +156,7 @@ export function DemoSessionProvider({ children }: { children: React.ReactNode })
       demoOrganizations[0];
 
     return {
-      user: firebaseUser ? mapFirebaseUser(firebaseUser) : null,
+      user: firebaseUser,
       organizations: demoOrganizations,
       activeOrgId,
       activeOrganization,

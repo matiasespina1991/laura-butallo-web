@@ -32,7 +32,11 @@ export default function AuthGate({
   }
 
   if (!authReady || !user) {
-    return null;
+    return (
+      <div className='text-muted-foreground flex min-h-[60vh] items-center justify-center text-sm'>
+        Checking access...
+      </div>
+    );
   }
 
   return children;

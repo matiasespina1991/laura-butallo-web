@@ -4,6 +4,13 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isAuthorized() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email in
+          get(/databases/$(database)/documents/config/default).data.authorizedUsers
+            .map(user, user.email);
+    }
 
     // Public read for everything
     match /{document=**} {
@@ -25,7 +32,7 @@ service cloud.firestore {
     // Exhibitions collection (admin UI)
     match /exhibitions/{exhibitionId} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null;
+      allow create, update, delete: if isAuthorized();
     }
 
     // Prevent direct frontend creation of subcollections
