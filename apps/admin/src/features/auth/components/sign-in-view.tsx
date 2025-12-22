@@ -8,6 +8,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { useDemoSession } from '@/contexts/demo-session';
 import { toast } from 'sonner';
+import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 
 export const metadata: Metadata = {
   title: 'Authentication',
@@ -18,6 +19,10 @@ export default function SignInViewPage({ stars }: { stars: number }) {
   const { signInWithGoogle, authReady, authError, clearAuthError } =
     useDemoSession();
   const [signingIn, setSigningIn] = useState(false);
+  const { src: coverSrc, hasSource: hasCoverSrc } = useStorageAssetSrc(
+    { storagePath: 'system/assets/sign-in-screen/cover-image.webp' },
+    { preferDirect: false }
+  );
 
   useEffect(() => {
     if (!authError) return;
@@ -51,7 +56,7 @@ export default function SignInViewPage({ stars }: { stars: number }) {
           className='absolute inset-0 bg-cover bg-center'
           style={{
             backgroundImage:
-              'url("https://firebasestorage.googleapis.com/v0/b/laura-butallo-web.firebasestorage.app/o/temp-assets%2FKdeFD2vlUZyRo7G1LGnE%2Fwebp_medium.webp?alt=media&token=de0ddfa9-070a-4e67-a6d6-74c34d98835a")'
+              'url("/assets/decoration/sign-in-screen/cover-image.webp")'
           }}
         />
         {/* <div className='relative z-20 mt-auto'>
