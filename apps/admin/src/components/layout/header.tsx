@@ -26,8 +26,8 @@ export default function Header() {
         {/* <div className='hidden md:flex'>
           <SearchInput />
         </div> */}
-        <UserNav />
         <ModeToggle />
+        <UserNav />
         {isDevBranch && <ThemeSelector />}
       </div>
     </header>
