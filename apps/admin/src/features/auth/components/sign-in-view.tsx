@@ -50,13 +50,13 @@ export default function SignInViewPage({ stars }: { stars: number }) {
       </Link>
       <div className='bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r'>
         <div className='absolute inset-0 bg-zinc-900' />
-        <div className='relative z-20 flex items-center text-lg font-medium'>
+        <div className='relative z-20 flex items-center text-xl font-medium'>
           <img
             src='/assets/branding/logos/cueva.png'
             alt='Cueva logo'
-            className='mr-2 h-7 w-7'
+            className='mr-2 h-8 w-8'
           />
-          Laura Butallo Web Dashboard
+          Laura Butallo Web · Dashboard
         </div>
         <InteractiveGridPattern
           className={cn(
