@@ -3,14 +3,13 @@
 import { useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { GitHubLogoIcon } from '@radix-ui/react-icons';
 import { IconStar } from '@tabler/icons-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { InteractiveGridPattern } from './interactive-grid';
+import { useDemoSession } from '@/contexts/demo-session';
 
 export const metadata: Metadata = {
   title: 'Authentication',
@@ -18,18 +17,16 @@ export const metadata: Metadata = {
 };
 
 export default function SignUpViewPage({ stars }: { stars: number }) {
-  const [formState, setFormState] = useState({
-    name: '',
-    email: '',
-    password: ''
-  });
-  const [loading, setLoading] = useState(false);
+  const { signInWithGoogle, authReady } = useDemoSession();
+  const [signingIn, setSigningIn] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    console.info('TODO: wire Firebase Auth sign-up', formState);
-    setTimeout(() => setLoading(false), 800);
+  const handleGoogleSignIn = async () => {
+    try {
+      setSigningIn(true);
+      await signInWithGoogle();
+    } finally {
+      setSigningIn(false);
+    }
   };
 
   return (
@@ -97,49 +94,29 @@ export default function SignUpViewPage({ stars }: { stars: number }) {
               <span className='font-display font-medium'>{stars}</span>
             </div>
           </Link>
-          <form className='w-full space-y-4' onSubmit={handleSubmit}>
-            <div className='space-y-2'>
-              <Label htmlFor='name'>Name</Label>
-              <Input
-                id='name'
-                value={formState.name}
-                onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, name: e.target.value }))
-                }
-                required
-              />
-            </div>
-            <div className='space-y-2'>
-              <Label htmlFor='email'>Email</Label>
-              <Input
-                id='email'
-                type='email'
-                value={formState.email}
-                onChange={(e) =>
-                  setFormState((prev) => ({ ...prev, email: e.target.value }))
-                }
-                required
-              />
-            </div>
-            <div className='space-y-2'>
-              <Label htmlFor='password'>Password</Label>
-              <Input
-                id='password'
-                type='password'
-                value={formState.password}
-                onChange={(e) =>
-                  setFormState((prev) => ({
-                    ...prev,
-                    password: e.target.value
-                  }))
-                }
-                required
-              />
-            </div>
-            <Button type='submit' className='w-full' disabled={loading}>
-              {loading ? 'Creating account…' : 'Create account'}
+          <div className='w-full space-y-4'>
+            <Button
+              type='button'
+              className='w-full'
+              onClick={handleGoogleSignIn}
+              disabled={!authReady || signingIn}
+            >
+              <span className='mr-2 inline-flex size-4 items-center justify-center'>
+                <svg
+                  viewBox='0 0 24 24'
+                  className='size-4'
+                  aria-hidden='true'
+                  focusable='false'
+                >
+                  <path
+                    fill='#EA4335'
+                    d='M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8a6.3 6.3 0 0 1 0-12.6c1.8 0 3 0.8 3.7 1.4l2.5-2.5C16.6 2.4 14.5 1.5 12 1.5a10.5 10.5 0 1 0 0 21c6.1 0 10.2-4.3 10.2-10.4 0-.7-.1-1.2-.2-1.9H12z'
+                  />
+                </svg>
+              </span>
+              {signingIn ? 'Signing in…' : 'Continue with Google'}
             </Button>
-          </form>
+          </div>
           <p className='text-muted-foreground px-8 text-center text-sm'>
             By clicking continue, you agree to our{' '}
             <Link

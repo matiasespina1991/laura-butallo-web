@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  type User
+} from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 type PlanTier = 'starter' | 'pro' | 'enterprise';
 
@@ -23,21 +31,17 @@ export interface DemoUser {
 }
 
 interface DemoSessionContextValue {
-  user: DemoUser;
+  user: DemoUser | null;
   organizations: DemoOrganization[];
   activeOrgId: string;
   activeOrganization: DemoOrganization;
   selectOrganization: (id: string) => void;
-  signOut: () => void;
+  authReady: boolean;
+  signInWithGoogle: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
-const defaultUser: DemoUser = {
-  id: 'user_demo',
-  fullName: 'Laura Butallo Studio',
-  emailAddresses: [{ emailAddress: 'studio@laurabutallo.com' }],
-  imageUrl: undefined,
-  role: 'admin'
-};
+const googleProvider = new GoogleAuthProvider();
 
 const demoOrganizations: DemoOrganization[] = [
   {
@@ -71,8 +75,29 @@ const demoOrganizations: DemoOrganization[] = [
 
 const DemoSessionContext = createContext<DemoSessionContextValue | null>(null);
 
+function mapFirebaseUser(user: User): DemoUser {
+  const email = user.email ?? '';
+  return {
+    id: user.uid,
+    fullName: user.displayName ?? email ?? 'Admin',
+    emailAddresses: [{ emailAddress: email }],
+    imageUrl: user.photoURL ?? undefined,
+    role: 'admin'
+  };
+}
+
 export function DemoSessionProvider({ children }: { children: React.ReactNode }) {
   const [activeOrgId, setActiveOrgId] = useState(demoOrganizations[0].id);
+  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setFirebaseUser(user);
+      setAuthReady(true);
+    });
+    return unsubscribe;
+  }, []);
 
   const value = useMemo(() => {
     const activeOrganization =
@@ -80,16 +105,16 @@ export function DemoSessionProvider({ children }: { children: React.ReactNode })
       demoOrganizations[0];
 
     return {
-      user: defaultUser,
+      user: firebaseUser ? mapFirebaseUser(firebaseUser) : null,
       organizations: demoOrganizations,
       activeOrgId,
       activeOrganization,
       selectOrganization: setActiveOrgId,
-      signOut: () => {
-        console.info('TODO: replace with Firebase Auth sign-out.');
-      }
+      authReady,
+      signInWithGoogle: () => signInWithPopup(auth, googleProvider),
+      signOut: () => firebaseSignOut(auth)
     };
-  }, [activeOrgId]);
+  }, [activeOrgId, authReady, firebaseUser]);
 
   return (
     <DemoSessionContext.Provider value={value}>

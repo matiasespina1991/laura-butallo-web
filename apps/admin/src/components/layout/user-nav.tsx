@@ -16,6 +16,9 @@ import { useDemoSession } from '@/contexts/demo-session';
 export function UserNav() {
   const { user, signOut } = useDemoSession();
   const router = useRouter();
+  if (!user) {
+    return null;
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

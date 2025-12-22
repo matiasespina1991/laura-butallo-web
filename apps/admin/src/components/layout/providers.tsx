@@ -2,6 +2,7 @@
 import React from 'react';
 import { ActiveThemeProvider } from '../active-theme';
 import { DemoSessionProvider } from '@/contexts/demo-session';
+import AuthGate from '@/components/layout/auth-gate';
 
 export default function Providers({
   activeThemeValue,
@@ -12,7 +13,9 @@ export default function Providers({
 }) {
   return (
     <ActiveThemeProvider initialTheme={activeThemeValue}>
-      <DemoSessionProvider>{children}</DemoSessionProvider>
+      <DemoSessionProvider>
+        <AuthGate>{children}</AuthGate>
+      </DemoSessionProvider>
     </ActiveThemeProvider>
   );
 }
