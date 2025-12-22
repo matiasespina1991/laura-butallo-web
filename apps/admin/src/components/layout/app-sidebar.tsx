@@ -45,12 +45,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
-  const { user, activeOrganization, signOut } = useDemoSession();
+  const { user, activeOrganization, signOut } = useAuthSession();
   const router = useRouter();
   const filteredItems = useFilteredNavItems(navItems);
 

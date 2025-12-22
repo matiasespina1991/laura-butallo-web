@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 
 const planCatalog = [
   {
@@ -52,7 +52,7 @@ const planCatalog = [
 ];
 
 export default function BillingPage() {
-  const { activeOrganization } = useDemoSession();
+  const { activeOrganization } = useAuthSession();
   const currentPlan =
     planCatalog.find((plan) => plan.id === activeOrganization.plan) ??
     planCatalog[0];

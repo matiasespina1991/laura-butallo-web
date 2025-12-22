@@ -11,10 +11,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { useRouter } from 'next/navigation';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 
 export function UserNav() {
-  const { user, signOut } = useDemoSession();
+  const { user, signOut } = useAuthSession();
   const router = useRouter();
   if (!user) {
     return null;

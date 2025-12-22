@@ -10,10 +10,10 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BadgeCheck, Lock } from 'lucide-react';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 
 export default function ExclusivePage() {
-  const { activeOrganization } = useDemoSession();
+  const { activeOrganization } = useAuthSession();
   const hasAccess = activeOrganization.plan !== 'starter';
 
   return (

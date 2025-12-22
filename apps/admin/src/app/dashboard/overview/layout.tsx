@@ -10,7 +10,7 @@ import {
   CardAction,
   CardFooter
 } from '@/components/ui/card';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import React from 'react';
 
@@ -25,7 +25,7 @@ export default function OverViewLayout({
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
 }) {
-  const { user } = useDemoSession();
+  const { user } = useAuthSession();
   const firstName =
     user?.fullName?.trim().split(/\s+/)[0] || 'Admin';
 

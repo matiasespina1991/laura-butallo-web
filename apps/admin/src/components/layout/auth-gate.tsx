@@ -2,14 +2,14 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 
 export default function AuthGate({
   children
 }: {
   children: React.ReactNode;
 }) {
-  const { user, authReady } = useDemoSession();
+  const { user, authReady } = useAuthSession();
   const pathname = usePathname();
   const router = useRouter();
   const isAuthRoute = pathname.startsWith('/auth');

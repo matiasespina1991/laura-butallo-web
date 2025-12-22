@@ -17,12 +17,12 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 
 export function OrgSwitcher() {
   const { isMobile, state } = useSidebar();
   const router = useRouter();
-  const { organizations, activeOrgId, selectOrganization } = useDemoSession();
+  const { organizations, activeOrgId, selectOrganization } = useAuthSession();
 
   if (!organizations.length) {
     return null;

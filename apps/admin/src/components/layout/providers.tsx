@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { ActiveThemeProvider } from '../active-theme';
-import { DemoSessionProvider } from '@/contexts/demo-session';
+import { AuthSessionProvider } from '@/contexts/auth-session';
 import AuthGate from '@/components/layout/auth-gate';
 
 export default function Providers({
@@ -13,9 +13,9 @@ export default function Providers({
 }) {
   return (
     <ActiveThemeProvider initialTheme={activeThemeValue}>
-      <DemoSessionProvider>
+      <AuthSessionProvider>
         <AuthGate>{children}</AuthGate>
-      </DemoSessionProvider>
+      </AuthSessionProvider>
     </ActiveThemeProvider>
   );
 }

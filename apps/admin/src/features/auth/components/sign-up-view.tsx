@@ -9,7 +9,7 @@ import { IconStar } from '@tabler/icons-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { InteractiveGridPattern } from './interactive-grid';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 
 export const metadata: Metadata = {
   title: 'Authentication',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default function SignUpViewPage({ stars }: { stars: number }) {
-  const { signInWithGoogle, authReady } = useDemoSession();
+  const { signInWithGoogle, authReady } = useAuthSession();
   const [signingIn, setSigningIn] = useState(false);
 
   const handleGoogleSignIn = async () => {

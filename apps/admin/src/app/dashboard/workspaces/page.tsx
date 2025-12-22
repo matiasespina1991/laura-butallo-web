@@ -11,12 +11,12 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 import { cn } from '@/lib/utils';
 import { IconUsersGroup, IconDatabase } from '@tabler/icons-react';
 
 export default function WorkspacesPage() {
-  const { organizations, activeOrgId, selectOrganization } = useDemoSession();
+  const { organizations, activeOrgId, selectOrganization } = useAuthSession();
 
   return (
     <PageContainer

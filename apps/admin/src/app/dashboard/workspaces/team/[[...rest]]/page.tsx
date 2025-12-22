@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 
 const mockMembers = [
   { name: 'Laura Butallo', role: 'Creative Director', email: 'studio@laurabutallo.com', status: 'Active' },
@@ -21,7 +21,7 @@ const mockMembers = [
 ];
 
 export default function TeamPage() {
-  const { activeOrganization } = useDemoSession();
+  const { activeOrganization } = useAuthSession();
 
   return (
     <PageContainer

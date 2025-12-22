@@ -32,7 +32,7 @@ export interface DemoUser {
   role: 'admin' | 'editor' | 'viewer';
 }
 
-interface DemoSessionContextValue {
+interface AuthSessionContextValue {
   user: DemoUser | null;
   organizations: DemoOrganization[];
   activeOrgId: string;
@@ -77,7 +77,7 @@ const demoOrganizations: DemoOrganization[] = [
   }
 ];
 
-const DemoSessionContext = createContext<DemoSessionContextValue | null>(null);
+const AuthSessionContext = createContext<AuthSessionContextValue | null>(null);
 
 type AuthorizedUser = {
   email: string;
@@ -95,7 +95,7 @@ function mapFirebaseUser(user: User, role: DemoUser['role']): DemoUser {
   };
 }
 
-export function DemoSessionProvider({ children }: { children: React.ReactNode }) {
+export function AuthSessionProvider({ children }: { children: React.ReactNode }) {
   const [activeOrgId, setActiveOrgId] = useState(demoOrganizations[0].id);
   const [firebaseUser, setFirebaseUser] = useState<DemoUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -178,16 +178,16 @@ export function DemoSessionProvider({ children }: { children: React.ReactNode })
   }, [activeOrgId, authReady, firebaseUser]);
 
   return (
-    <DemoSessionContext.Provider value={value}>
+    <AuthSessionContext.Provider value={value}>
       {children}
-    </DemoSessionContext.Provider>
+    </AuthSessionContext.Provider>
   );
 }
 
-export function useDemoSession() {
-  const ctx = useContext(DemoSessionContext);
+export function useAuthSession() {
+  const ctx = useContext(AuthSessionContext);
   if (!ctx) {
-    throw new Error('useDemoSession must be used within DemoSessionProvider');
+    throw new Error('useAuthSession must be used within AuthSessionProvider');
   }
   return ctx;
 }

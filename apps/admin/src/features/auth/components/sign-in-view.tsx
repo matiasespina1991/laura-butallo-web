@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { useDemoSession } from '@/contexts/demo-session';
+import { useAuthSession } from '@/contexts/auth-session';
 import { toast } from 'sonner';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function SignInViewPage({ stars }: { stars: number }) {
   const { signInWithGoogle, authReady, authError, clearAuthError } =
-    useDemoSession();
+    useAuthSession();
   const [signingIn, setSigningIn] = useState(false);
   const { src: coverSrc, hasSource: hasCoverSrc } = useStorageAssetSrc(
     { storagePath: 'system/assets/sign-in-screen/cover-image.webp' },
