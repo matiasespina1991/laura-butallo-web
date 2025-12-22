@@ -57,6 +57,7 @@ function FormTinyMce<
               disabled={disabled}
               init={{
                 height,
+                skin: 'small',
                 menubar: false,
                 placeholder,
                 plugins:
