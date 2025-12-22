@@ -39,6 +39,8 @@ interface DemoSessionContextValue {
   activeOrganization: DemoOrganization;
   selectOrganization: (id: string) => void;
   authReady: boolean;
+  authError: string | null;
+  clearAuthError: () => void;
   signInWithGoogle: () => Promise<UserCredential>;
   signOut: () => Promise<void>;
 }
@@ -97,6 +99,7 @@ export function DemoSessionProvider({ children }: { children: React.ReactNode })
   const [activeOrgId, setActiveOrgId] = useState(demoOrganizations[0].id);
   const [firebaseUser, setFirebaseUser] = useState<DemoUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -123,6 +126,9 @@ export function DemoSessionProvider({ children }: { children: React.ReactNode })
           );
 
           if (!match) {
+            setAuthError(
+              'No estas autorizado para ingresar al dashboard.'
+            );
             await firebaseSignOut(auth);
             if (!active) return;
             setFirebaseUser(null);
@@ -132,9 +138,11 @@ export function DemoSessionProvider({ children }: { children: React.ReactNode })
 
           const role = match.role ?? 'viewer';
           setFirebaseUser(mapFirebaseUser(user, role));
+          setAuthError(null);
           setAuthReady(true);
         } catch (error) {
           console.error('[Auth] authorization check failed', error);
+          setAuthError('No se pudo validar tu acceso. Intenta de nuevo.');
           await firebaseSignOut(auth);
           if (!active) return;
           setFirebaseUser(null);
@@ -162,6 +170,8 @@ export function DemoSessionProvider({ children }: { children: React.ReactNode })
       activeOrganization,
       selectOrganization: setActiveOrgId,
       authReady,
+      authError,
+      clearAuthError: () => setAuthError(null),
       signInWithGoogle: () => signInWithPopup(auth, googleProvider),
       signOut: () => firebaseSignOut(auth)
     };

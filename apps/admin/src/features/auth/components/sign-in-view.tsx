@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -10,6 +10,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { InteractiveGridPattern } from './interactive-grid';
 import { useDemoSession } from '@/contexts/demo-session';
+import { toast } from 'sonner';
 
 export const metadata: Metadata = {
   title: 'Authentication',
@@ -17,8 +18,15 @@ export const metadata: Metadata = {
 };
 
 export default function SignInViewPage({ stars }: { stars: number }) {
-  const { signInWithGoogle, authReady } = useDemoSession();
+  const { signInWithGoogle, authReady, authError, clearAuthError } =
+    useDemoSession();
   const [signingIn, setSigningIn] = useState(false);
+
+  useEffect(() => {
+    if (!authError) return;
+    toast.error(authError);
+    clearAuthError();
+  }, [authError, clearAuthError]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -43,19 +51,12 @@ export default function SignInViewPage({ stars }: { stars: number }) {
       <div className='bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r'>
         <div className='absolute inset-0 bg-zinc-900' />
         <div className='relative z-20 flex items-center text-lg font-medium'>
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            viewBox='0 0 24 24'
-            fill='none'
-            stroke='currentColor'
-            strokeWidth='2'
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            className='mr-2 h-6 w-6'
-          >
-            <path d='M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3' />
-          </svg>
-          Logo
+          <img
+            src='/assets/branding/logos/cueva.png'
+            alt='Cueva logo'
+            className='mr-2 h-7 w-7'
+          />
+          Laura Butallo Web Dashboard
         </div>
         <InteractiveGridPattern
           className={cn(
@@ -63,7 +64,7 @@ export default function SignInViewPage({ stars }: { stars: number }) {
             'inset-x-0 inset-y-[0%] h-full skew-y-12'
           )}
         />
-        <div className='relative z-20 mt-auto'>
+        {/* <div className='relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
             <p className='text-lg'>
               &ldquo;This starter template has saved me countless hours of work
@@ -72,65 +73,42 @@ export default function SignInViewPage({ stars }: { stars: number }) {
             </p>
             <footer className='text-sm'>Random Dude</footer>
           </blockquote>
-        </div>
+        </div> */}
       </div>
       <div className='flex h-full items-center justify-center p-4 lg:p-8'>
         <div className='flex w-full max-w-md flex-col items-center justify-center space-y-6'>
-          <Link
-            className={cn('group inline-flex hover:text-yellow-200')}
-            target='_blank'
-            href={'https://github.com/kiranism/next-shadcn-dashboard-starter'}
-          >
-            <div className='flex items-center'>
-              <GitHubLogoIcon className='size-4' />
-              <span className='ml-1 inline'>Star on GitHub</span>{' '}
-            </div>
-            <div className='ml-2 flex items-center gap-1 text-sm md:flex'>
-              <IconStar
-                className='size-4 text-gray-500 transition-all duration-300 group-hover:text-yellow-300'
-                fill='currentColor'
-              />
-              <span className='font-display font-medium'>{stars}</span>
-            </div>
-          </Link>
+          <div className='text-center text-xl font-bold'>Hola, de nuevo 👋</div>
           <div className='w-full space-y-4'>
             <Button
               type='button'
-              className='w-full'
+              variant='outline'
+              className='flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-black text-base font-semibold'
               onClick={handleGoogleSignIn}
               disabled={!authReady || signingIn}
             >
-              <span className='mr-2 inline-flex size-4 items-center justify-center'>
-                <svg
-                  viewBox='0 0 24 24'
-                  className='size-4'
-                  aria-hidden='true'
-                  focusable='false'
-                >
-                  <path
-                    fill='#EA4335'
-                    d='M12 10.2v3.9h5.5c-.2 1.3-1.5 3.8-5.5 3.8a6.3 6.3 0 0 1 0-12.6c1.8 0 3 0.8 3.7 1.4l2.5-2.5C16.6 2.4 14.5 1.5 12 1.5a10.5 10.5 0 1 0 0 21c6.1 0 10.2-4.3 10.2-10.4 0-.7-.1-1.2-.2-1.9H12z'
-                  />
-                </svg>
-              </span>
-              {signingIn ? 'Signing in…' : 'Continue with Google'}
+              <img
+                src='/assets/branding/logos/google_g_logo.svg'
+                alt='Google'
+                className='h-5 w-5'
+              />
+              {signingIn ? 'Ingresando…' : 'Continuar con Google'}
             </Button>
           </div>
 
           <p className='text-muted-foreground px-8 text-center text-sm'>
-            By clicking continue, you agree to our{' '}
+            Al hacer clic en continuar, aceptas nuestros{' '}
             <Link
               href='/terms'
               className='hover:text-primary underline underline-offset-4'
             >
-              Terms of Service
+              Términos de Servicio
             </Link>{' '}
-            and{' '}
+            y la{' '}
             <Link
               href='/privacy'
               className='hover:text-primary underline underline-offset-4'
             >
-              Privacy Policy
+              Política de Privacidad
             </Link>
             .
           </p>
