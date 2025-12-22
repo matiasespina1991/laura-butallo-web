@@ -6,7 +6,8 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signOut as firebaseSignOut,
-  type User
+  type User,
+  type UserCredential
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -37,7 +38,7 @@ interface DemoSessionContextValue {
   activeOrganization: DemoOrganization;
   selectOrganization: (id: string) => void;
   authReady: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<UserCredential>;
   signOut: () => Promise<void>;
 }
 
