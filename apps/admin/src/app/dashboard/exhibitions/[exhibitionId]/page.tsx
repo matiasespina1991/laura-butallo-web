@@ -5,17 +5,19 @@ export const metadata = {
   title: 'Dashboard: Edit Exhibition'
 };
 
-export default function Page({
+export default async function Page({
   params
 }: {
-  params: { exhibitionId: string };
+  params: Promise<{ exhibitionId: string }>;
 }) {
+  const { exhibitionId } = await params;
+
   return (
     <PageContainer
       pageTitle='Edit Exhibition'
       pageDescription='Update exhibition details and media.'
     >
-      <ExhibitionForm />
+      <ExhibitionForm exhibitionId={exhibitionId} />
     </PageContainer>
   );
 }
