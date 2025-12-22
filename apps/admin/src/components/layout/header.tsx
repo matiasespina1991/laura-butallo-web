@@ -6,7 +6,11 @@ import SearchInput from '../search-input';
 import { UserNav } from './user-nav';
 import { ThemeSelector } from '../theme-selector';
 import { ModeToggle } from './ThemeToggle/theme-toggle';
-import CtaGithub from './cta-github';
+// import CtaGithub from './cta-github';
+
+const isDevBranch =
+  process.env.NEXT_PUBLIC_DEPLOY_ENV === 'dev' ||
+  process.env.NODE_ENV === 'development';
 
 export default function Header() {
   return (
@@ -18,13 +22,13 @@ export default function Header() {
       </div>
 
       <div className='flex items-center gap-2 px-4'>
-        <CtaGithub />
-        <div className='hidden md:flex'>
+        {/* <CtaGithub /> */}
+        {/* <div className='hidden md:flex'>
           <SearchInput />
-        </div>
+        </div> */}
         <UserNav />
         <ModeToggle />
-        <ThemeSelector />
+        {isDevBranch && <ThemeSelector />}
       </div>
     </header>
   );

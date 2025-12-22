@@ -13,6 +13,8 @@ import { useDemoSession } from '@/contexts/demo-session';
 
 export default function ProfileViewPage() {
   const { user } = useDemoSession();
+  const displayName = user?.fullName ?? '';
+  const email = user?.emailAddresses?.[0]?.emailAddress ?? '';
 
   return (
     <div className='grid w-full gap-6 md:grid-cols-2'>
@@ -26,14 +28,14 @@ export default function ProfileViewPage() {
         <CardContent className='space-y-4'>
           <div className='space-y-2'>
             <Label htmlFor='name'>Display name</Label>
-            <Input id='name' defaultValue={user.fullName} />
+            <Input id='name' defaultValue={displayName} />
           </div>
           <div className='space-y-2'>
             <Label htmlFor='email'>Email</Label>
             <Input
               id='email'
               type='email'
-              defaultValue={user.emailAddresses[0].emailAddress}
+              defaultValue={email}
             />
           </div>
           <div className='space-y-2'>
