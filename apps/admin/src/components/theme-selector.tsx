@@ -50,6 +50,17 @@ const MONO_THEMES = [
   }
 ];
 
+const AUTO_THEMES = [
+  {
+    name: 'Default',
+    value: 'auto-default'
+  },
+  {
+    name: 'Blue',
+    value: 'auto-blue'
+  }
+];
+
 export function ThemeSelector() {
   const { activeTheme, setActiveTheme } = useThemeConfig();
 
@@ -70,6 +81,15 @@ export function ThemeSelector() {
           <SelectValue placeholder='Select a theme' />
         </SelectTrigger>
         <SelectContent align='end'>
+          <SelectGroup>
+            <SelectLabel>Auto</SelectLabel>
+            {AUTO_THEMES.map((theme) => (
+              <SelectItem key={theme.name} value={theme.value}>
+                {theme.name}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+          <SelectSeparator />
           <SelectGroup>
             <SelectLabel>Default</SelectLabel>
             {DEFAULT_THEMES.map((theme) => (

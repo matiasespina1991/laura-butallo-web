@@ -31,7 +31,13 @@ export default async function RootLayout({
 }) {
   const cookieStore = await cookies();
   const activeThemeValue = cookieStore.get('active_theme')?.value;
-  const isScaled = activeThemeValue?.endsWith('-scaled');
+  const isAutoTheme = activeThemeValue?.startsWith('auto');
+  const initialThemeValue = isAutoTheme
+    ? activeThemeValue === 'auto-blue'
+      ? 'blue'
+      : 'default'
+    : activeThemeValue;
+  const isScaled = initialThemeValue?.endsWith('-scaled');
 
   return (
     <html lang='en' suppressHydrationWarning>
@@ -51,7 +57,7 @@ export default async function RootLayout({
       <body
         className={cn(
           'bg-background overflow-hidden overscroll-none font-sans antialiased',
-          activeThemeValue ? `theme-${activeThemeValue}` : '',
+          initialThemeValue ? `theme-${initialThemeValue}` : '',
           isScaled ? 'theme-scaled' : '',
           fontVariables
         )}

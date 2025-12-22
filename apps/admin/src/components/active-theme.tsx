@@ -10,6 +10,12 @@ import {
 
 const COOKIE_NAME = 'active_theme';
 const DEFAULT_THEME = 'default';
+const AUTO_SCALE_MIN_HEIGHT = 900;
+const AUTO_THEME_MAP: Record<string, { base: string; scaled: string }> = {
+  auto: { base: 'default', scaled: 'default-scaled' },
+  'auto-default': { base: 'default', scaled: 'default-scaled' },
+  'auto-blue': { base: 'blue', scaled: 'blue-scaled' }
+};
 
 function setThemeCookie(theme: string) {
   if (typeof window === 'undefined') return;
@@ -34,20 +40,45 @@ export function ActiveThemeProvider({
   const [activeTheme, setActiveTheme] = useState<string>(
     () => initialTheme || DEFAULT_THEME
   );
+  const [resolvedTheme, setResolvedTheme] = useState<string>(activeTheme);
 
   useEffect(() => {
     setThemeCookie(activeTheme);
+  }, [activeTheme]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateResolvedTheme = () => {
+      if (!activeTheme.startsWith('auto')) {
+        setResolvedTheme(activeTheme);
+        return;
+      }
+
+      const mapping = AUTO_THEME_MAP[activeTheme] ?? AUTO_THEME_MAP.auto;
+      const useScaled = window.innerHeight < AUTO_SCALE_MIN_HEIGHT;
+      setResolvedTheme(useScaled ? mapping.scaled : mapping.base);
+    };
+
+    updateResolvedTheme();
+
+    if (activeTheme.startsWith('auto')) {
+      window.addEventListener('resize', updateResolvedTheme);
+      return () => window.removeEventListener('resize', updateResolvedTheme);
+    }
+  }, [activeTheme]);
+
+  useEffect(() => {
     Array.from(document.body.classList)
       .filter((className) => className.startsWith('theme-'))
       .forEach((className) => {
         document.body.classList.remove(className);
       });
-    document.body.classList.add(`theme-${activeTheme}`);
-    if (activeTheme.endsWith('-scaled')) {
+    document.body.classList.add(`theme-${resolvedTheme}`);
+    if (resolvedTheme.endsWith('-scaled')) {
       document.body.classList.add('theme-scaled');
     }
-  }, [activeTheme]);
+  }, [resolvedTheme]);
 
   return (
     <ThemeContext.Provider value={{ activeTheme, setActiveTheme }}>
