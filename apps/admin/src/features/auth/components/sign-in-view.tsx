@@ -4,11 +4,8 @@ import { useEffect, useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { GitHubLogoIcon } from '@radix-ui/react-icons';
-import { IconStar } from '@tabler/icons-react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { InteractiveGridPattern } from './interactive-grid';
 import { useDemoSession } from '@/contexts/demo-session';
 import { toast } from 'sonner';
 
@@ -50,19 +47,12 @@ export default function SignInViewPage({ stars }: { stars: number }) {
       </Link>
       <div className='bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-r'>
         <div className='absolute inset-0 bg-zinc-900' />
-        <div className='relative z-20 flex items-center text-xl font-medium'>
-          <img
-            src='/assets/branding/logos/cueva.png'
-            alt='Cueva logo'
-            className='mr-2 h-8 w-8'
-          />
-          Laura Butallo Web · Dashboard
-        </div>
-        <InteractiveGridPattern
-          className={cn(
-            'mask-[radial-gradient(400px_circle_at_center,white,transparent)]',
-            'inset-x-0 inset-y-[0%] h-full skew-y-12'
-          )}
+        <div
+          className='absolute inset-0 bg-cover bg-center'
+          style={{
+            backgroundImage:
+              'url("https://firebasestorage.googleapis.com/v0/b/laura-butallo-web.firebasestorage.app/o/temp-assets%2FKdeFD2vlUZyRo7G1LGnE%2Fwebp_medium.webp?alt=media&token=de0ddfa9-070a-4e67-a6d6-74c34d98835a")'
+          }}
         />
         {/* <div className='relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
@@ -75,27 +65,37 @@ export default function SignInViewPage({ stars }: { stars: number }) {
           </blockquote>
         </div> */}
       </div>
-      <div className='flex h-full items-center justify-center p-4 lg:p-8'>
+      <div className='relative flex h-full items-center justify-center p-4 lg:p-8'>
+        {/* <div className='text-foreground absolute top-6 right-6 flex items-center gap-2 text-lg font-semibold'>
+          <img
+            src='/assets/branding/logos/cueva.png'
+            alt='Cueva logo'
+            className='h-5 w-5'
+          />
+          <span>Laura Butallo Web</span>
+          <span className='text-muted-foreground'>·</span>
+          <span>Dashboard</span>
+        </div> */}
         <div className='flex w-full max-w-md flex-col items-center justify-center space-y-6'>
-          <div className='text-center text-xl font-bold'>Hola, de nuevo 👋</div>
-          <div className='w-full space-y-4'>
+          <div className='text-center text-xl font-bold'>Bienvenida 👋</div>
+          <div className='flex w-full flex-col items-center space-y-4'>
             <Button
               type='button'
               variant='outline'
-              className='flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-black text-base font-semibold'
+              className='flex h-11 w-full max-w-[16rem] cursor-pointer items-center justify-center gap-3 rounded-full border border-[#747775] text-base font-semibold'
               onClick={handleGoogleSignIn}
               disabled={!authReady || signingIn}
             >
               <img
                 src='/assets/branding/logos/google_g_logo.svg'
                 alt='Google'
-                className='h-5 w-5'
+                className='h-4 w-4'
               />
-              {signingIn ? 'Ingresando…' : 'Continuar con Google'}
+              {signingIn ? 'Ingresando…' : 'Iniciar sesión con Google'}
             </Button>
           </div>
 
-          <p className='text-muted-foreground px-8 text-center text-sm'>
+          <p className='text-muted-foreground px-8 text-center text-xs'>
             Al hacer clic en continuar, aceptas nuestros{' '}
             <Link
               href='/terms'
