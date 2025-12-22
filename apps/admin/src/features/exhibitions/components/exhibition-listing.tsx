@@ -2,7 +2,7 @@
 
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { ExhibitionTable } from './exhibition-tables';
 import { columns } from './exhibition-tables/columns';
@@ -26,17 +26,35 @@ export default function ExhibitionListingPage({}: ExhibitionListingPage) {
     const loadExhibitions = async () => {
       try {
         const snapshot = await getDocs(collection(db, 'exhibitions'));
-        const rows = snapshot.docs.map((doc) => {
-          const values = doc.data() as ExhibitionDoc;
-          const body = values.body ?? '';
-          return {
-            id: doc.id,
-            title: values.title ?? '',
-            dateAndLocation: values.dateAndLocation ?? '',
-            body: stripHtml(body),
-            videoCount: values.mediaIds?.length ?? 0
-          };
-        });
+        const rows = await Promise.all(
+          snapshot.docs.map(async (docSnap) => {
+            const values = docSnap.data() as ExhibitionDoc;
+            const body = values.body ?? '';
+            const mediaId = values.mediaIds?.[0];
+            let posterPath: string | undefined;
+
+            if (mediaId) {
+              try {
+                const mediaSnap = await getDoc(doc(db, 'media', mediaId));
+                const mediaData = mediaSnap.data() as {
+                  paths?: { poster?: { storagePath?: string } };
+                };
+                posterPath = mediaData?.paths?.poster?.storagePath;
+              } catch (error) {
+                console.warn('[Exhibitions] poster load error', mediaId, error);
+              }
+            }
+
+            return {
+              id: docSnap.id,
+              title: values.title ?? '',
+              dateAndLocation: values.dateAndLocation ?? '',
+              body: stripHtml(body),
+              posterPath,
+              videoCount: values.mediaIds?.length ?? 0
+            };
+          })
+        );
 
         if (isMounted) {
           setData(rows);

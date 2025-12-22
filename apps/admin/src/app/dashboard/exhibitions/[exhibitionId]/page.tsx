@@ -1,4 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
+import ExhibitionForm from '@/features/exhibitions/components/exhibition-form';
 
 export const metadata = {
   title: 'Dashboard: Edit Exhibition'
@@ -14,9 +15,7 @@ export default function Page({
       pageTitle='Edit Exhibition'
       pageDescription='Update exhibition details and media.'
     >
-      <div className='text-muted-foreground'>
-        Editing exhibition {params.exhibitionId}.
-      </div>
+      <ExhibitionForm />
     </PageContainer>
   );
 }

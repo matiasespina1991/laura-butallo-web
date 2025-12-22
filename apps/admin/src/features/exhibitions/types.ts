@@ -3,6 +3,7 @@ export type ExhibitionRow = {
   title: string;
   dateAndLocation?: string;
   body: string;
+  posterPath?: string;
   videoCount: number;
 };
 
