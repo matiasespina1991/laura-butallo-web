@@ -30,7 +30,7 @@ env:
     secret: FIREBASE_APP_ID
     availability: [BUILD, RUNTIME]
   - variable: NEXT_PUBLIC_DEPLOY_ENV
-    value: dev
+    value: prod
     availability: [BUILD]
 # Grant access to secrets in Cloud Secret Manager.
 # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
