@@ -10,6 +10,10 @@ import dynamic from 'next/dynamic';
 const CSAnimatedCursor = dynamic(() => import('./CSAnimatedCursor'), {
   ssr: false,
 });
+const AnalyticsTracker = dynamic(
+  () => import('../components/analytics/analytics-tracker'),
+  { ssr: false }
+);
 
 const SITE_URL =
   'https://laura-butallo-web-backend--laura-butallo-web.us-central1.hosted.app/';
@@ -123,6 +127,7 @@ export default function RootLayout({
         {!isMobile && <CSAnimatedCursor />}
         <ThemeRegistry>
           <Header />
+          <AnalyticsTracker />
           <Box mt="64px">{children}</Box>
         </ThemeRegistry>
       </body>
