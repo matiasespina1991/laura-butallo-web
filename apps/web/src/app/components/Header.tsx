@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, use } from 'react';
 import { createPortal } from 'react-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -36,6 +36,12 @@ export default function Header() {
   const pathname = usePathname();
   const [isHome, setIsHome] = useState<boolean>(true);
   const { toggleTheme, mode } = useContext(ThemeContext);
+
+  useEffect(() => {
+    console.log('isDevBranch:', isDevBranch);
+    console.log('NEXT_PUBLIC_DEPLOY_ENV:', process.env.NEXT_PUBLIC_DEPLOY_ENV);
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+  }, [process.env.NEXT_PUBLIC_DEPLOY_ENV, process.env.NODE_ENV]);
 
   // Custom transition function with top-right origin
   const startTransitionFromTopRight = () => {
@@ -413,7 +419,7 @@ export default function Header() {
                     </span>
                   </Button>
 
-                  {/* Dropdown renderizado en portal — fondo BLANCO y textos NEGROS */}
+                  {/* Dropdown renderizado en portal */}
                   {isMounted &&
                     dropdownRect &&
                     createPortal(
