@@ -18,7 +18,7 @@ interface MobileDrawerProps {
 }
 
 const isDevBranch =
-  process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF === 'dev' ||
+  process.env.NEXT_PUBLIC_DEPLOY_ENV === 'dev' ||
   process.env.NODE_ENV === 'development';
 
 export default function MobileDrawer({

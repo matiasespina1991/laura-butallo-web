@@ -14,6 +14,9 @@ const AnalyticsTracker = dynamic(
   () => import('../components/analytics/analytics-tracker'),
   { ssr: false }
 );
+const isDevBranch =
+  process.env.NEXT_PUBLIC_DEPLOY_ENV === 'dev' ||
+  process.env.NODE_ENV === 'development';
 
 const SITE_URL =
   'https://laura-butallo-web-backend--laura-butallo-web.us-central1.hosted.app/';
@@ -127,7 +130,7 @@ export default function RootLayout({
         {!isMobile && <CSAnimatedCursor />}
         <ThemeRegistry>
           <Header />
-          <AnalyticsTracker />
+          {!isDevBranch && <AnalyticsTracker />}
           <Box mt="64px">{children}</Box>
         </ThemeRegistry>
       </body>
