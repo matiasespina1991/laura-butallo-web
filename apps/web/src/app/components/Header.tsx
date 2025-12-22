@@ -523,24 +523,22 @@ export default function Header() {
                 </Box>
               )}
 
-              {isDevBranch && (
-                <Button
-                  disableRipple
-                  component={NextLink}
-                  href="/exhibitions"
-                  prefetch
-                  variant="text"
-                  sx={{
-                    textTransform: 'unset',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                    },
-                  }}
-                  color="inherit"
-                >
-                  <span>Exhibitions</span>
-                </Button>
-              )}
+              <Button
+                disableRipple
+                component={NextLink}
+                href="/exhibitions"
+                prefetch
+                variant="text"
+                sx={{
+                  textTransform: 'unset',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                }}
+                color="inherit"
+              >
+                <span>Exhibitions</span>
+              </Button>
 
               <Button
                 disableRipple
