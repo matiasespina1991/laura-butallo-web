@@ -95,7 +95,6 @@ export default function ZoomeableVideo({
     (e: React.MouseEvent) => {
       if (touchDeviceRef.current) return;
       e.stopPropagation();
-      e.preventDefault(); // ✅ AÑADE ESTO para consistencia
       const { x, y } = coordsFromEvent(e.clientX, e.clientY);
       setOrigin({ x, y });
       setZoomed((z) => !z);
@@ -116,14 +115,10 @@ export default function ZoomeableVideo({
   const handleMouseEnter = useCallback(() => setHover(true), []);
   const handleMouseLeave = useCallback(() => {
     setHover(false);
-    setZoomed(false);
-    setOrigin({ x: 50, y: 50 });
   }, []);
 
   const handlePointerLeave = useCallback(() => {
     setHover(false);
-    setZoomed(false);
-    setOrigin({ x: 50, y: 50 });
   }, []);
 
   const handleVideoError = useCallback(() => {
@@ -213,12 +208,14 @@ export default function ZoomeableVideo({
     };
   }, [lowSrc, zoomed]);
 
-  // Cambiar fuente cuando se activa/desactiva zoom (preserva tiempo y estado de reproducción)
+  // Cambiar fuente al activar zoom (preserva tiempo y estado de reproducción)
   useEffect(() => {
     if (!switchToHighOnZoom) return;
     const vid = videoRef.current;
     if (!vid) return;
-    const choose = zoomed ? highSrc : lowSrc;
+    // Importante: evitamos volver a lowSrc al des-zoomear para no recargar el video
+    // (eso suele causar flicker y puede disparar mouseleave/pointerleave en desktop).
+    const choose = zoomed ? highSrc : undefined;
     if (!choose) return;
     if (vid.currentSrc && choose && vid.currentSrc.includes(choose)) return;
 
@@ -306,10 +303,10 @@ export default function ZoomeableVideo({
         onClick={handleClick}
         onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onDragStart={(e) => e.preventDefault()}
-      onError={handleVideoError}
-      style={videoStyle}
+        onTouchMove={handleTouchMove}
+        onDragStart={(e) => e.preventDefault()}
+        onError={handleVideoError}
+        style={videoStyle}
       />
     </div>
   );
