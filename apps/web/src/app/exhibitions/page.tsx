@@ -170,7 +170,7 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
         height="100%"
         autoPlay
         loop
-        // muted
+        muted
         playsInline
         preload="metadata"
         controls={showControls}
@@ -185,6 +185,7 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
           height: '100%',
           display: 'block',
           borderRadius: isMobileDevice ? '8px' : '10px',
+          touchAction: 'pan-y',
         }}
       >
         <source src={videoSource.src || ''} type="video/webm" />
@@ -197,6 +198,13 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
 export default function Exhibitions() {
   const { mode } = useContext(ThemeContext);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Defensive: avoid getting stuck with a global scroll-lock class
+    // (can be very noticeable on real mobile Safari).
+    document.body.classList.remove('no-scroll');
+    document.documentElement.classList.remove('no-scroll');
+  }, []);
 
   const toggleExhibition = (index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
