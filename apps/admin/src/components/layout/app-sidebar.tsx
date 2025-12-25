@@ -162,12 +162,12 @@ export default function AppSidebar() {
                 <DropdownMenuSeparator />
 
                 <DropdownMenuGroup>
-                  <DropdownMenuItem
+                  {/* <DropdownMenuItem
                     onClick={() => router.push('/dashboard/profile')}
                   >
                     <IconUserCircle className='mr-2 h-4 w-4' />
                     Profile
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                   {activeOrganization && (
                     <DropdownMenuItem
                       onClick={() => router.push('/dashboard/billing')}

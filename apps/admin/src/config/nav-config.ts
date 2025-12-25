@@ -67,12 +67,12 @@ export const navItems: NavItem[] = [
     icon: 'account',
     isActive: true,
     items: [
-      {
-        title: 'Profile',
-        url: '/dashboard/profile',
-        icon: 'profile',
-        shortcut: ['m', 'm']
-      },
+      // {
+      //   title: 'Profile',
+      //   url: '/dashboard/profile',
+      //   icon: 'profile',
+      //   shortcut: ['m', 'm']
+      // },
       {
         title: 'Billing',
         url: '/dashboard/billing',

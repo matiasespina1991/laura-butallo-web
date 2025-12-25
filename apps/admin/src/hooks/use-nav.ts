@@ -8,5 +8,28 @@ import type { NavItem } from '@/types';
  * Firebase auth/analytics will drive visibility later; for now everything stays visible.
  */
 export function useFilteredNavItems(items: NavItem[]) {
-  return useMemo(() => items, [items]);
+  const deployEnv = process.env.NEXT_PUBLIC_DEPLOY_ENV ?? 'dev';
+  const restrictNav = deployEnv === 'prod';
+
+  return useMemo(() => {
+    if (!restrictNav) {
+      return items;
+    }
+
+    const allowedUrls = new Set(['/dashboard/overview', '/dashboard/exhibitions']);
+
+    const filterItems = (entries: NavItem[]): NavItem[] =>
+      entries
+        .map((entry) => ({
+          ...entry,
+          items: entry.items ? filterItems(entry.items) : []
+        }))
+        .filter(
+          (entry) =>
+            allowedUrls.has(entry.url) ||
+            (entry.items && entry.items.length > 0)
+        );
+
+    return filterItems(items);
+  }, [items, restrictNav]);
 }
