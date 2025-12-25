@@ -31,7 +31,7 @@ function FormTinyMce<
   description,
   required,
   placeholder,
-  height = 360,
+  height = 401,
   disabled,
   className
 }: FormTinyMceProps<TFieldValues, TName>) {
