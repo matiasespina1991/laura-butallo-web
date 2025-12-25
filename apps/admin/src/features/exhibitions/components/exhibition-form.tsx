@@ -68,8 +68,8 @@ function MediaPreviewCard({
   );
 
   return (
-    <div className='border-border/60 bg-card flex items-center gap-3 rounded-lg border px-3 py-2 shadow-xs'>
-      <div className='bg-muted flex h-16 w-16 items-center justify-center overflow-hidden rounded-md'>
+    <div className='border-border/60 bg-card flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2 shadow-xs'>
+      <div className='bg-muted flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md'>
         {hasSource ? (
           <img
             src={src}
@@ -342,31 +342,34 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
               Loading exhibition...
             </div>
           )}
-          <div className='grid grid-cols-1 gap-6'>
-            <FormInput
-              control={form.control}
-              name='title'
-              label='Title'
-              placeholder='Enter exhibition title'
-              required
-            />
+          <div className='flex flex-col gap-8 lg:flex-row lg:items-start'>
+            <div className='flex flex-1 flex-col gap-6 lg:flex-[3]'>
+              <div className='grid grid-cols-1 gap-6'>
+                <FormInput
+                  control={form.control}
+                  name='title'
+                  label='Title'
+                  placeholder='Enter exhibition title'
+                  required
+                />
 
-            <FormInput
-              control={form.control}
-              name='dateAndLocation'
-              label='Date and location'
-              placeholder='April 2025 · Wintercircus Arena, Belgium'
-            />
-          </div>
+                <FormInput
+                  control={form.control}
+                  name='dateAndLocation'
+                  label='Date and location'
+                  placeholder='April 2025 · Wintercircus Arena, Belgium'
+                />
+              </div>
 
-          <FormTinyMce
-            control={form.control}
-            name='body'
-            label='Body'
-            placeholder='Write the exhibition body...'
-          />
+              <FormTinyMce
+                control={form.control}
+                name='body'
+                label='Body'
+                placeholder='Write the exhibition body...'
+              />
+            </div>
 
-          <div className='space-y-4'>
+            <div className='flex flex-1 flex-col gap-6 lg:flex-[1]'>
             <div className='space-y-2'>
               <div className='text-sm font-semibold'>Video destacado</div>
               {featureMedia ? (
@@ -374,45 +377,46 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
                   media={featureMedia}
                   onRemove={removeFeatureMedia}
                 />
-              ) : (
-                <div className='text-muted-foreground text-sm'>
-                  Todavía no hay video destacado.
-                </div>
-              )}
+              ) : null}
               <FileUploader
                 onUpload={handleFeatureUpload}
                 progresses={featureProgress}
-                accept={{ 'video/*': [] }}
-                maxFiles={1}
-                maxSize={MAX_UPLOAD_SIZE}
-              />
-            </div>
+                  accept={{ 'video/*': [] }}
+                  maxFiles={1}
+                  maxSize={MAX_UPLOAD_SIZE}
+                />
+              </div>
 
             <div className='space-y-2'>
               <div className='text-sm font-semibold'>Adjuntos</div>
               {attachmentMedia.length ? (
-                <div className='grid gap-3 sm:grid-cols-2'>
+                <div className='flex flex-wrap gap-3'>
                   {attachmentMedia.map((media) => (
-                    <MediaPreviewCard
+                    <div
                       key={media.id}
-                      media={media}
-                      onRemove={() => removeAttachment(media.id)}
-                    />
+                      className='min-w-[220px] flex-[1_1_220px]'
+                    >
+                      <MediaPreviewCard
+                        media={media}
+                        onRemove={() => removeAttachment(media.id)}
+                      />
+                    </div>
                   ))}
                 </div>
               ) : (
-                <div className='text-muted-foreground text-sm'>
-                  No hay adjuntos todavía.
-                </div>
-              )}
-              <FileUploader
-                onUpload={handleAttachmentUpload}
-                progresses={attachmentProgress}
-                accept={{ 'image/*': [], 'video/*': [] }}
-                maxFiles={10}
-                maxSize={MAX_UPLOAD_SIZE}
-                multiple
-              />
+                  <div className='text-muted-foreground text-sm'>
+                    No hay adjuntos todavía.
+                  </div>
+                )}
+                <FileUploader
+                  onUpload={handleAttachmentUpload}
+                  progresses={attachmentProgress}
+                  accept={{ 'image/*': [], 'video/*': [] }}
+                  maxFiles={10}
+                  maxSize={MAX_UPLOAD_SIZE}
+                  multiple
+                />
+              </div>
             </div>
           </div>
 
