@@ -117,7 +117,7 @@ function MediaCard({
       className={cn(
         'border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs',
         isSelected &&
-          'ring-primary/20 ring-offset-background ring-2 ring-offset-2'
+          'ring-offset-background ring-2 ring-[#006cd1]/40 ring-offset-2'
       )}
     >
       <button
@@ -198,7 +198,12 @@ function MediaCard({
           suppressContentEditableWarning
           role='textbox'
           aria-label='Editar título'
-          className='text-foreground w-fit cursor-text truncate text-left text-sm font-medium outline-none'
+          className={cn(
+            'text-foreground text-left text-sm font-medium outline-none',
+            isEditing
+              ? 'inline-block min-h-[1.25rem] min-w-[6ch] cursor-text caret-foreground'
+              : 'w-fit truncate'
+          )}
           onClick={() => {
             if (!isEditing && !isSaving) {
               setIsEditing(true);

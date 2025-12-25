@@ -22,6 +22,12 @@ type Exhibition = {
 const driftingLandscapesMedia: Media = {
   id: 'E8LksG9GKq7qoQsbtHYt',
   mediaSetId: null,
+  uploadId: 'E8LksG9GKq7qoQsbtHYt',
+  origin: {
+    context: 'exhibition',
+    exhibitionId: null,
+    role: 'attachment',
+  },
   type: 'video',
   title: 'Drifting Landscapes – Video',
   description: '',
@@ -77,6 +83,12 @@ const driftingLandscapesMedia: Media = {
 const artOnTezosMedia: Media = {
   id: 'CsNx0GADEpqxahMxRs2T',
   mediaSetId: null,
+  uploadId: 'CsNx0GADEpqxahMxRs2T',
+  origin: {
+    context: 'exhibition',
+    exhibitionId: null,
+    role: 'attachment',
+  },
   type: 'video',
   title: 'Art on Tezos – Installation',
   description: '',

@@ -50,7 +50,8 @@ export const onImageFinalize = onObjectFinalized(
       const originExhibitionId = metadata.exhibitionId ?? null;
 
       const db = getDb();
-      const mediaId = db.collection('media').doc().id;
+      const resolvedUploadId = typeof uploadId === 'string' ? uploadId : '';
+      const mediaId = resolvedUploadId || db.collection('media').doc().id;
 
       const now = admin.firestore.Timestamp.now();
 
@@ -59,7 +60,7 @@ export const onImageFinalize = onObjectFinalized(
       const initialDoc: Media = {
         id: mediaId,
         mediaSetId: null,
-        uploadId: uploadId || mediaId,
+        uploadId: resolvedUploadId || mediaId,
         origin: {
           context: originContext,
           exhibitionId: originExhibitionId,
