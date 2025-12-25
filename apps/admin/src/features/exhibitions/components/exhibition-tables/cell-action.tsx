@@ -26,7 +26,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
   const onConfirm = async () => {};
 
   return (
-    <>
+    <div data-row-click='ignore'>
       <AlertModal
         isOpen={open}
         onClose={() => setOpen(false)}
@@ -52,6 +52,6 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </>
+    </div>
   );
 };

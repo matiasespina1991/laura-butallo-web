@@ -315,8 +315,8 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           updatedAt: serverTimestamp()
         });
         toast.success('Exhibition created.');
+        router.push('/dashboard/exhibitions');
       }
-      router.push('/dashboard/exhibitions');
     } catch (error) {
       console.error('[Exhibitions] update exhibition error', error);
       toast.error('Error al guardar. Intenta de nuevo.');

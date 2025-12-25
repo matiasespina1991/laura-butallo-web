@@ -1,4 +1,8 @@
-import { type Table as TanstackTable, flexRender } from '@tanstack/react-table';
+import {
+  type Row as TanstackRow,
+  type Table as TanstackTable,
+  flexRender
+} from '@tanstack/react-table';
 import type * as React from 'react';
 
 import { DataTablePagination } from '@/components/ui/table/data-table-pagination';
@@ -16,11 +20,13 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   table: TanstackTable<TData>;
   actionBar?: React.ReactNode;
+  onRowClick?: (row: TanstackRow<TData>) => void;
 }
 
 export function DataTable<TData>({
   table,
   actionBar,
+  onRowClick,
   children
 }: DataTableProps<TData>) {
   return (
@@ -58,6 +64,15 @@ export function DataTable<TData>({
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}
+                      className={onRowClick ? 'hover:bg-muted/40 cursor-pointer' : undefined}
+                      onClick={(event) => {
+                        if (!onRowClick) return;
+                        const target = event.target as HTMLElement | null;
+                        if (target?.closest('[data-row-click="ignore"]')) {
+                          return;
+                        }
+                        onRowClick(row);
+                      }}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell

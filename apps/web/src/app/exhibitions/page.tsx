@@ -7,152 +7,63 @@ import { useContext, useEffect, useMemo, useState } from 'react';
 import { ThemeContext } from '../ThemeRegistry';
 import Footer from '../components/Footer';
 import { Media } from '@/utils/types/media';
-import { Timestamp } from 'firebase/firestore';
+import db from '@/utils/config/firebase';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query
+} from 'firebase/firestore';
 import { selectVideoAssets } from '@/utils/media/assetSelectors';
 import { useStorageAssetSrc } from '@/hooks/useStorageAssetSrc';
 import { isMobile } from 'react-device-detect';
 
 type Exhibition = {
+  id: string;
   title: string;
   meta?: string;
   paragraphs: string[];
   videoMedias?: Media[];
 };
 
-const driftingLandscapesMedia: Media = {
-  id: 'E8LksG9GKq7qoQsbtHYt',
-  mediaSetId: null,
-  uploadId: 'E8LksG9GKq7qoQsbtHYt',
-  origin: {
-    context: 'exhibition',
-    exhibitionId: null,
-    role: 'attachment',
-  },
-  type: 'video',
-  title: 'Drifting Landscapes – Video',
-  description: '',
-  storagePath: 'uploads/videos/DriftingLandscapes_Belgica.mov',
-  paths: {
-    original: {
-      storagePath: 'uploads/videos/DriftingLandscapes_Belgica.mov',
-      downloadURL: null,
-    },
-    derivatives: {
-      webm_360: {
-        storagePath: 'temp-assets/E8LksG9GKq7qoQsbtHYt/video_360.webm',
-        downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/E8LksG9GKq7qoQsbtHYt/video_360.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=hH8tXQtrJEETRrGx%2BuigziLzDqJLfzqkMItYo0%2BSiV9t8Jm9ZI3SAYFgGqxmXAjbv3%2BTxoy8xygsWmO%2BHKnecEuUK%2FvJMLyPCimaq%2BBPC0sYqWNR3cAN8PYg7ZiDHe6JVLEy%2F4gvyzq%2BqcarWD%2F6uoFTiGi4gDdogsteI6XM%2FU1wSc0RbpiaIm249vmK81r5zlzV3Z1ijphPvDqNAh1gCq0TcOsM5CDOzz1wFOE%2F5QesGq2E5TCJmGFHmR8dRJsB7%2BK1%2B4OhcylO3DOSo1cNvzQPMRvTu%2B54uqNMwsIbV0lcyms0N8K9KzcszA5XGL%2FbpB0n7C3LChs6elx0en6cFw%3D%3D',
-      },
-      webm_720: {
-        storagePath: 'temp-assets/E8LksG9GKq7qoQsbtHYt/video_720.webm',
-        downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/E8LksG9GKq7qoQsbtHYt/video_720.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=ZP2Xc750zhAIKoFoFfRJ64lGa%2FuTtXnwGcjt4X2%2FRofFSXWj8Ojzn7uAtN1CwkU0%2BF%2Bn343lwXkhRw7J1ljLNJX7axv9Vt38p0wbTog7bBMoBZDO3rGDMHV2xozFr41vqay88afKjHpPbiZW%2B0J37y8TFe%2FilSl851OpZifHWHzibiW5To%2BZ%2BwCMkHKoyZvrGA3BUDQgz608hSsEsueaE%2FR4hbrBfSk08Qg89qZScnMIIxR9c%2BPGsXXJxKum7KpXRrnEAzxmmDw8sOJKk0p8a8THIxI84ECHcpTC6Nb0r%2FeUojlzk9ecETZr%2FHgXSa2zBHiluG3qn%2BWCeu2m3H6qeA%3D%3D',
-      },
-      webm_1080: {
-        storagePath: 'temp-assets/E8LksG9GKq7qoQsbtHYt/video_1080.webm',
-        downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/E8LksG9GKq7qoQsbtHYt/video_1080.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=NBImeRqNXArZFIX%2BDitKEUX0zDJwvgHStm3X%2BYKUPyB%2BMisA%2BB8BQlt2ONNuxWm7aLkOmxu2r0hacUw6GvxEXKkP0qhUKkyvLNTo7wBC4NIWCaO%2F8DANKz8V0FAkIZAZlNXOWF6hObzTD3cslefhsyZfS%2BWaH4ue5XizbwgEtedMrdWnm%2FSN%2FSB0eW6Z7%2BXS%2BykjHVaHSXs35huXso2o91791E1XZLvn0sb5NIbbl85CkKtSx8%2BiMEXV2ZKzT38csJETGkjOl7gRiIMYS71n1Em8NBaQJasnIL3jhHDh9WhqwzOVZYAWojJDM%2B1iV8l99G1EU6mKcQ0fBJ2VP24uEQ%3D%3D',
-      },
-    },
-    poster: {
-      storagePath: 'temp-assets/E8LksG9GKq7qoQsbtHYt/poster.webp',
-      downloadURL:
-        'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/E8LksG9GKq7qoQsbtHYt/poster.webp?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=IlCCiaOLCd3MfoyiI8dw0USxTdpMXs6IQP5SMvE2PMpv3qtsNqdhI3ZwVEpQWKp2NQLTzjzWuMD4U8JvuECBJmWemklWz4Tf4Fgg3xBP%2Fy37sLnsVNiS5IXyJ4QavWfip8ci07UShTPylMX4qUwRO27xdQg68OhKtgwx5hnVSYDcb2UvQlDHFgLGPo1O4o5QoNXNX5uNYkj%2FHrKOuGfPkEdy7hGUmbKc0ZOE3kkCx7UFDgfI%2BtNc51WyWvSbdw%2F%2Bm7mM7AFEUz7GRGYkhd8iBjBJVH7rP3tORwyuKFtmmYd1HMgm7AL%2FGY4Q8y3ah9mfFPApUz0pgku7R6Dyzwojrg%3D%3D',
-    },
-  },
-  width: 3840,
-  height: 2160,
-  duration: 19,
-  mimeType: 'video/quicktime',
-  sizeBytes: 134345156,
-  blurHash: null,
-  codec: 'vp9',
-  bitrate: 58095202,
-  createdAt: Timestamp.fromMillis(Date.parse('2025-12-16T17:32:43+01:00')),
-  modifiedAt: Timestamp.fromMillis(Date.parse('2025-12-16T17:50:55+01:00')),
-  processed: true,
-  deletedAt: null,
+type ExhibitionDoc = {
+  title?: string;
+  dateAndLocation?: string;
+  body?: string;
+  mediaIds?: string[];
+  featureMediaId?: string | null;
 };
 
-const artOnTezosMedia: Media = {
-  id: 'CsNx0GADEpqxahMxRs2T',
-  mediaSetId: null,
-  uploadId: 'CsNx0GADEpqxahMxRs2T',
-  origin: {
-    context: 'exhibition',
-    exhibitionId: null,
-    role: 'attachment',
-  },
-  type: 'video',
-  title: 'Art on Tezos – Installation',
-  description: '',
-  storagePath: 'uploads/videos/CRTIstallation_Snippet.mp4',
-  paths: {
-    original: {
-      storagePath: 'uploads/videos/CRTIstallation_Snippet.mp4',
-      downloadURL: null,
-    },
-    derivatives: {
-      webm_360: {
-        storagePath: 'temp-assets/CsNx0GADEpqxahMxRs2T/video_360.webm',
-        downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/CsNx0GADEpqxahMxRs2T/video_360.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=sM7dKvTDzGE0lXOdrzTgG3C4DbbhPYpRvUn7UWujjSMQxi8G50kzjs0FhBbNfY6ice76YCQo3AmIRqzE9L218yB16P2uGQFOB6s9ABrZ%2ByBG%2BP5x%2Fdy%2F9PN48V6dULuhVwUyxlr33LImmxAN5slxWAKDPLkI4QjOJKuiQskzFKZlyr9MSM80W12cGW1TiZv7ufYuS23rXl%2FcFfUEWt81kHHeXOccEAKGal027gcUlUw1jnxjypwOnZVtLCNKOXnrCQjfIC2%2FT5YmqsFbOvVJjy1zQjVSNyW1CTgoj1kUP0uDb3lxZKxNBXuqXlL8o2DISHDCEbs07vb3l%2FJIs9%2Fg0A%3D%3D',
-      },
-      webm_720: {
-        storagePath: 'temp-assets/CsNx0GADEpqxahMxRs2T/video_720.webm',
-        downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/CsNx0GADEpqxahMxRs2T/video_720.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=cWjZebtyNmZ0ftjY0UWcy3dtqUKWKIC%2BVJuljAlzHXxcNZMwABryFFeoxHxSlEdqmbOBajc2Ao0S7TUgnSXz0N0GXOTwuE%2B6m6RLXNHc%2FOZuJuoHtJYSQ8aT2mrtziIAB86vE134PK%2FCrGNGH3%2FRd6ZwzAe0FyCTSAec%2BBH2UlEsc0k2Us1wwpF8VzV1FEQI2Nb9SW%2B%2BrBgDOZ28T0YnvrkiskIKPTb39JGT7OG5R5Vozplx4h%2BzsLGMQrvZj6XzYNsmUyJ290fDbmFwwi5NhrpCKTSjB%2B%2FJQIueeD6n%2BZsWiBeeG5uZ3W%2FJf%2Fmt69eSuMBdQyzWDYEMvjXRrUB96g%3D%3D',
-      },
-      webm_1080: {
-        storagePath: 'temp-assets/CsNx0GADEpqxahMxRs2T/video_1080.webm',
-        downloadURL:
-          'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/CsNx0GADEpqxahMxRs2T/video_1080.webm?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=Ve7QEKYMZkvb1oujDPKFP20JvugV35wM5RViFib1WYuEG413wTLE1ZKRf07L9AO1LDz%2FdjJMZ2BUDmlK3UtXoivRmzgBeCj4sMC%2B%2Fu3dZSKIcodeLat2GMYyTg5gDSYdqbiaw7HFoixDPtL1X%2BcnwAMtDgNo65vreM5FGOFYwOpwxTK5NymQhCS7uCXEferhaoNw9lx%2F2Zz%2FR2eWyqyLKa%2BepiReyueufWp9aslJCIt9Klw7ISFCoeEosC8ZM0%2BVQygXbVUUuH5hR3DerhxvR3s01UgRBeEvFRaCYwQXMmeDXsFYopvLTJ6vgN7TkB7WjYEvfZkPYlKK7fHTfN3qSw%3D%3D',
-      },
-    },
-    poster: {
-      storagePath: 'temp-assets/CsNx0GADEpqxahMxRs2T/poster.webp',
-      downloadURL:
-        'https://storage.googleapis.com/laura-butallo-web.firebasestorage.app/temp-assets/CsNx0GADEpqxahMxRs2T/poster.webp?GoogleAccessId=388226025861-compute%40developer.gserviceaccount.com&Expires=16730323200&Signature=kBti1k%2FXrQ9%2BFHsPAZ1g3lxSbzEjgkUuHzZkM0iBMJA8IvpAoiHMUupnna93Pa%2BxVmOlPQFgUbGWSPt1m124HKsxst0aNvQDm43%2BMSLxNq1d9iUOW74kZQ%2F5eIlQNBY9PgTMop0g3hNb2ehXVaBXQBU0EwK70PMEcnkbUMnhmpm7pF3AuEW66n6ZztUTAXSlgzDbaVpAdiXhzmv6dkH5ax2iN1%2F%2FP%2B84r1PgAe2Hgz%2F%2FSy2xOeDSJ1CY6sx6yiUTdgaPvY%2BMVeiWpk7%2BvUPZlBTYNhoiEK9ypa7Q6nh2gdeIMwQlE3M9tCTFH1DCduaUwVR1rSqtFHfplNw4yFR1gw%3D%3D',
-    },
-  },
-  width: 1920,
-  height: 1080,
-  duration: 82,
-  mimeType: 'video/mp4',
-  sizeBytes: 103431359,
-  blurHash: null,
-  codec: 'vp9',
-  bitrate: 10050987,
-  createdAt: Timestamp.fromMillis(Date.parse('2025-12-16T18:03:27+01:00')),
-  modifiedAt: Timestamp.fromMillis(Date.parse('2025-12-16T18:27:27+01:00')),
-  processed: true,
-  deletedAt: null,
+const parseBodyParagraphs = (body: string) => {
+  const trimmed = body.trim();
+  if (!trimmed) return [];
+  if (typeof window === 'undefined') {
+    const fallback = trimmed
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return fallback ? [fallback] : [];
+  }
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(trimmed, 'text/html');
+  const paragraphs = Array.from(doc.body.querySelectorAll('p'))
+    .map((node) => node.textContent?.trim() ?? '')
+    .filter(Boolean);
+  if (paragraphs.length) return paragraphs;
+  const fallback = doc.body.textContent?.trim() ?? '';
+  return fallback ? [fallback] : [];
 };
 
-const exhibitions: Exhibition[] = [
-  {
-    title: '"Drifting Landscapes" – Exposición de Arte',
-    meta: 'Abril de 2025 · Wintercircus Arena, Bélgica',
-    paragraphs: [
-      'En DRIFTING LANDSCAPES, la curadora @dianedrubay explora cómo han cambiado (nuestras ideas sobre) los paisajes en un contexto de fragilidad ecológica y acelerado crecimiento tecnológico. La exposición reúne a artistas que conciben el paisaje no como un telón de fondo apacible, sino como un espacio de disrupción: un territorio activo y en disputa, donde la tecnología y el impacto humano colisionan.',
-      'Todas las obras de esta exposición forman parte de la colección personal de NFT de Diane, y todos los artistas participantes son personas a quienes he seguido de cerca (y coleccionado) durante los últimos años.',
-    ],
-    videoMedias: [
-      driftingLandscapesMedia,
-      //   driftingLandscapesEncoreMedia,
-    ],
-  },
-  {
-    title: 'Art on Tezos – Installation',
-    meta: 'November 2025 · Estudio Aquel, Argentina',
-    paragraphs: [
-      'The Art on Tezos satellite event in Buenos Aires reminded us what drives this ecosystem: artists coming together, sharing space, and expanding the possibilities of digital art.',
-      'The atmosphere was determined, collaborative, and warm. A brief look back. Organized by @NewtroArts.',
-      'Together with OHDE, we had the opportunity to work on the construction of the impressive CRT tree installation. Our mission was to create the roots of the tree and the mutant decoration that adorned the large structure. It was a joint effort between the team of artists who worked on the televisions and Marian and Flopa, who were in charge of the aerial network of branches.',
-    ],
-    videoMedias: [artOnTezosMedia],
-  },
-];
+const uniqueIds = (items: string[]) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item)) return false;
+    seen.add(item);
+    return true;
+  });
+};
 
 function ExhibitionVideoPlayer({ media }: { media: Media }) {
   const isMobileDevice = isMobile;
@@ -209,6 +120,8 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
 
 export default function Exhibitions() {
   const { mode } = useContext(ThemeContext);
+  const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
+  const [loading, setLoading] = useState(true);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -217,6 +130,81 @@ export default function Exhibitions() {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadExhibitions = async () => {
+      setLoading(true);
+      try {
+        const exhibitionsSnap = await getDocs(
+          query(collection(db, 'exhibitions'), orderBy('createdAt', 'desc'))
+        );
+
+        const rows = await Promise.all(
+          exhibitionsSnap.docs.map(async (docSnap) => {
+            const data = docSnap.data() as ExhibitionDoc;
+            const paragraphs = parseBodyParagraphs(data.body ?? '');
+            const meta = data.dateAndLocation?.trim() || undefined;
+
+            const rawIds = [
+              data.featureMediaId ?? null,
+              ...(data.mediaIds ?? [])
+            ].filter(Boolean) as string[];
+            const mediaIds = uniqueIds(rawIds);
+
+            const mediaDocs = await Promise.all(
+              mediaIds.map(async (mediaId) => {
+                const mediaSnap = await getDoc(doc(db, 'media', mediaId));
+                if (!mediaSnap.exists()) return null;
+                const mediaData = mediaSnap.data() as Media;
+                const normalized = { id: mediaSnap.id, ...mediaData };
+                return normalized.deletedAt ? null : normalized;
+              })
+            );
+
+            const videoMedias = mediaDocs.filter(
+              (item): item is Media => Boolean(item && item.type === 'video')
+            );
+
+            return {
+              id: docSnap.id,
+              title: data.title ?? '',
+              meta,
+              paragraphs,
+              videoMedias: videoMedias.length ? videoMedias : undefined
+            };
+          })
+        );
+
+        if (isMounted) {
+          setExhibitions(rows);
+        }
+      } catch (error) {
+        console.error('[Exhibitions] load exhibitions error', error);
+        if (isMounted) {
+          setExhibitions([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadExhibitions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (openIndex === null) return;
+    if (openIndex > exhibitions.length - 1) {
+      setOpenIndex(null);
+    }
+  }, [exhibitions.length, openIndex]);
 
   const toggleExhibition = (index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
@@ -269,144 +257,163 @@ export default function Exhibitions() {
                   EXHIBITIONS
                 </Typography>
                 <Box height={10}></Box>
-                {exhibitions.map((exhibition, index) => {
-                  const isOpen = openIndex === index;
-                  return (
-                    <Box key={exhibition.title}>
-                      <Box
-                        onClick={() => toggleExhibition(index)}
-                        sx={{
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <Typography
+                {loading ? (
+                  <Typography
+                    sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}
+                    color="text.secondary"
+                  >
+                    Cargando exhibiciones...
+                  </Typography>
+                ) : exhibitions.length === 0 ? (
+                  <Typography
+                    sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}
+                    color="text.secondary"
+                  >
+                    Todavía no hay exhibiciones publicadas.
+                  </Typography>
+                ) : (
+                  exhibitions.map((exhibition, index) => {
+                    const isOpen = openIndex === index;
+                    return (
+                      <Box key={exhibition.id}>
+                        <Box
+                          onClick={() => toggleExhibition(index)}
                           sx={{
-                            overflowWrap: 'break-word',
-                            fontSize: {
-                              xs: '1.4rem',
-                              sm: '2.5rem',
-                            },
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
                           }}
-                          fontWeight="bold"
-                          variant="h3"
                         >
-                          <img
-                            src="/images/icons/arrows/arrow_contact_light.png"
-                            alt="Toggle exhibition description"
-                            style={{
-                              width: '0.72em',
-                              height: '0.72em',
-                              marginRight: '0.3em',
-                              filter: mode === 'dark' ? 'invert(1)' : 'none',
+                          <Typography
+                            sx={{
+                              overflowWrap: 'break-word',
+                              fontSize: {
+                                xs: '1.4rem',
+                                sm: '2.5rem',
+                              },
                             }}
-                          />
-                          {exhibition.title}
-                        </Typography>
-                      </Box>
-                      <AnimatePresence initial={false}>
-                        {isOpen && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            fontWeight="bold"
+                            variant="h3"
                           >
-                            <Box mt={1.5} pl={{ xs: 0, sm: '1.8rem' }}>
-                              {(() => {
-                                const textContent = (
-                                  <>
-                                    {exhibition.meta && (
-                                      <Typography
-                                        variant="subtitle1"
-                                        sx={{
-                                          fontSize: '1.1rem',
-                                          fontStyle: 'italic',
-                                          fontWeight: 500,
-                                        }}
-                                      >
-                                        {exhibition.meta}
-                                      </Typography>
-                                    )}
-                                    {exhibition.paragraphs.map(
-                                      (paragraph, paragraphIndex) => (
+                            <img
+                              src="/images/icons/arrows/arrow_contact_light.png"
+                              alt="Toggle exhibition description"
+                              style={{
+                                width: '0.72em',
+                                height: '0.72em',
+                                marginRight: '0.3em',
+                                filter: mode === 'dark' ? 'invert(1)' : 'none',
+                              }}
+                            />
+                            {exhibition.title}
+                          </Typography>
+                        </Box>
+                        <AnimatePresence initial={false}>
+                          {isOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            >
+                              <Box mt={1.5} pl={{ xs: 0, sm: '1.8rem' }}>
+                                {(() => {
+                                  const textContent = (
+                                    <>
+                                      {exhibition.meta && (
                                         <Typography
-                                          key={`${exhibition.title}-${paragraphIndex}`}
+                                          variant="subtitle1"
                                           sx={{
-                                            mt: paragraphIndex === 0 ? 1.5 : 1,
-                                            fontSize: {
-                                              xs: '1rem',
-                                              sm: '1.1rem',
-                                            },
-                                            lineHeight: 1.6,
+                                            fontSize: '1.1rem',
+                                            fontStyle: 'italic',
+                                            fontWeight: 500,
                                           }}
                                         >
-                                          {paragraph}
+                                          {exhibition.meta}
                                         </Typography>
-                                      )
-                                    )}
-                                  </>
-                                );
+                                      )}
+                                      {exhibition.paragraphs.map(
+                                        (paragraph, paragraphIndex) => (
+                                          <Typography
+                                            key={`${exhibition.id}-${paragraphIndex}`}
+                                            sx={{
+                                              mt:
+                                                paragraphIndex === 0 ? 1.5 : 1,
+                                              fontSize: {
+                                                xs: '1rem',
+                                                sm: '1.1rem',
+                                              },
+                                              lineHeight: 1.6,
+                                            }}
+                                          >
+                                            {paragraph}
+                                          </Typography>
+                                        )
+                                      )}
+                                    </>
+                                  );
 
-                                if (!exhibition.videoMedias?.length) {
-                                  return textContent;
-                                }
+                                  if (!exhibition.videoMedias?.length) {
+                                    return textContent;
+                                  }
 
-                                return (
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      flexDirection: {
-                                        xs: 'column',
-                                        md: 'row',
-                                      },
-                                      gap: '1.5rem',
-                                      padding: '1rem',
-                                    }}
-                                  >
-                                    <Box flex={1}>{textContent}</Box>
+                                  return (
                                     <Box
-                                      flex={1}
-                                      width="100%"
                                       sx={{
-                                        paddingLeft: {
-                                          xs: 0,
-                                          md: '3rem',
+                                        display: 'flex',
+                                        flexDirection: {
+                                          xs: 'column',
+                                          md: 'row',
                                         },
-                                        paddingTop: {
-                                          xs: '1.5rem',
-                                          md: 0,
-                                        },
+                                        gap: '1.5rem',
+                                        padding: '1rem',
                                       }}
                                     >
+                                      <Box flex={1}>{textContent}</Box>
                                       <Box
+                                        flex={1}
+                                        width="100%"
                                         sx={{
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          gap: '2rem',
+                                          paddingLeft: {
+                                            xs: 0,
+                                            md: '3rem',
+                                          },
+                                          paddingTop: {
+                                            xs: '1.5rem',
+                                            md: 0,
+                                          },
                                         }}
                                       >
-                                        {exhibition.videoMedias.map((media) => (
-                                          <ExhibitionVideoPlayer
-                                            key={media.id}
-                                            media={media}
-                                          />
-                                        ))}
+                                        <Box
+                                          sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '2rem',
+                                          }}
+                                        >
+                                          {exhibition.videoMedias.map(
+                                            (media) => (
+                                              <ExhibitionVideoPlayer
+                                                key={media.id}
+                                                media={media}
+                                              />
+                                            )
+                                          )}
+                                        </Box>
                                       </Box>
                                     </Box>
-                                  </Box>
-                                );
-                              })()}
-                            </Box>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                      <Box height={10}></Box>
-                    </Box>
-                  );
-                })}
+                                  );
+                                })()}
+                              </Box>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        <Box height={10}></Box>
+                      </Box>
+                    );
+                  })
+                )}
               </Stack>
             </motion.div>
           </AnimatePresence>
