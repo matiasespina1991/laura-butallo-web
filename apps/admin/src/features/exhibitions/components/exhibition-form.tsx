@@ -1,12 +1,18 @@
 'use client';
 
 import { FormInput } from '@/components/forms/form-input';
-import { FormTextarea } from '@/components/forms/form-textarea';
 import { FormTinyMce } from '@/components/forms/form-tinymce';
+import { FileUploader } from '@/components/file-uploader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
 import { db } from '@/lib/firebase';
+import {
+  MediaDoc,
+  uploadMediaFiles,
+  waitForMediaByUploadId
+} from '@/lib/media-upload';
+import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import {
   addDoc,
   collection,
@@ -16,31 +22,118 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { IconTrash } from '@tabler/icons-react';
 
 type ExhibitionFormValues = {
   title: string;
   dateAndLocation: string;
   body: string;
+  featureMediaId: string | null;
+  mediaIds: string[];
 };
 
 type ExhibitionFormProps = {
   exhibitionId?: string;
 };
 
+const MAX_UPLOAD_SIZE = 250 * 1024 * 1024;
+
+function getPreviewPath(media: MediaDoc) {
+  if (media.type === 'video') {
+    return media.paths?.poster?.storagePath ?? null;
+  }
+
+  return (
+    media.paths?.derivatives?.webp_thumb?.storagePath ??
+    media.paths?.derivatives?.webp_small?.storagePath ??
+    media.paths?.original?.storagePath ??
+    null
+  );
+}
+
+function MediaPreviewCard({
+  media,
+  onRemove
+}: {
+  media: MediaDoc;
+  onRemove?: () => void;
+}) {
+  const previewPath = getPreviewPath(media);
+  const { src, hasSource, handleError } = useStorageAssetSrc(
+    previewPath ? { storagePath: previewPath } : null,
+    { preferDirect: false }
+  );
+
+  return (
+    <div className='border-border/60 bg-card flex items-center gap-3 rounded-lg border px-3 py-2 shadow-xs'>
+      <div className='bg-muted flex h-16 w-16 items-center justify-center overflow-hidden rounded-md'>
+        {hasSource ? (
+          <img
+            src={src}
+            alt={media.id}
+            className='h-full w-full object-cover'
+            loading='lazy'
+            onError={handleError}
+          />
+        ) : (
+          <span className='text-muted-foreground text-[11px]'>
+            {media.processed ? 'Sin vista previa' : 'Procesando…'}
+          </span>
+        )}
+      </div>
+      <div className='flex-1'>
+        <div className='text-sm font-medium'>
+          {media.type === 'video' ? 'Video' : 'Imagen'}
+        </div>
+        <div className='text-muted-foreground truncate text-xs'>{media.id}</div>
+      </div>
+      {onRemove ? (
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          onClick={onRemove}
+        >
+          <IconTrash className='h-4 w-4' />
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
 export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
   const form = useForm<ExhibitionFormValues>({
     defaultValues: {
       title: '',
       dateAndLocation: '',
-      body: ''
+      body: '',
+      featureMediaId: null,
+      mediaIds: []
     }
   });
   const router = useRouter();
   const [loading, setLoading] = useState(Boolean(exhibitionId));
   const [saving, setSaving] = useState(false);
+  const [featureMedia, setFeatureMedia] = useState<MediaDoc | null>(null);
+  const [attachmentMedia, setAttachmentMedia] = useState<MediaDoc[]>([]);
+  const [featureProgress, setFeatureProgress] = useState<Record<string, number>>(
+    {}
+  );
+  const [attachmentProgress, setAttachmentProgress] = useState<
+    Record<string, number>
+  >({});
+  const featureMediaId = useWatch({
+    control: form.control,
+    name: 'featureMediaId'
+  });
+  const mediaIds =
+    useWatch({
+      control: form.control,
+      name: 'mediaIds'
+    }) ?? [];
 
   useEffect(() => {
     if (!exhibitionId) return;
@@ -59,7 +152,9 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
         form.reset({
           title: data?.title ?? '',
           dateAndLocation: data?.dateAndLocation ?? '',
-          body: data?.body ?? ''
+          body: data?.body ?? '',
+          featureMediaId: data?.featureMediaId ?? null,
+          mediaIds: data?.mediaIds ?? []
         });
       } catch (error) {
         console.error('[Exhibitions] load exhibition error', error);
@@ -77,6 +172,124 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
     };
   }, [exhibitionId, form]);
 
+  useEffect(() => {
+    if (!featureMediaId) {
+      setFeatureMedia(null);
+      return;
+    }
+
+    let active = true;
+    getDoc(doc(db, 'media', featureMediaId))
+      .then((snap) => {
+        if (!active || !snap.exists()) return;
+        const data = snap.data() as Omit<MediaDoc, 'id'>;
+        setFeatureMedia({ id: snap.id, ...data });
+      })
+      .catch(() => {
+        if (active) setFeatureMedia(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [featureMediaId]);
+
+  useEffect(() => {
+    if (!mediaIds.length) {
+      setAttachmentMedia([]);
+      return;
+    }
+
+    let active = true;
+    Promise.all(
+      mediaIds.map(async (id) => {
+        const snap = await getDoc(doc(db, 'media', id));
+        if (!snap.exists()) return null;
+        const data = snap.data() as Omit<MediaDoc, 'id'>;
+        return { id: snap.id, ...data };
+      })
+    )
+      .then((rows) => {
+        if (!active) return;
+        setAttachmentMedia(rows.filter(Boolean) as MediaDoc[]);
+      })
+      .catch(() => {
+        if (active) setAttachmentMedia([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [mediaIds]);
+
+  const handleFeatureUpload = async (files: File[]) => {
+    const [file] = files;
+    if (!file) return;
+    try {
+      const [result] = await uploadMediaFiles(
+        [file],
+        {
+          context: 'exhibition',
+          role: 'feature',
+          exhibitionId: exhibitionId ?? null
+        },
+        (fileName, progress) => {
+          setFeatureProgress((prev) => ({ ...prev, [fileName]: progress }));
+        }
+      );
+      const mediaDoc = await waitForMediaByUploadId(result.uploadId, {
+        requireProcessed: true
+      });
+      form.setValue('featureMediaId', mediaDoc.id, { shouldDirty: true });
+    } catch (error) {
+      console.error('[Exhibitions] feature upload error', error);
+      toast.error('No se pudo subir el video destacado.');
+    }
+  };
+
+  const handleAttachmentUpload = async (files: File[]) => {
+    if (!files.length) return;
+    try {
+      const results = await uploadMediaFiles(
+        files,
+        {
+          context: 'exhibition',
+          role: 'attachment',
+          exhibitionId: exhibitionId ?? null
+        },
+        (fileName, progress) => {
+          setAttachmentProgress((prev) => ({ ...prev, [fileName]: progress }));
+        }
+      );
+      const docs = await Promise.all(
+        results.map((result) =>
+          waitForMediaByUploadId(result.uploadId, { requireProcessed: true })
+        )
+      );
+      const nextIds = [...(form.getValues('mediaIds') ?? [])];
+      docs.forEach((doc) => {
+        if (!nextIds.includes(doc.id)) {
+          nextIds.push(doc.id);
+        }
+      });
+      form.setValue('mediaIds', nextIds, { shouldDirty: true });
+    } catch (error) {
+      console.error('[Exhibitions] attachment upload error', error);
+      toast.error('No se pudieron subir los adjuntos.');
+    }
+  };
+
+  const removeFeatureMedia = () => {
+    form.setValue('featureMediaId', null, { shouldDirty: true });
+  };
+
+  const removeAttachment = (id: string) => {
+    const next = (form.getValues('mediaIds') ?? []).filter(
+      (item) => item !== id
+    );
+    form.setValue('mediaIds', next, { shouldDirty: true });
+  };
+
   const onSubmit = async (values: ExhibitionFormValues) => {
     setSaving(true);
     try {
@@ -85,6 +298,8 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           title: values.title,
           dateAndLocation: values.dateAndLocation,
           body: values.body,
+          featureMediaId: values.featureMediaId ?? null,
+          mediaIds: values.mediaIds ?? [],
           updatedAt: serverTimestamp()
         });
         toast.success('Exhibition updated.');
@@ -93,6 +308,8 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           title: values.title,
           dateAndLocation: values.dateAndLocation,
           body: values.body,
+          featureMediaId: values.featureMediaId ?? null,
+          mediaIds: values.mediaIds ?? [],
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
@@ -148,6 +365,56 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
             label='Body'
             placeholder='Write the exhibition body...'
           />
+
+          <div className='space-y-4'>
+            <div className='space-y-2'>
+              <div className='text-sm font-semibold'>Video destacado</div>
+              {featureMedia ? (
+                <MediaPreviewCard
+                  media={featureMedia}
+                  onRemove={removeFeatureMedia}
+                />
+              ) : (
+                <div className='text-muted-foreground text-sm'>
+                  Todavía no hay video destacado.
+                </div>
+              )}
+              <FileUploader
+                onUpload={handleFeatureUpload}
+                progresses={featureProgress}
+                accept={{ 'video/*': [] }}
+                maxFiles={1}
+                maxSize={MAX_UPLOAD_SIZE}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <div className='text-sm font-semibold'>Adjuntos</div>
+              {attachmentMedia.length ? (
+                <div className='grid gap-3 sm:grid-cols-2'>
+                  {attachmentMedia.map((media) => (
+                    <MediaPreviewCard
+                      key={media.id}
+                      media={media}
+                      onRemove={() => removeAttachment(media.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className='text-muted-foreground text-sm'>
+                  No hay adjuntos todavía.
+                </div>
+              )}
+              <FileUploader
+                onUpload={handleAttachmentUpload}
+                progresses={attachmentProgress}
+                accept={{ 'image/*': [], 'video/*': [] }}
+                maxFiles={10}
+                maxSize={MAX_UPLOAD_SIZE}
+                multiple
+              />
+            </div>
+          </div>
 
           <Button type='submit' disabled={saving || loading}>
             {saving ? 'Saving...' : 'Save Exhibition'}

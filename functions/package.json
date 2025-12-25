@@ -17,6 +17,7 @@
     "logs": "firebase functions:log"
   },
   "dependencies": {
+    "@google-analytics/data": "^4.0.1",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@ffprobe-installer/ffprobe": "^1.1.0",
     "blurhash": "^1.1.4",

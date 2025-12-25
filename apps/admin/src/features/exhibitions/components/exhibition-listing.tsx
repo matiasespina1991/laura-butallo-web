@@ -30,7 +30,7 @@ export default function ExhibitionListingPage({}: ExhibitionListingPage) {
           snapshot.docs.map(async (docSnap) => {
             const values = docSnap.data() as ExhibitionDoc;
             const body = values.body ?? '';
-            const mediaId = values.mediaIds?.[0];
+            const mediaId = values.featureMediaId ?? values.mediaIds?.[0];
             let posterPath: string | undefined;
 
             if (mediaId) {
@@ -51,7 +51,9 @@ export default function ExhibitionListingPage({}: ExhibitionListingPage) {
               dateAndLocation: values.dateAndLocation ?? '',
               body: stripHtml(body),
               posterPath,
-              videoCount: values.mediaIds?.length ?? 0
+              videoCount:
+                (values.mediaIds?.length ?? 0) +
+                (values.featureMediaId ? 1 : 0)
             };
           })
         );

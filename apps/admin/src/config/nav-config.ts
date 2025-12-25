@@ -18,6 +18,14 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
+    title: 'Galería',
+    url: '/dashboard/media',
+    icon: 'media',
+    shortcut: ['g', 'g'],
+    isActive: false,
+    items: []
+  },
+  {
     title: 'Workspaces',
     url: '/dashboard/workspaces',
     icon: 'workspace',

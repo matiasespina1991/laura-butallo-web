@@ -17,6 +17,12 @@ export interface AssetPaths {
 export interface Media {
   id: string;
   mediaSetId: string | null;
+  uploadId: string;
+  origin: {
+    context: 'gallery' | 'exhibition';
+    exhibitionId?: string | null;
+    role?: 'gallery' | 'feature' | 'attachment';
+  };
   type: MediaType;
   title: string;
   description?: string;

@@ -36,6 +36,19 @@ export const onImageFinalize = onObjectFinalized(
       const storagePath = object.name!;
       if (!storagePath.startsWith('uploads/images/')) return;
 
+      const metadata = object.metadata ?? {};
+      const uploadId = metadata.uploadId ?? metadata.upload_id ?? '';
+      const originContext =
+        metadata.originContext === 'exhibition' ? 'exhibition' : 'gallery';
+      const originRoleRaw = metadata.originRole ?? metadata.role ?? '';
+      const originRole =
+        originRoleRaw === 'feature' || originRoleRaw === 'attachment'
+          ? originRoleRaw
+          : originContext === 'exhibition'
+            ? 'attachment'
+            : 'gallery';
+      const originExhibitionId = metadata.exhibitionId ?? null;
+
       const db = getDb();
       const mediaId = db.collection('media').doc().id;
 
@@ -46,6 +59,12 @@ export const onImageFinalize = onObjectFinalized(
       const initialDoc: Media = {
         id: mediaId,
         mediaSetId: null,
+        uploadId: uploadId || mediaId,
+        origin: {
+          context: originContext,
+          exhibitionId: originExhibitionId,
+          role: originRole,
+        },
         title: '',
         description: '',
         type: 'image',
@@ -56,7 +75,7 @@ export const onImageFinalize = onObjectFinalized(
         },
         width: 0,
         height: 0,
-        sizeBytes: object.size ?? undefined,
+        sizeBytes: object.size ? Number(object.size) : undefined,
         blurHash: null,
         mimeType: contentType,
         createdAt: now,

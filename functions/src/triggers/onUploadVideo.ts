@@ -37,6 +37,19 @@ export const onVideoFinalize = onObjectFinalized(
       const storagePath = object.name!;
       if (!storagePath.startsWith('uploads/videos/')) return;
 
+      const metadata = object.metadata ?? {};
+      const uploadId = metadata.uploadId ?? metadata.upload_id ?? '';
+      const originContext =
+        metadata.originContext === 'exhibition' ? 'exhibition' : 'gallery';
+      const originRoleRaw = metadata.originRole ?? metadata.role ?? '';
+      const originRole =
+        originRoleRaw === 'feature' || originRoleRaw === 'attachment'
+          ? originRoleRaw
+          : originContext === 'exhibition'
+            ? 'attachment'
+            : 'gallery';
+      const originExhibitionId = metadata.exhibitionId ?? null;
+
       const db = getDb();
       const mediaId = db.collection('media').doc().id;
       const now = admin.firestore.Timestamp.now();
@@ -45,6 +58,12 @@ export const onVideoFinalize = onObjectFinalized(
       const initialDoc: Media = {
         id: mediaId,
         mediaSetId: null,
+        uploadId: uploadId || mediaId,
+        origin: {
+          context: originContext,
+          exhibitionId: originExhibitionId,
+          role: originRole,
+        },
         type: 'video',
         storagePath,
         title: '',
@@ -57,7 +76,7 @@ export const onVideoFinalize = onObjectFinalized(
         height: 0,
         duration: 0,
         mimeType: contentType,
-        sizeBytes: object.size ?? undefined,
+        sizeBytes: object.size ? Number(object.size) : undefined,
         codec: null,
         bitrate: null,
         createdAt: now,

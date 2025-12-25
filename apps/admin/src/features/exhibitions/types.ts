@@ -11,5 +11,6 @@ export type ExhibitionDoc = {
   title: string;
   dateAndLocation?: string;
   body: string;
+  featureMediaId?: string | null;
   mediaIds?: string[];
 };
