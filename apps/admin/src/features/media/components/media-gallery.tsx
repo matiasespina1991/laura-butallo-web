@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { FileUploader } from '@/components/file-uploader';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import { cn, formatBytes } from '@/lib/utils';
 import { IconPhoto, IconVideo } from '@tabler/icons-react';
@@ -136,7 +137,8 @@ function MediaCard({ media }: { media: MediaDoc }) {
           role='textbox'
           aria-label='Editar título'
           className='text-foreground w-full truncate text-left text-sm font-medium outline-none'
-          onClick={() => {
+          onClick={(event) => {
+            event.stopPropagation();
             if (!isEditing && !isSaving) {
               setIsEditing(true);
             }
@@ -148,6 +150,7 @@ function MediaCard({ media }: { media: MediaDoc }) {
             if (isEditing) saveTitle();
           }}
           onKeyDown={(event) => {
+            event.stopPropagation();
             if (event.key === 'Enter') {
               event.preventDefault();
               saveTitle();
@@ -205,6 +208,62 @@ export default function MediaGallery() {
   const [items, setItems] = useState<MediaDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [progresses, setProgresses] = useState<Record<string, number>>({});
+  const [activeMedia, setActiveMedia] = useState<MediaDoc | null>(null);
+
+  const lightboxImageAsset = useMemo(() => {
+    if (!activeMedia || activeMedia.type !== 'image') return null;
+    const candidates = [
+      activeMedia.paths?.derivatives?.webp_large,
+      activeMedia.paths?.derivatives?.webp_medium,
+      activeMedia.paths?.derivatives?.webp_small,
+      activeMedia.paths?.original
+    ];
+    const target = candidates.find(
+      (item) => item?.storagePath || item?.downloadURL
+    );
+    return {
+      storagePath: target?.storagePath ?? null,
+      downloadURL: target?.downloadURL ?? null
+    };
+  }, [activeMedia]);
+
+  const lightboxVideoAsset = useMemo(() => {
+    if (!activeMedia || activeMedia.type !== 'video') return null;
+    const candidates = [
+      activeMedia.paths?.derivatives?.webm_1080,
+      activeMedia.paths?.derivatives?.webm_720,
+      activeMedia.paths?.derivatives?.webm_360
+    ];
+    const target = candidates.find(
+      (item) => item?.storagePath || item?.downloadURL
+    );
+    return {
+      storagePath: target?.storagePath ?? null,
+      downloadURL: target?.downloadURL ?? null
+    };
+  }, [activeMedia]);
+
+  const lightboxPosterAsset = useMemo(() => {
+    if (!activeMedia || activeMedia.type !== 'video') return null;
+    return {
+      storagePath: activeMedia.paths?.poster?.storagePath ?? null,
+      downloadURL: activeMedia.paths?.poster?.downloadURL ?? null
+    };
+  }, [activeMedia]);
+
+  const {
+    src: lightboxImageSrc,
+    hasSource: hasImageSource,
+    handleError: handleImageError
+  } = useStorageAssetSrc(lightboxImageAsset, { preferDirect: true });
+  const {
+    src: lightboxVideoSrc,
+    hasSource: hasVideoSource,
+    handleError: handleVideoError
+  } = useStorageAssetSrc(lightboxVideoAsset, { preferDirect: true });
+  const { src: lightboxPosterSrc } = useStorageAssetSrc(lightboxPosterAsset, {
+    preferDirect: true
+  });
 
   useEffect(() => {
     const mediaQuery = query(
@@ -248,7 +307,21 @@ export default function MediaGallery() {
       <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
         <UploadCard onUpload={handleUpload} progresses={progresses} />
         {items.map((media) => (
-          <MediaCard key={media.id} media={media} />
+          <div
+            key={media.id}
+            role='button'
+            tabIndex={0}
+            className='cursor-pointer outline-none'
+            onClick={() => setActiveMedia(media)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setActiveMedia(media);
+              }
+            }}
+          >
+            <MediaCard media={media} />
+          </div>
         ))}
       </div>
       {!loading && items.length === 0 ? (
@@ -256,6 +329,68 @@ export default function MediaGallery() {
           Todavía no hay archivos en la galería.
         </div>
       ) : null}
+      <Dialog
+        open={Boolean(activeMedia)}
+        onOpenChange={(open) => {
+          if (!open) setActiveMedia(null);
+        }}
+      >
+        <DialogContent className='h-[min(92vh,860px)] max-w-[min(96vw,1200px)] p-0 sm:max-w-5xl'>
+          {activeMedia ? (
+            <div className='flex h-full flex-col'>
+              <DialogTitle className='sr-only'>
+                {activeMedia.title
+                  ? `Preview: ${activeMedia.title}`
+                  : 'Preview media'}
+              </DialogTitle>
+              <div className='border-border/60 flex items-center justify-between border-b px-5 py-3'>
+                <div className='space-y-0.5'>
+                  <div className='text-sm font-semibold'>
+                    {activeMedia.title || 'Sin título'}
+                  </div>
+                  <div className='text-muted-foreground text-xs'>
+                    {activeMedia.type === 'video' ? 'Video' : 'Imagen'} ·{' '}
+                    {activeMedia.origin?.context === 'exhibition'
+                      ? 'Exhibición'
+                      : 'Galería'}
+                  </div>
+                </div>
+              </div>
+              <div className='flex-1 p-5'>
+                <div className='bg-muted/40 border-border/60 flex h-full items-center justify-center overflow-hidden rounded-xl border'>
+                  {activeMedia.type === 'video' ? (
+                    hasVideoSource ? (
+                      <video
+                        className='h-full w-full object-contain'
+                        controls
+                        poster={lightboxPosterSrc || undefined}
+                        src={lightboxVideoSrc}
+                        onError={handleVideoError}
+                      />
+                    ) : (
+                      <div className='text-muted-foreground text-sm'>
+                        No hay vista previa disponible.
+                      </div>
+                    )
+                  ) : hasImageSource ? (
+                    <img
+                      src={lightboxImageSrc}
+                      alt={activeMedia.title || activeMedia.id}
+                      className='h-full w-full object-contain'
+                      loading='lazy'
+                      onError={handleImageError}
+                    />
+                  ) : (
+                    <div className='text-muted-foreground text-sm'>
+                      No hay vista previa disponible.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
