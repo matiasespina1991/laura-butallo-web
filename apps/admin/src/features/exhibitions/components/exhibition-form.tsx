@@ -146,6 +146,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           title?: string;
           dateAndLocation?: string;
           body?: string;
+          featureMediaId?: string | null;
           mediaIds?: string[];
         };
         if (!isMounted) return;
