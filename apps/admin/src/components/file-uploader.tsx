@@ -91,6 +91,16 @@ export interface FileUploaderProps
    * @example disabled
    */
   disabled?: boolean;
+
+  /**
+   * Additional class names for the uploader container.
+   */
+  containerClassName?: string;
+
+  /**
+   * Use compact copy sizes for tight layouts.
+   */
+  compact?: boolean;
 }
 
 export function FileUploader(props: FileUploaderProps) {
@@ -105,6 +115,8 @@ export function FileUploader(props: FileUploaderProps) {
     multiple = false,
     disabled = false,
     className,
+    containerClassName,
+    compact = false,
     ...dropzoneProps
   } = props;
 
@@ -186,7 +198,12 @@ export function FileUploader(props: FileUploaderProps) {
   const isDisabled = disabled || (files?.length ?? 0) >= maxFiles;
 
   return (
-    <div className='relative flex flex-col gap-6 overflow-hidden'>
+    <div
+      className={cn(
+        'relative flex flex-col gap-6 overflow-hidden',
+        containerClassName
+      )}
+    >
       <Dropzone
         onDrop={onDrop}
         accept={accept}
@@ -216,8 +233,13 @@ export function FileUploader(props: FileUploaderProps) {
                     aria-hidden='true'
                   />
                 </div>
-                <p className='text-muted-foreground font-medium'>
-                  Drop the files here
+                <p
+                  className={cn(
+                    'text-muted-foreground font-medium',
+                    compact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
+                  )}
+                >
+                  Soltá los archivos acá
                 </p>
               </div>
             ) : (
@@ -229,15 +251,25 @@ export function FileUploader(props: FileUploaderProps) {
                   />
                 </div>
                 <div className='space-y-px'>
-                  <p className='text-muted-foreground font-medium'>
-                    Drag {`'n'`} drop files here, or click to select files
+                  <p
+                    className={cn(
+                      'text-muted-foreground font-medium',
+                      compact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
+                    )}
+                  >
+                    Arrastrá y soltá archivos acá, o hacé clic para elegirlos
                   </p>
-                  <p className='text-muted-foreground/70 text-sm'>
-                    You can upload
+                  <p
+                    className={cn(
+                      'text-muted-foreground/70',
+                      compact ? 'text-[11px] sm:text-xs' : 'text-sm'
+                    )}
+                  >
+                    Podés subir
                     {maxFiles > 1
-                      ? ` ${maxFiles === Infinity ? 'multiple' : maxFiles}
-                      files (up to ${formatBytes(maxSize)} each)`
-                      : ` a file with ${formatBytes(maxSize)}`}
+                      ? ` ${maxFiles === Infinity ? 'varios' : maxFiles}
+                      archivos (hasta ${formatBytes(maxSize)} cada uno)`
+                      : ` un archivo de hasta ${formatBytes(maxSize)}`}
                   </p>
                 </div>
               </div>

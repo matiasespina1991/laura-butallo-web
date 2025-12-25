@@ -6,10 +6,7 @@ import { db } from '@/lib/firebase';
 import { FileUploader } from '@/components/file-uploader';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import { formatBytes } from '@/lib/utils';
-import {
-  MediaDoc,
-  uploadMediaFiles
-} from '@/lib/media-upload';
+import { MediaDoc, uploadMediaFiles } from '@/lib/media-upload';
 
 const MAX_UPLOAD_SIZE = 250 * 1024 * 1024;
 
@@ -19,7 +16,7 @@ function getPreviewPath(media: MediaDoc) {
   }
 
   return (
-    media.paths?.derivatives?.webp_thumb?.storagePath ??
+    media.paths?.derivatives?.webp_medium?.storagePath ??
     media.paths?.derivatives?.webp_small?.storagePath ??
     media.paths?.original?.storagePath ??
     null
@@ -34,7 +31,7 @@ function MediaCard({ media }: { media: MediaDoc }) {
   );
 
   return (
-    <div className='border-border/60 bg-card flex flex-col overflow-hidden rounded-lg border shadow-xs'>
+    <div className='border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs'>
       <div className='bg-muted relative aspect-[4/3] w-full overflow-hidden'>
         {hasSource ? (
           <img
@@ -49,7 +46,7 @@ function MediaCard({ media }: { media: MediaDoc }) {
             {media.processed ? 'Sin vista previa' : 'Procesando…'}
           </div>
         )}
-        <span className='bg-background/80 text-foreground absolute left-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-medium'>
+        <span className='bg-background/80 text-foreground absolute top-2 left-2 rounded-full px-2 py-0.5 text-[11px] font-medium'>
           {media.type === 'video' ? 'Video' : 'Imagen'}
         </span>
       </div>
@@ -58,11 +55,39 @@ function MediaCard({ media }: { media: MediaDoc }) {
           {media.title || 'Sin título'}
         </div>
         <div className='text-muted-foreground flex items-center justify-between text-xs'>
-          <span>{media.origin?.context === 'exhibition' ? 'Exhibición' : 'Galería'}</span>
+          <span>
+            {media.origin?.context === 'exhibition' ? 'Exhibición' : 'Galería'}
+          </span>
           {typeof media.sizeBytes === 'number' ? (
             <span>{formatBytes(media.sizeBytes, { decimals: 1 })}</span>
           ) : null}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function UploadCard({
+  onUpload,
+  progresses
+}: {
+  onUpload: (files: File[]) => Promise<void>;
+  progresses: Record<string, number>;
+}) {
+  return (
+    <div className='border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs'>
+      <div className='flex flex-1 p-5'>
+        <FileUploader
+          onUpload={onUpload}
+          progresses={progresses}
+          accept={{ 'image/*': [], 'video/*': [] }}
+          maxFiles={12}
+          maxSize={MAX_UPLOAD_SIZE}
+          multiple
+          containerClassName='flex-1 gap-3'
+          className='h-full w-full flex-1'
+          compact
+        />
       </div>
     </div>
   );
@@ -109,34 +134,20 @@ export default function MediaGallery() {
 
   return (
     <div className='space-y-6'>
-      <div className='space-y-2'>
-        <div className='text-sm font-medium'>Subir nuevos archivos</div>
-        <FileUploader
-          onUpload={handleUpload}
-          progresses={progresses}
-          accept={{ 'image/*': [], 'video/*': [] }}
-          maxFiles={12}
-          maxSize={MAX_UPLOAD_SIZE}
-          multiple
-        />
-        <p className='text-muted-foreground text-xs'>
-          Se aceptan imágenes y videos. Tamaño máximo: {formatBytes(MAX_UPLOAD_SIZE)}.
-        </p>
-      </div>
-
       {loading ? (
         <div className='text-muted-foreground text-sm'>Cargando galería...</div>
-      ) : items.length === 0 ? (
+      ) : null}
+      <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5'>
+        <UploadCard onUpload={handleUpload} progresses={progresses} />
+        {items.map((media) => (
+          <MediaCard key={media.id} media={media} />
+        ))}
+      </div>
+      {!loading && items.length === 0 ? (
         <div className='text-muted-foreground text-sm'>
           Todavía no hay archivos en la galería.
         </div>
-      ) : (
-        <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-          {items.map((media) => (
-            <MediaCard key={media.id} media={media} />
-          ))}
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -28,6 +28,7 @@ export type MediaDoc = {
   id: string;
   type: 'image' | 'video';
   uploadId: string;
+  title?: string;
   origin: {
     context: MediaOriginContext;
     exhibitionId?: string | null;
