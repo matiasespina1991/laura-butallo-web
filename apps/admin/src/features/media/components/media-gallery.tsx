@@ -356,12 +356,14 @@ export default function MediaGallery() {
                   </div>
                 </div>
               </div>
-              <div className='flex-1'>
+              <div className='flex-1 contain-size'>
                 <div className='bg-muted/40 flex h-full items-center justify-center overflow-hidden rounded-lg'>
                   {activeMedia.type === 'video' ? (
                     hasVideoSource ? (
                       <video
-                        className='h-full w-full object-contain'
+                        playsInline
+                        autoPlay
+                        className='h-full max-h-full w-full max-w-full object-contain'
                         controls
                         poster={lightboxPosterSrc || undefined}
                         src={lightboxVideoSrc}
@@ -376,7 +378,7 @@ export default function MediaGallery() {
                     <img
                       src={lightboxImageSrc}
                       alt={activeMedia.title || activeMedia.id}
-                      className='h-full w-full object-contain'
+                      className='max-h-full max-w-full object-contain'
                       loading='lazy'
                       onError={handleImageError}
                     />
