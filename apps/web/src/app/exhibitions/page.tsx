@@ -157,8 +157,8 @@ export default function Exhibitions() {
               mediaIds.map(async (mediaId) => {
                 const mediaSnap = await getDoc(doc(db, 'media', mediaId));
                 if (!mediaSnap.exists()) return null;
-                const mediaData = mediaSnap.data() as Media;
-                const normalized = { id: mediaSnap.id, ...mediaData };
+                const mediaData = mediaSnap.data() as Omit<Media, 'id'>;
+                const normalized = { ...mediaData, id: mediaSnap.id };
                 return normalized.deletedAt ? null : normalized;
               })
             );
