@@ -11,6 +11,7 @@ import {
   FormMessage
 } from '@/components/ui/form';
 import { BaseFormFieldProps } from '@/types/base-form';
+import { useEffect } from 'react';
 
 interface FormTinyMceProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -35,6 +36,15 @@ function FormTinyMce<
   className
 }: FormTinyMceProps<TFieldValues, TName>) {
   const apiKey = process.env.NEXT_PUBLIC_TINYMCE_API_KEY ?? '';
+
+  useEffect(() => {
+    if (!apiKey) {
+      console.warn(
+        'TinyMCE API key is not set. Please set NEXT_PUBLIC_TINYMCE_API_KEY in your environment variables.'
+      );
+    }
+    console.log('TinyMCE API Key:', apiKey);
+  }, [apiKey]);
 
   return (
     <FormField

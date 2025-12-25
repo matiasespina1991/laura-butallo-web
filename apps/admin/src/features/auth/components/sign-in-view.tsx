@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { buttonVariants } from '@/components/ui/button';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useAuthSession } from '@/contexts/auth-session';
 import { toast } from 'sonner';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
+import { useTheme } from 'next-themes';
 
 export const metadata: Metadata = {
   title: 'Authentication',
@@ -19,10 +20,26 @@ export default function SignInViewPage({ stars }: { stars: number }) {
   const { signInWithGoogle, authReady, authError, clearAuthError } =
     useAuthSession();
   const [signingIn, setSigningIn] = useState(false);
+  const { setTheme } = useTheme();
+  const previousThemeRef = useRef<string | null>(null);
   const { src: coverSrc, hasSource: hasCoverSrc } = useStorageAssetSrc(
     { storagePath: 'system/assets/sign-in-screen/cover-image.webp' },
     { preferDirect: false }
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!previousThemeRef.current) {
+      previousThemeRef.current =
+        window.localStorage.getItem('theme') ?? 'system';
+    }
+    setTheme('light');
+    return () => {
+      if (previousThemeRef.current) {
+        setTheme(previousThemeRef.current);
+      }
+    };
+  }, [setTheme]);
 
   useEffect(() => {
     if (!authError) return;
@@ -82,12 +99,12 @@ export default function SignInViewPage({ stars }: { stars: number }) {
           <span>Dashboard</span>
         </div> */}
         <div className='flex w-full max-w-md flex-col items-center justify-center space-y-6'>
-          <div className='text-center text-xl font-bold'>Bienvenida 👋</div>
+          <div className='text-center text-lg font-bold'>Hola de nuevo 👋</div>
           <div className='flex w-full flex-col items-center space-y-4'>
             <Button
               type='button'
               variant='outline'
-              className='flex h-11 w-full max-w-[16rem] cursor-pointer items-center justify-center gap-3 rounded-full border border-[#747775] text-base font-semibold'
+              className='flex h-11 w-full max-w-[16rem] cursor-pointer items-center justify-center gap-3 rounded-full border border-[#747775] text-[15px] font-semibold'
               onClick={handleGoogleSignIn}
               disabled={!authReady || signingIn}
             >
