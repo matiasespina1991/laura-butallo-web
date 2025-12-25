@@ -38,7 +38,19 @@ function getPreviewPath(media: MediaDoc) {
   );
 }
 
-function MediaCard({ media }: { media: MediaDoc }) {
+type MediaCardProps = {
+  media: MediaDoc;
+  isSelected?: boolean;
+  onPreviewClick?: () => void;
+  onSelect?: () => void;
+};
+
+function MediaCard({
+  media,
+  isSelected,
+  onPreviewClick,
+  onSelect
+}: MediaCardProps) {
   const previewPath = useMemo(() => getPreviewPath(media), [media]);
   const { src, hasSource, handleError } = useStorageAssetSrc(
     previewPath ? { storagePath: previewPath } : null,
@@ -101,8 +113,22 @@ function MediaCard({ media }: { media: MediaDoc }) {
   };
 
   return (
-    <div className='border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs'>
-      <div className='bg-muted relative aspect-[4/3] w-full overflow-hidden'>
+    <div
+      className={cn(
+        'border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs',
+        isSelected &&
+          'ring-primary/20 ring-offset-background ring-2 ring-offset-2'
+      )}
+    >
+      <button
+        type='button'
+        aria-label='Abrir vista previa'
+        onClick={onPreviewClick}
+        className={cn(
+          'group/preview bg-muted focus-visible:ring-ring/50 relative aspect-[4/3] w-full overflow-hidden text-left transition outline-none focus-visible:ring-2',
+          onPreviewClick ? 'cursor-pointer' : 'cursor-default'
+        )}
+      >
         {hasSource ? (
           <img
             src={src}
@@ -112,13 +138,36 @@ function MediaCard({ media }: { media: MediaDoc }) {
             onError={handleError}
           />
         ) : (
-          <div className='text-muted-foreground flex h-full items-center justify-center text-xs'>
-            {media.processed ? 'Sin vista previa' : 'Procesando…'}
+          <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-xs'>
+            {media.processed ? null : (
+              <svg
+                className='text-muted-foreground mb-2 h-6 w-6 animate-spin'
+                xmlns='http://www.w3.org/2000/svg'
+                fill='none'
+                viewBox='0 0 24 24'
+              >
+                <circle
+                  className='opacity-25'
+                  cx='12'
+                  cy='12'
+                  r='10'
+                  stroke='currentColor'
+                  strokeWidth='4'
+                ></circle>
+                <path
+                  className='opacity-75'
+                  fill='currentColor'
+                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                ></path>
+              </svg>
+            )}
+            {media.processed ? 'Sin vista previa' : <p>Procesando…</p>}
+            {media.processed ? '' : 'Este proceso puede tardar varios minutos.'}
           </div>
         )}
         <span
           className={cn(
-            'absolute top-2 left-2 inline-flex items-center justify-center rounded-full p-1.5',
+            'absolute top-2 left-2 z-10 inline-flex items-center justify-center rounded-full p-1.5',
             media.type === 'video'
               ? 'bg-sky-100/80 text-sky-700'
               : 'bg-amber-100/80 text-amber-700'
@@ -133,17 +182,24 @@ function MediaCard({ media }: { media: MediaDoc }) {
             {media.type === 'video' ? 'Video' : 'Imagen'}
           </span>
         </span>
-      </div>
-      <div className='flex flex-1 flex-col gap-1 px-3 py-2'>
+        <span className='pointer-events-none absolute inset-0 bg-black/10 opacity-0 transition group-hover/preview:opacity-100' />
+      </button>
+      <div
+        className={cn(
+          'flex flex-1 flex-col gap-1 rounded-b-lg px-3 py-2 transition-colors',
+          onSelect && 'hover:bg-muted/40 cursor-pointer',
+          isSelected && 'bg-muted/40'
+        )}
+        onClick={() => onSelect?.()}
+      >
         <span
           ref={titleRef}
           contentEditable={isEditing && !isSaving}
           suppressContentEditableWarning
           role='textbox'
           aria-label='Editar título'
-          className='text-foreground w-full truncate text-left text-sm font-medium outline-none'
-          onClick={(event) => {
-            event.stopPropagation();
+          className='text-foreground w-fit cursor-text truncate text-left text-sm font-medium outline-none'
+          onClick={() => {
             if (!isEditing && !isSaving) {
               setIsEditing(true);
             }
@@ -155,7 +211,6 @@ function MediaCard({ media }: { media: MediaDoc }) {
             if (isEditing) saveTitle();
           }}
           onKeyDown={(event) => {
-            event.stopPropagation();
             if (event.key === 'Enter') {
               event.preventDefault();
               saveTitle();
@@ -209,7 +264,15 @@ function UploadCard({
   );
 }
 
-export default function MediaGallery() {
+type MediaGalleryProps = {
+  selectedId?: string | null;
+  onSelectionChange?: (media: MediaDoc | null) => void;
+};
+
+export default function MediaGallery({
+  selectedId = null,
+  onSelectionChange
+}: MediaGalleryProps) {
   const [items, setItems] = useState<MediaDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [progresses, setProgresses] = useState<Record<string, number>>({});
@@ -238,7 +301,11 @@ export default function MediaGallery() {
       if (!target) return;
       if (target.isContentEditable) return;
       const tagName = target.tagName;
-      if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') {
+      if (
+        tagName === 'INPUT' ||
+        tagName === 'TEXTAREA' ||
+        tagName === 'SELECT'
+      ) {
         return;
       }
       if (event.key === 'ArrowLeft') {
@@ -322,6 +389,14 @@ export default function MediaGallery() {
   }, [activeIndex, items.length]);
 
   useEffect(() => {
+    if (!selectedId || !onSelectionChange) return;
+    const exists = items.some((item) => item.id === selectedId);
+    if (!exists) {
+      onSelectionChange(null);
+    }
+  }, [items, onSelectionChange, selectedId]);
+
+  useEffect(() => {
     const mediaQuery = query(
       collection(db, 'media'),
       orderBy('createdAt', 'desc')
@@ -329,10 +404,12 @@ export default function MediaGallery() {
     const unsubscribe = onSnapshot(
       mediaQuery,
       (snapshot) => {
-        const next = snapshot.docs.map((doc) => {
-          const data = doc.data() as Omit<MediaDoc, 'id'>;
-          return { id: doc.id, ...data };
-        });
+        const next = snapshot.docs
+          .map((doc) => {
+            const data = doc.data() as Omit<MediaDoc, 'id'>;
+            return { id: doc.id, ...data };
+          })
+          .filter((item) => !item.deletedAt);
         setItems(next);
         setLoading(false);
       },
@@ -363,21 +440,20 @@ export default function MediaGallery() {
       <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
         <UploadCard onUpload={handleUpload} progresses={progresses} />
         {items.map((media, index) => (
-          <div
+          <MediaCard
             key={media.id}
-            role='button'
-            tabIndex={0}
-            className='cursor-pointer outline-none'
-            onClick={() => setActiveIndex(index)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                setActiveIndex(index);
+            media={media}
+            isSelected={selectedId === media.id}
+            onPreviewClick={() => setActiveIndex(index)}
+            onSelect={() => {
+              if (!onSelectionChange) return;
+              if (selectedId === media.id) {
+                onSelectionChange(null);
+              } else {
+                onSelectionChange(media);
               }
             }}
-          >
-            <MediaCard media={media} />
-          </div>
+          />
         ))}
       </div>
       {!loading && items.length === 0 ? (

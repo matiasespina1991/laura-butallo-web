@@ -29,6 +29,7 @@ export type MediaDoc = {
   type: 'image' | 'video';
   uploadId: string;
   title?: string;
+  deletedAt?: unknown | null;
   origin: {
     context: MediaOriginContext;
     exhibitionId?: string | null;

@@ -61,7 +61,8 @@ export default function AppSidebar() {
   return (
     <Sidebar collapsible='icon'>
       <SidebarHeader>
-        <OrgSwitcher />
+        <div className='flex items-center space-x-2 px-4 py-5'></div>
+        {/* <OrgSwitcher /> */}
       </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
         <SidebarGroup>
