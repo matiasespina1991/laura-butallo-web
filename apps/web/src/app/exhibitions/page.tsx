@@ -66,6 +66,12 @@ const driftingLandscapesMedia: Media = {
   modifiedAt: Timestamp.fromMillis(Date.parse('2025-12-16T17:50:55+01:00')),
   processed: true,
   deletedAt: null,
+  uploadId: '',
+  origin: {
+    context: 'gallery',
+    exhibitionId: undefined,
+    role: undefined,
+  },
 };
 
 const artOnTezosMedia: Media = {
@@ -115,6 +121,12 @@ const artOnTezosMedia: Media = {
   modifiedAt: Timestamp.fromMillis(Date.parse('2025-12-16T18:27:27+01:00')),
   processed: true,
   deletedAt: null,
+  uploadId: '',
+  origin: {
+    context: 'gallery',
+    exhibitionId: undefined,
+    role: undefined,
+  },
 };
 
 const exhibitions: Exhibition[] = [

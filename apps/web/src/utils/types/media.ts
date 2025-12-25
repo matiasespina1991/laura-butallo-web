@@ -20,8 +20,8 @@ export interface Media {
   uploadId: string;
   origin: {
     context: 'gallery' | 'exhibition';
-    exhibitionId?: string | null;
-    role?: 'gallery' | 'feature' | 'attachment';
+    exhibitionId?: string | null; // is this useful???
+    role?: 'gallery' | 'feature' | 'attachment'; // is this useful???
   };
   type: MediaType;
   title: string;
