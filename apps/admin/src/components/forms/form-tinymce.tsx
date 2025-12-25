@@ -37,15 +37,6 @@ function FormTinyMce<
 }: FormTinyMceProps<TFieldValues, TName>) {
   const apiKey = process.env.NEXT_PUBLIC_TINYMCE_API_KEY ?? '';
 
-  useEffect(() => {
-    if (!apiKey) {
-      console.warn(
-        'TinyMCE API key is not set. Please set NEXT_PUBLIC_TINYMCE_API_KEY in your environment variables.'
-      );
-    }
-    console.log('TinyMCE API Key:', apiKey);
-  }, [apiKey]);
-
   return (
     <FormField
       control={control}

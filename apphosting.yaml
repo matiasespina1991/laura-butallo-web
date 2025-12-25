@@ -29,6 +29,8 @@ env:
   - variable: NEXT_PUBLIC_FIREBASE_APP_ID
     secret: FIREBASE_APP_ID
     availability: [ BUILD, RUNTIME ]
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    secret: FIREBASE_MEASUREMENT_ID
   - variable: NEXT_PUBLIC_TINYMCE_API_KEY
     secret: TINYMCE_API_KEY
     availability: [ BUILD, RUNTIME ]
