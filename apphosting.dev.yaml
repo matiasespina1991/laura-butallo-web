@@ -11,3 +11,8 @@ env:
     value: dev
     availability:
       - BUILD
+  - variable: NEXT_PUBLIC_TINYMCE_API_KEY
+    secret: TINYMCE_API_KEY
+    availability:
+      - BUILD
+      - RUNTIME

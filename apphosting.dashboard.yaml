@@ -1,15 +1,9 @@
-# Settings for Backend (on Cloud Run).
-# The admin dashboard lives in a separate app under apps/admin,
-# so point App Hosting at the public site inside apps/web.
-sourceDir: apps/web
+sourceDir: apps/admin
 # See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 runConfig:
   minInstances: 0
   maxInstances: 100
-  # concurrency: 80
-  # cpu: 1
-  # memoryMiB: 512
-# Environment variables and secrets.
+
 env:
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     secret: FIREBASE_API_KEY
@@ -35,7 +29,3 @@ env:
   - variable: NEXT_PUBLIC_DEPLOY_ENV
     value: prod
     availability: [BUILD]
-# Grant access to secrets in Cloud Secret Manager.
-# See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
-# - variable: MY_SECRET
-#   secret: mySecretRef
