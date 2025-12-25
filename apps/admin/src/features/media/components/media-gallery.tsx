@@ -14,7 +14,12 @@ import { FileUploader } from '@/components/file-uploader';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import { cn, formatBytes } from '@/lib/utils';
-import { IconPhoto, IconVideo } from '@tabler/icons-react';
+import {
+  IconChevronLeft,
+  IconChevronRight,
+  IconPhoto,
+  IconVideo
+} from '@tabler/icons-react';
 import { MediaDoc, uploadMediaFiles } from '@/lib/media-upload';
 import { toast } from 'sonner';
 
@@ -208,7 +213,47 @@ export default function MediaGallery() {
   const [items, setItems] = useState<MediaDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [progresses, setProgresses] = useState<Record<string, number>>({});
-  const [activeMedia, setActiveMedia] = useState<MediaDoc | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const activeMedia =
+    activeIndex === null ? null : (items[activeIndex] ?? null);
+  const totalItems = items.length;
+  const canGoPrev = activeIndex !== null && activeIndex > 0;
+  const canGoNext = activeIndex !== null && activeIndex < totalItems - 1;
+
+  const goPrev = () => {
+    if (!canGoPrev) return;
+    setActiveIndex((prev) => (prev === null ? prev : prev - 1));
+  };
+
+  const goNext = () => {
+    if (!canGoNext) return;
+    setActiveIndex((prev) => (prev === null ? prev : prev + 1));
+  };
+
+  useEffect(() => {
+    if (activeIndex === null) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (target.isContentEditable) return;
+      const tagName = target.tagName;
+      if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') {
+        return;
+      }
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        goPrev();
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        goNext();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeIndex, canGoPrev, canGoNext]);
 
   const lightboxImageAsset = useMemo(() => {
     if (!activeMedia || activeMedia.type !== 'image') return null;
@@ -266,6 +311,17 @@ export default function MediaGallery() {
   });
 
   useEffect(() => {
+    if (activeIndex === null) return;
+    if (items.length === 0) {
+      setActiveIndex(null);
+      return;
+    }
+    if (activeIndex > items.length - 1) {
+      setActiveIndex(items.length - 1);
+    }
+  }, [activeIndex, items.length]);
+
+  useEffect(() => {
     const mediaQuery = query(
       collection(db, 'media'),
       orderBy('createdAt', 'desc')
@@ -306,17 +362,17 @@ export default function MediaGallery() {
       ) : null}
       <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
         <UploadCard onUpload={handleUpload} progresses={progresses} />
-        {items.map((media) => (
+        {items.map((media, index) => (
           <div
             key={media.id}
             role='button'
             tabIndex={0}
             className='cursor-pointer outline-none'
-            onClick={() => setActiveMedia(media)}
+            onClick={() => setActiveIndex(index)}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                setActiveMedia(media);
+                setActiveIndex(index);
               }
             }}
           >
@@ -332,17 +388,45 @@ export default function MediaGallery() {
       <Dialog
         open={Boolean(activeMedia)}
         onOpenChange={(open) => {
-          if (!open) setActiveMedia(null);
+          if (!open) setActiveIndex(null);
         }}
       >
-        <DialogContent className='h-[min(92vh,860px)] max-w-[min(96vw,1200px)] p-0 sm:max-w-5xl'>
+        <DialogContent className='h-[min(92vh,860px)] max-w-[min(96vw,1200px)] overflow-visible p-0 sm:max-w-5xl'>
           {activeMedia ? (
-            <div className='flex h-full flex-col'>
+            <div className='relative flex h-full flex-col'>
               <DialogTitle className='sr-only'>
                 {activeMedia.title
                   ? `Preview: ${activeMedia.title}`
                   : 'Preview media'}
               </DialogTitle>
+              <button
+                type='button'
+                className={cn(
+                  'bg-background/90 text-foreground absolute top-1/2 left-[-1.25rem] inline-flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border shadow-sm transition sm:left-[-6rem]',
+                  canGoPrev
+                    ? 'hover:bg-background'
+                    : 'pointer-events-none opacity-40'
+                )}
+                onClick={goPrev}
+                disabled={!canGoPrev}
+                aria-label='Anterior'
+              >
+                <IconChevronLeft className='h-5 w-5' />
+              </button>
+              <button
+                type='button'
+                className={cn(
+                  'bg-background/90 text-foreground absolute top-1/2 right-[-1.25rem] inline-flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border shadow-sm transition sm:right-[-6rem]',
+                  canGoNext
+                    ? 'hover:bg-background'
+                    : 'pointer-events-none opacity-40'
+                )}
+                onClick={goNext}
+                disabled={!canGoNext}
+                aria-label='Siguiente'
+              >
+                <IconChevronRight className='h-5 w-5' />
+              </button>
               <div className='border-border/60 flex items-center justify-between border-b px-5 py-3'>
                 <div className='space-y-0.5'>
                   <div className='text-sm font-semibold'>
