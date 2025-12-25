@@ -356,8 +356,8 @@ export default function MediaGallery() {
                   </div>
                 </div>
               </div>
-              <div className='flex-1 p-5'>
-                <div className='bg-muted/40 border-border/60 flex h-full items-center justify-center overflow-hidden rounded-xl border'>
+              <div className='flex-1'>
+                <div className='bg-muted/40 flex h-full items-center justify-center overflow-hidden rounded-lg'>
                   {activeMedia.type === 'video' ? (
                     hasVideoSource ? (
                       <video
