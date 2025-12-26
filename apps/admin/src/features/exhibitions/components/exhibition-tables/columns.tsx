@@ -213,6 +213,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
     accessorKey: 'posterPath',
     header: '',
     meta: { label: 'Cover' },
+    size: 40,
     enableColumnFilter: false,
     cell: ({ row }) => {
       return (
@@ -259,6 +260,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
     accessorKey: 'dateAndLocation',
     header: 'Fecha y lugar',
     meta: { label: 'Fecha y lugar' },
+    size: 60,
     cell: ({ row, cell }) => (
       <EditableTextCell
         value={cell.getValue<ExhibitionRow['dateAndLocation']>()}
@@ -272,6 +274,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   },
   {
     accessorKey: 'body',
+
     header: 'Cuerpo',
     meta: { label: 'Cuerpo' },
     cell: ({ cell }) => (
@@ -280,17 +283,17 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
       </div>
     )
   },
-  {
-    accessorKey: 'videoCount',
-    header: 'Videos',
-    size: 20,
-    meta: { label: 'Cantidad de videos' },
-    cell: ({ cell }) => (
-      <Badge variant='outline' className='tabular-nums'>
-        {cell.getValue<ExhibitionRow['videoCount']>()}
-      </Badge>
-    )
-  },
+  // {
+  //   accessorKey: 'videoCount',
+  //   header: 'Videos',
+  //   size: 20,
+  //   meta: { label: 'Cantidad de videos' },
+  //   cell: ({ cell }) => (
+  //     <Badge variant='outline' className='tabular-nums'>
+  //       {cell.getValue<ExhibitionRow['videoCount']>()}
+  //     </Badge>
+  //   )
+  // },
   {
     id: 'actions',
     size: 48,
