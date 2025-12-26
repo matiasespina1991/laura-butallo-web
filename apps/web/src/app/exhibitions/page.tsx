@@ -14,7 +14,7 @@ import {
   getDoc,
   getDocs,
   orderBy,
-  query
+  query,
 } from 'firebase/firestore';
 import { selectVideoAssets } from '@/utils/media/assetSelectors';
 import { useStorageAssetSrc } from '@/hooks/useStorageAssetSrc';
@@ -87,7 +87,14 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
   };
 
   return (
-    <Box sx={{ opacity: loaded ? 1 : 0, transition: 'opacity 300ms ease' }}>
+    <Box
+      sx={{
+        opacity: loaded ? 1 : 0,
+        transition: 'opacity 300ms ease',
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
       <video
         width="100%"
         height="100%"
@@ -103,9 +110,11 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
         style={{
-          objectFit: 'cover',
-          width: '100%',
+          objectFit: 'contain',
+          width: 'fit-content',
           height: '100%',
+          maxWidth: '65rem',
+          maxHeight: '45rem',
           display: 'block',
           borderRadius: isMobileDevice ? '8px' : '10px',
           touchAction: 'pan-y',
@@ -149,7 +158,7 @@ export default function Exhibitions() {
 
             const rawIds = [
               data.featureMediaId ?? null,
-              ...(data.mediaIds ?? [])
+              ...(data.mediaIds ?? []),
             ].filter(Boolean) as string[];
             const mediaIds = uniqueIds(rawIds);
 
@@ -163,8 +172,8 @@ export default function Exhibitions() {
               })
             );
 
-            const videoMedias = mediaDocs.filter(
-              (item): item is Media => Boolean(item && item.type === 'video')
+            const videoMedias = mediaDocs.filter((item): item is Media =>
+              Boolean(item && item.type === 'video')
             );
 
             return {
@@ -172,7 +181,7 @@ export default function Exhibitions() {
               title: data.title ?? '',
               meta,
               paragraphs,
-              videoMedias: videoMedias.length ? videoMedias : undefined
+              videoMedias: videoMedias.length ? videoMedias : undefined,
             };
           })
         );
@@ -262,7 +271,7 @@ export default function Exhibitions() {
                     sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}
                     color="text.secondary"
                   >
-                    Cargando exhibiciones...
+                    Loading exhibitions...
                   </Typography>
                 ) : exhibitions.length === 0 ? (
                   <Typography
