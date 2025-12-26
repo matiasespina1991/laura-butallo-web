@@ -12,6 +12,7 @@ import {
 import { db } from '@/lib/firebase';
 import { FileUploader } from '@/components/file-uploader';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import { cn, formatBytes } from '@/lib/utils';
 import {
@@ -269,6 +270,33 @@ function UploadCard({
   );
 }
 
+function MediaGallerySkeleton({ rows = 6 }: { rows?: number }) {
+  const items = Array.from({ length: rows });
+  return (
+    <div className='grid auto-rows-fr grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
+      <div className='border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs'>
+        <div className='flex flex-1 p-5'>
+          <div className='border-muted-foreground/25 flex h-52 w-full items-center justify-center rounded-lg border-2 border-dashed'>
+            <Skeleton className='h-10 w-10 rounded-full' />
+          </div>
+        </div>
+      </div>
+      {items.map((_, index) => (
+        <div
+          key={index}
+          className='border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs'
+        >
+          <Skeleton className='aspect-[4/3] w-full' />
+          <div className='flex flex-1 flex-col gap-2 px-3 py-2'>
+            <Skeleton className='h-4 w-3/4' />
+            <Skeleton className='h-3 w-1/2' />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 type MediaGalleryProps = {
   selectedId?: string | null;
   onSelectionChange?: (media: MediaDoc | null) => void;
@@ -440,27 +468,28 @@ export default function MediaGallery({
   return (
     <div className='space-y-6'>
       {loading ? (
-        <div className='text-muted-foreground text-sm'>Cargando galería...</div>
-      ) : null}
-      <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
-        <UploadCard onUpload={handleUpload} progresses={progresses} />
-        {items.map((media, index) => (
-          <MediaCard
-            key={media.id}
-            media={media}
-            isSelected={selectedId === media.id}
-            onPreviewClick={() => setActiveIndex(index)}
-            onSelect={() => {
-              if (!onSelectionChange) return;
-              if (selectedId === media.id) {
-                onSelectionChange(null);
-              } else {
-                onSelectionChange(media);
-              }
-            }}
-          />
-        ))}
-      </div>
+        <MediaGallerySkeleton />
+      ) : (
+        <div className='grid auto-rows-fr grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
+          <UploadCard onUpload={handleUpload} progresses={progresses} />
+          {items.map((media, index) => (
+            <MediaCard
+              key={media.id}
+              media={media}
+              isSelected={selectedId === media.id}
+              onPreviewClick={() => setActiveIndex(index)}
+              onSelect={() => {
+                if (!onSelectionChange) return;
+                if (selectedId === media.id) {
+                  onSelectionChange(null);
+                } else {
+                  onSelectionChange(media);
+                }
+              }}
+            />
+          ))}
+        </div>
+      )}
       {!loading && items.length === 0 ? (
         <div className='text-muted-foreground text-sm'>
           Todavía no hay archivos en la galería.

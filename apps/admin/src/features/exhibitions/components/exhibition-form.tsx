@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle
@@ -15,6 +16,7 @@ import {
 import { Form } from '@/components/ui/form';
 import { db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   MediaDoc,
   uploadMediaFiles,
@@ -138,6 +140,7 @@ type MediaPickerSelectionMode = 'single' | 'multiple';
 type MediaPickerDialogProps = {
   open: boolean;
   title: string;
+  description?: string;
   selectionMode?: MediaPickerSelectionMode;
   selectedIds?: string[];
   allowedTypes?: Array<MediaDoc['type']>;
@@ -166,7 +169,7 @@ function MediaPickerCard({
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        'border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border text-left shadow-xs transition',
+        'border-border/60 bg-card flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border text-left shadow-xs transition',
         selected &&
           'ring-offset-background ring-2 ring-[#006cd1]/40 ring-offset-2'
       )}
@@ -242,6 +245,7 @@ function MediaPickerCard({
 function MediaPickerDialog({
   open,
   title,
+  description,
   selectionMode = 'single',
   selectedIds = [],
   allowedTypes,
@@ -305,15 +309,36 @@ function MediaPickerDialog({
     selection.includes(item.id)
   );
 
+  const skeletonCards = Array.from({ length: 15 });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-[min(96vw,1200px)] sm:max-w-5xl'>
+      <DialogContent className='max-w-[min(96vw,1200px)] min-h-[560px] sm:max-w-5xl'>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : null}
         </DialogHeader>
         {loading ? (
-          <div className='text-muted-foreground text-sm'>
-            Cargando galería...
+          <div className='space-y-4'>
+            <div className='text-muted-foreground text-sm'>
+              Cargando galería...
+            </div>
+            <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
+              {skeletonCards.map((_, index) => (
+                <div
+                  key={index}
+                  className='border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs'
+                >
+                  <Skeleton className='aspect-[4/3] w-full' />
+                  <div className='flex flex-1 flex-col gap-2 px-3 py-2'>
+                    <Skeleton className='h-4 w-3/4' />
+                    <Skeleton className='h-3 w-1/2' />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : filteredItems.length === 0 ? (
           <div className='text-muted-foreground text-sm'>
@@ -731,6 +756,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           open={isFeaturePickerOpen}
           onOpenChange={setIsFeaturePickerOpen}
           title='Seleccionar desde la galería'
+          description='Seleccioná una foto o un video destacado.'
           selectionMode='single'
           selectedIds={featureMediaId ? [featureMediaId] : []}
           onConfirm={(items) => {
@@ -742,6 +768,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           open={isAttachmentPickerOpen}
           onOpenChange={setIsAttachmentPickerOpen}
           title='Seleccionar adjuntos desde la galería'
+          description='Seleccioná uno o varios elementos de la galería.'
           selectionMode='multiple'
           selectedIds={mediaIds}
           onConfirm={(items) => {
