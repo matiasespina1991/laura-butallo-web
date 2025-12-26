@@ -178,7 +178,7 @@ function RowDragHandle() {
       data-row-click='ignore'
       ref={context.setActivatorNodeRef}
       className={cn(
-        'text-muted-foreground hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+        'text-muted-foreground hover:text-foreground inline-flex h-8 w-8 cursor-grab items-center justify-center rounded-md transition-colors active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-60',
         context.isDragging ? 'text-foreground' : null
       )}
       title={
@@ -202,7 +202,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
     header: '',
     enableSorting: false,
     enableColumnFilter: false,
-    size: 40,
+    size: 20,
     cell: () => (
       <div className='flex cursor-grab items-center justify-center'>
         <RowDragHandle />
@@ -283,6 +283,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   {
     accessorKey: 'videoCount',
     header: 'Videos',
+    size: 20,
     meta: { label: 'Cantidad de videos' },
     cell: ({ cell }) => (
       <Badge variant='outline' className='tabular-nums'>
@@ -292,6 +293,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   },
   {
     id: 'actions',
+    size: 48,
     meta: { label: 'Acciones' },
     cell: ({ row }) => <CellAction data={row.original} />
   }

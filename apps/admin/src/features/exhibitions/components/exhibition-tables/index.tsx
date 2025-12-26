@@ -26,7 +26,7 @@ import type { ColumnDef, Row as TanstackRow } from '@tanstack/react-table';
 import { doc, writeBatch } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { parseAsInteger, useQueryState } from 'nuqs';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { RowDndProvider } from './row-dnd-context';
 
@@ -107,10 +107,30 @@ export function ExhibitionTable<TValue>({
   const router = useRouter();
   const [pageSize] = useQueryState('perPage', parseAsInteger.withDefault(10));
   const [orderedData, setOrderedData] = useState<ExhibitionRow[]>(data);
+  const pendingOrderIds = useRef<string[] | null>(null);
 
   useEffect(() => {
-    setOrderedData(data);
-  }, [data]);
+    if (pendingOrderIds.current) {
+      const pendingIds = pendingOrderIds.current;
+      const nextIds = data.map((item) => item.id);
+      const matchesPending =
+        pendingIds.length === nextIds.length &&
+        pendingIds.every((id, index) => id === nextIds[index]);
+      if (matchesPending) {
+        pendingOrderIds.current = null;
+      } else {
+        return;
+      }
+    }
+    const orderedIds = orderedData.map((item) => item.id);
+    const nextIds = data.map((item) => item.id);
+    const isSameOrder =
+      orderedIds.length === nextIds.length &&
+      orderedIds.every((id, index) => id === nextIds[index]);
+    if (!isSameOrder) {
+      setOrderedData(data);
+    }
+  }, [data, orderedData]);
 
   const pageCount = Math.ceil(totalItems / pageSize);
 
@@ -150,10 +170,15 @@ export function ExhibitionTable<TValue>({
       const newIndex = prev.findIndex((item) => item.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return prev;
 
-      const next = arrayMove(prev, oldIndex, newIndex);
+      const next = arrayMove(prev, oldIndex, newIndex).map((item, index) => ({
+        ...item,
+        order: index
+      }));
+      pendingOrderIds.current = next.map((item) => item.id);
       void persistOrder(next).catch((error) => {
         console.error('[Exhibitions] reorder error', error);
         toast.error('No se pudo guardar el orden.');
+        pendingOrderIds.current = null;
       });
       return next;
     });
