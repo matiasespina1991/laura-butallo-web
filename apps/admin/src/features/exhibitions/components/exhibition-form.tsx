@@ -169,12 +169,13 @@ function MediaPickerCard({
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        'border-border/60 bg-card flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border text-left shadow-xs transition',
+        'border-border/60 bg-card group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-lg border text-left shadow-xs transition',
         selected &&
           'ring-offset-background ring-2 ring-[#006cd1]/40 ring-offset-2'
       )}
     >
-      <div className='group/preview bg-muted relative aspect-[4/3] w-full overflow-hidden'>
+      <span className='pointer-events-none absolute inset-0 z-0 bg-black/3 opacity-0 transition group-hover:opacity-100' />
+      <div className='bg-muted relative z-10 aspect-[4/3] w-full overflow-hidden'>
         {hasSource ? (
           <img
             src={src}
@@ -228,9 +229,8 @@ function MediaPickerCard({
             {media.type === 'video' ? 'Video' : 'Imagen'}
           </span>
         </span>
-        <span className='pointer-events-none absolute inset-0 bg-black/10 opacity-0 transition group-hover/preview:opacity-100' />
       </div>
-      <div className='flex flex-1 flex-col gap-1 px-3 py-2'>
+      <div className='relative z-10 flex flex-1 flex-col gap-1 px-3 py-2'>
         <div className='text-foreground truncate text-sm font-medium'>
           {media.title || 'Sin título'}
         </div>
