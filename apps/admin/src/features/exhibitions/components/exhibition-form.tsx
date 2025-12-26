@@ -5,8 +5,16 @@ import { FormTinyMce } from '@/components/forms/form-tinymce';
 import { FileUploader } from '@/components/file-uploader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { db } from '@/lib/firebase';
+import { cn } from '@/lib/utils';
 import {
   MediaDoc,
   uploadMediaFiles,
@@ -18,6 +26,9 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
+  orderBy,
+  query,
   serverTimestamp,
   updateDoc
 } from 'firebase/firestore';
@@ -25,7 +36,7 @@ import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { IconTrash } from '@tabler/icons-react';
+import { IconPhoto, IconTrash, IconVideo } from '@tabler/icons-react';
 
 type ExhibitionFormValues = {
   title: string;
@@ -40,6 +51,10 @@ type ExhibitionFormProps = {
 };
 
 const MAX_UPLOAD_SIZE = 250 * 1024 * 1024;
+const VIDEO_PROCESSING_TIMEOUT_MS = 20 * 60 * 1000;
+const IMAGE_PROCESSING_TIMEOUT_MS = 4 * 60 * 1000;
+
+const uniqueIds = (items: string[]) => Array.from(new Set(items));
 
 function getPreviewPath(media: MediaDoc) {
   if (media.type === 'video') {
@@ -48,6 +63,19 @@ function getPreviewPath(media: MediaDoc) {
 
   return (
     media.paths?.derivatives?.webp_thumb?.storagePath ??
+    media.paths?.derivatives?.webp_small?.storagePath ??
+    media.paths?.original?.storagePath ??
+    null
+  );
+}
+
+function getGalleryPreviewPath(media: MediaDoc) {
+  if (media.type === 'video') {
+    return media.paths?.poster?.storagePath ?? null;
+  }
+
+  return (
+    media.paths?.derivatives?.webp_medium?.storagePath ??
     media.paths?.derivatives?.webp_small?.storagePath ??
     media.paths?.original?.storagePath ??
     null
@@ -104,6 +132,223 @@ function MediaPreviewCard({
   );
 }
 
+type MediaPickerSelectionMode = 'single' | 'multiple';
+
+type MediaPickerDialogProps = {
+  open: boolean;
+  title: string;
+  selectionMode?: MediaPickerSelectionMode;
+  selectedIds?: string[];
+  allowedTypes?: Array<MediaDoc['type']>;
+  onConfirm: (items: MediaDoc[]) => void;
+  onOpenChange: (open: boolean) => void;
+};
+
+function MediaPickerCard({
+  media,
+  selected,
+  onSelect
+}: {
+  media: MediaDoc;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const previewPath = getGalleryPreviewPath(media);
+  const { src, hasSource, handleError } = useStorageAssetSrc(
+    previewPath ? { storagePath: previewPath } : null,
+    { preferDirect: false }
+  );
+
+  return (
+    <button
+      type='button'
+      onClick={onSelect}
+      aria-pressed={selected}
+      className={cn(
+        'border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border text-left shadow-xs transition',
+        selected && 'ring-offset-background ring-2 ring-[#006cd1]/40 ring-offset-2'
+      )}
+    >
+      <div className='group/preview bg-muted relative aspect-[4/3] w-full overflow-hidden'>
+        {hasSource ? (
+          <img
+            src={src}
+            alt={media.title || media.id}
+            className='h-full w-full object-cover'
+            loading='lazy'
+            onError={handleError}
+          />
+        ) : (
+          <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-xs'>
+            {media.processed ? null : (
+              <svg
+                className='text-muted-foreground mb-2 h-6 w-6 animate-spin'
+                xmlns='http://www.w3.org/2000/svg'
+                fill='none'
+                viewBox='0 0 24 24'
+              >
+                <circle
+                  className='opacity-25'
+                  cx='12'
+                  cy='12'
+                  r='10'
+                  stroke='currentColor'
+                  strokeWidth='4'
+                ></circle>
+                <path
+                  className='opacity-75'
+                  fill='currentColor'
+                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                ></path>
+              </svg>
+            )}
+            {media.processed ? 'Sin vista previa' : <p>Procesando…</p>}
+            {media.processed ? '' : 'Este proceso puede tardar varios minutos.'}
+          </div>
+        )}
+        <span
+          className={cn(
+            'absolute top-2 left-2 z-10 inline-flex items-center justify-center rounded-full p-1.5',
+            media.type === 'video'
+              ? 'bg-sky-100/80 text-sky-700'
+              : 'bg-amber-100/80 text-amber-700'
+          )}
+        >
+          {media.type === 'video' ? (
+            <IconVideo className='h-3.5 w-3.5' aria-hidden='true' />
+          ) : (
+            <IconPhoto className='h-3.5 w-3.5' aria-hidden='true' />
+          )}
+          <span className='sr-only'>
+            {media.type === 'video' ? 'Video' : 'Imagen'}
+          </span>
+        </span>
+        <span className='pointer-events-none absolute inset-0 bg-black/10 opacity-0 transition group-hover/preview:opacity-100' />
+      </div>
+      <div className='flex flex-1 flex-col gap-1 px-3 py-2'>
+        <div className='text-foreground truncate text-sm font-medium'>
+          {media.title || 'Sin título'}
+        </div>
+        <div className='text-muted-foreground text-xs'>
+          {media.origin?.context === 'exhibition' ? 'Exhibición' : 'Galería'}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function MediaPickerDialog({
+  open,
+  title,
+  selectionMode = 'single',
+  selectedIds = [],
+  allowedTypes,
+  onConfirm,
+  onOpenChange
+}: MediaPickerDialogProps) {
+  const [items, setItems] = useState<MediaDoc[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selection, setSelection] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      setSelection(selectedIds);
+    }
+  }, [open, selectedIds]);
+
+  useEffect(() => {
+    if (!open) return;
+    let isMounted = true;
+    setLoading(true);
+    getDocs(query(collection(db, 'media'), orderBy('createdAt', 'desc')))
+      .then((snapshot) => {
+        if (!isMounted) return;
+        const rows = snapshot.docs
+          .map((docSnap) => {
+            const data = docSnap.data() as Omit<MediaDoc, 'id'>;
+            return { ...data, id: docSnap.id };
+          })
+          .filter((item) => !item.deletedAt);
+        setItems(rows);
+      })
+      .catch((error) => {
+        console.error('[Exhibitions] load media picker error', error);
+        if (isMounted) setItems([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [open]);
+
+  const filteredItems = allowedTypes?.length
+    ? items.filter((item) => allowedTypes.includes(item.type))
+    : items;
+
+  const toggleSelection = (id: string) => {
+    setSelection((prev) => {
+      if (selectionMode === 'single') {
+        return prev[0] === id ? [] : [id];
+      }
+      return prev.includes(id)
+        ? prev.filter((item) => item !== id)
+        : [...prev, id];
+    });
+  };
+
+  const selectedItems = filteredItems.filter((item) =>
+    selection.includes(item.id)
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className='max-w-[min(96vw,1200px)] sm:max-w-5xl'>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        {loading ? (
+          <div className='text-muted-foreground text-sm'>
+            Cargando galería...
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className='text-muted-foreground text-sm'>
+            No hay archivos disponibles.
+          </div>
+        ) : (
+          <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
+            {filteredItems.map((media) => (
+              <MediaPickerCard
+                key={media.id}
+                media={media}
+                selected={selection.includes(media.id)}
+                onSelect={() => toggleSelection(media.id)}
+              />
+            ))}
+          </div>
+        )}
+        <DialogFooter>
+          <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button
+            type='button'
+            onClick={() => {
+              onConfirm(selectedItems);
+              onOpenChange(false);
+            }}
+            disabled={selection.length === 0}
+          >
+            Aceptar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
   const form = useForm<ExhibitionFormValues>({
     defaultValues: {
@@ -125,6 +370,8 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
   const [attachmentProgress, setAttachmentProgress] = useState<
     Record<string, number>
   >({});
+  const [isFeaturePickerOpen, setIsFeaturePickerOpen] = useState(false);
+  const [isAttachmentPickerOpen, setIsAttachmentPickerOpen] = useState(false);
   const featureMediaId = useWatch({
     control: form.control,
     name: 'featureMediaId'
@@ -239,12 +486,15 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
         }
       );
       const mediaDoc = await waitForMediaByUploadId(result.uploadId, {
-        requireProcessed: true
+        requireProcessed: true,
+        timeoutMs: file.type.startsWith('video/')
+          ? VIDEO_PROCESSING_TIMEOUT_MS
+          : IMAGE_PROCESSING_TIMEOUT_MS
       });
       form.setValue('featureMediaId', mediaDoc.id, { shouldDirty: true });
     } catch (error) {
       console.error('[Exhibitions] feature upload error', error);
-      toast.error('No se pudo subir el video destacado.');
+      toast.error('No se pudo subir el archivo destacado.');
     }
   };
 
@@ -263,9 +513,16 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
         }
       );
       const docs = await Promise.all(
-        results.map((result) =>
-          waitForMediaByUploadId(result.uploadId, { requireProcessed: true })
-        )
+        results.map((result, index) => {
+          const file = files[index];
+          const timeoutMs = file?.type?.startsWith('video/')
+            ? VIDEO_PROCESSING_TIMEOUT_MS
+            : IMAGE_PROCESSING_TIMEOUT_MS;
+          return waitForMediaByUploadId(result.uploadId, {
+            requireProcessed: true,
+            timeoutMs
+          });
+        })
       );
       const nextIds = [...(form.getValues('mediaIds') ?? [])];
       docs.forEach((doc) => {
@@ -371,40 +628,64 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
             </div>
 
             <div className='flex flex-1 flex-col gap-6 lg:flex-[1]'>
-            <div className='space-y-2'>
-              <div className='text-sm font-semibold'>Video destacado</div>
-              {featureMedia ? (
-                <MediaPreviewCard
-                  media={featureMedia}
-                  onRemove={removeFeatureMedia}
-                />
-              ) : null}
-              <FileUploader
-                onUpload={handleFeatureUpload}
-                progresses={featureProgress}
-                  accept={{ 'video/*': [] }}
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between gap-3'>
+                  <div className='text-sm font-semibold'>
+                    Foto o video destacado
+                  </div>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    className='h-8 px-3 text-xs'
+                    onClick={() => setIsFeaturePickerOpen(true)}
+                  >
+                    Agregar desde galería
+                  </Button>
+                </div>
+                {featureMedia ? (
+                  <MediaPreviewCard
+                    media={featureMedia}
+                    onRemove={removeFeatureMedia}
+                  />
+                ) : null}
+                <FileUploader
+                  onUpload={handleFeatureUpload}
+                  progresses={featureProgress}
+                  accept={{ 'image/*': [], 'video/*': [] }}
                   maxFiles={1}
                   maxSize={MAX_UPLOAD_SIZE}
                 />
               </div>
 
-            <div className='space-y-2'>
-              <div className='text-sm font-semibold'>Adjuntos</div>
-              {attachmentMedia.length ? (
-                <div className='flex flex-wrap gap-3'>
-                  {attachmentMedia.map((media) => (
-                    <div
-                      key={media.id}
-                      className='min-w-[220px] flex-[1_1_220px]'
-                    >
-                      <MediaPreviewCard
-                        media={media}
-                        onRemove={() => removeAttachment(media.id)}
-                      />
-                    </div>
-                  ))}
+              <div className='space-y-2'>
+                <div className='flex items-center justify-between gap-3'>
+                  <div className='text-sm font-semibold'>Adjuntos</div>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    className='h-8 px-3 text-xs'
+                    onClick={() => setIsAttachmentPickerOpen(true)}
+                  >
+                    Agregar desde galería
+                  </Button>
                 </div>
-              ) : (
+                {attachmentMedia.length ? (
+                  <div className='flex flex-wrap gap-3'>
+                    {attachmentMedia.map((media) => (
+                      <div
+                        key={media.id}
+                        className='min-w-[220px] flex-[1_1_220px]'
+                      >
+                        <MediaPreviewCard
+                          media={media}
+                          onRemove={() => removeAttachment(media.id)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
                   <div className='text-muted-foreground text-sm'>
                     No hay adjuntos todavía.
                   </div>
@@ -425,6 +706,32 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
             {saving ? 'Saving...' : 'Save Exhibition'}
           </Button>
         </Form>
+        <MediaPickerDialog
+          open={isFeaturePickerOpen}
+          onOpenChange={setIsFeaturePickerOpen}
+          title='Seleccionar desde la galería'
+          selectionMode='single'
+          selectedIds={featureMediaId ? [featureMediaId] : []}
+          onConfirm={(items) => {
+            const nextId = items[0]?.id ?? null;
+            form.setValue('featureMediaId', nextId, { shouldDirty: true });
+          }}
+        />
+        <MediaPickerDialog
+          open={isAttachmentPickerOpen}
+          onOpenChange={setIsAttachmentPickerOpen}
+          title='Seleccionar adjuntos desde la galería'
+          selectionMode='multiple'
+          selectedIds={mediaIds}
+          onConfirm={(items) => {
+            const current = form.getValues('mediaIds') ?? [];
+            const merged = uniqueIds([
+              ...current,
+              ...items.map((item) => item.id)
+            ]);
+            form.setValue('mediaIds', merged, { shouldDirty: true });
+          }}
+        />
       </CardContent>
     </Card>
   );

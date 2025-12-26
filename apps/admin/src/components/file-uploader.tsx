@@ -306,14 +306,27 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
     <div className='relative flex items-center space-x-4'>
       <div className='flex flex-1 space-x-4'>
         {isFileWithPreview(file) ? (
-          <Image
-            src={file.preview}
-            alt={file.name}
-            width={48}
-            height={48}
-            loading='lazy'
-            className='aspect-square shrink-0 rounded-md object-cover'
-          />
+          file.type.startsWith('video/') ? (
+            <video
+              src={file.preview}
+              className='aspect-square shrink-0 rounded-md object-cover'
+              muted
+              playsInline
+              preload='metadata'
+              onLoadedMetadata={(event) => {
+                event.currentTarget.currentTime = 0.1;
+              }}
+            />
+          ) : (
+            <Image
+              src={file.preview}
+              alt={file.name}
+              width={48}
+              height={48}
+              loading='lazy'
+              className='aspect-square shrink-0 rounded-md object-cover'
+            />
+          )
         ) : null}
         <div className='flex w-full flex-col gap-2'>
           <div className='space-y-px'>
