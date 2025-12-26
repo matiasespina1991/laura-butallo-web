@@ -30,13 +30,13 @@ function PosterCell({
       {hasSource ? (
         <img
           src={src}
-          alt={`${title} poster`}
+          alt={`${title} póster`}
           className='h-full w-full object-cover'
           loading='lazy'
           onError={handleError}
         />
       ) : (
-        <span className='text-muted-foreground text-xs'>No poster</span>
+        <span className='text-muted-foreground text-xs'>Sin póster</span>
       )}
     </div>
   );
@@ -59,6 +59,10 @@ function EditableTextCell({
   className,
   textClassName
 }: EditableTextCellProps) {
+  const fieldLabels: Record<EditableTextCellProps['field'], string> = {
+    title: 'título',
+    dateAndLocation: 'fecha y lugar'
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value ?? '');
   const [isSaving, setIsSaving] = useState(false);
@@ -124,7 +128,7 @@ function EditableTextCell({
         contentEditable={isEditing && !isSaving}
         suppressContentEditableWarning
         role='textbox'
-        aria-label={`Editar ${field}`}
+        aria-label={`Editar ${fieldLabels[field]}`}
         className={cn(
           'cursor-text text-left text-sm font-medium outline-none',
           isEditing
@@ -179,13 +183,13 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
     id: 'search',
     accessorFn: (row) =>
       `${row.title} ${row.dateAndLocation ?? ''} ${row.body}`,
-    header: 'SEARCH',
+    header: 'BUSCAR',
     enableSorting: false,
     enableHiding: true,
     enableColumnFilter: true,
     meta: {
-      label: 'Search',
-      placeholder: 'Search exhibitions...',
+      label: 'Buscar',
+      placeholder: 'Buscar exhibiciones...',
       variant: 'text',
       icon: Text
     }
@@ -194,7 +198,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
     id: 'title',
     accessorKey: 'title',
     header: ({ column }: { column: Column<ExhibitionRow, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Title' />
+      <DataTableColumnHeader column={column} title='Título' />
     ),
     cell: ({ row, cell }) => (
       <EditableTextCell
@@ -208,7 +212,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   },
   {
     accessorKey: 'dateAndLocation',
-    header: 'Date and location',
+    header: 'Fecha y lugar',
     cell: ({ row, cell }) => (
       <EditableTextCell
         value={cell.getValue<ExhibitionRow['dateAndLocation']>()}
@@ -222,7 +226,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   },
   {
     accessorKey: 'body',
-    header: 'Body',
+    header: 'Texto',
     cell: ({ cell }) => (
       <div className='text-foreground max-w-[25rem] truncate text-sm'>
         {cell.getValue<ExhibitionRow['body']>()}

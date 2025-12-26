@@ -124,6 +124,7 @@ function MediaPreviewCard({
           variant='ghost'
           size='icon'
           onClick={onRemove}
+          className='cursor-pointer'
         >
           <IconTrash className='h-4 w-4' />
         </Button>
@@ -166,7 +167,8 @@ function MediaPickerCard({
       aria-pressed={selected}
       className={cn(
         'border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border text-left shadow-xs transition',
-        selected && 'ring-offset-background ring-2 ring-[#006cd1]/40 ring-offset-2'
+        selected &&
+          'ring-offset-background ring-2 ring-[#006cd1]/40 ring-offset-2'
       )}
     >
       <div className='group/preview bg-muted relative aspect-[4/3] w-full overflow-hidden'>
@@ -330,7 +332,11 @@ function MediaPickerDialog({
           </div>
         )}
         <DialogFooter>
-          <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={() => onOpenChange(false)}
+          >
             Cancelar
           </Button>
           <Button
@@ -364,14 +370,15 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
   const [saving, setSaving] = useState(false);
   const [featureMedia, setFeatureMedia] = useState<MediaDoc | null>(null);
   const [attachmentMedia, setAttachmentMedia] = useState<MediaDoc[]>([]);
-  const [featureProgress, setFeatureProgress] = useState<Record<string, number>>(
-    {}
-  );
+  const [featureProgress, setFeatureProgress] = useState<
+    Record<string, number>
+  >({});
   const [attachmentProgress, setAttachmentProgress] = useState<
     Record<string, number>
   >({});
   const [isFeaturePickerOpen, setIsFeaturePickerOpen] = useState(false);
   const [isAttachmentPickerOpen, setIsAttachmentPickerOpen] = useState(false);
+  const hasUnsavedChanges = Boolean(exhibitionId && form.formState.isDirty);
   const featureMediaId = useWatch({
     control: form.control,
     name: 'featureMediaId'
@@ -560,7 +567,8 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           mediaIds: values.mediaIds ?? [],
           updatedAt: serverTimestamp()
         });
-        toast.success('Exhibition updated.');
+        form.reset(values);
+        toast.success('Exhibición actualizada.');
       } else {
         await addDoc(collection(db, 'exhibitions'), {
           title: values.title,
@@ -571,7 +579,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
-        toast.success('Exhibition created.');
+        toast.success('Exhibición creada.');
         router.push('/dashboard/exhibitions');
       }
     } catch (error) {
@@ -586,7 +594,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
     <Card className='mx-auto w-full'>
       <CardHeader>
         <CardTitle className='text-left text-2xl font-bold'>
-          Add Exhibition
+          Agregar exhibición
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -597,7 +605,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
         >
           {loading && (
             <div className='text-muted-foreground text-sm'>
-              Loading exhibition...
+              Cargando exhibición...
             </div>
           )}
           <div className='flex flex-col gap-8 lg:flex-row lg:items-start'>
@@ -606,30 +614,30 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
                 <FormInput
                   control={form.control}
                   name='title'
-                  label='Title'
-                  placeholder='Enter exhibition title'
+                  label='Título'
+                  placeholder='Ingresá el título de la exhibición'
                   required
                 />
 
                 <FormInput
                   control={form.control}
                   name='dateAndLocation'
-                  label='Date and location'
-                  placeholder='April 2025 · Wintercircus Arena, Belgium'
+                  label='Fecha y lugar'
+                  placeholder='Abril 2025 · Wintercircus Arena, Bélgica'
                 />
               </div>
 
               <FormTinyMce
                 control={form.control}
                 name='body'
-                label='Body'
-                placeholder='Write the exhibition body...'
+                label='Texto'
+                placeholder='Escribí el texto de la exhibición...'
               />
             </div>
 
             <div className='flex flex-1 flex-col gap-6 lg:flex-[1]'>
               <div className='space-y-2'>
-                <div className='flex items-center justify-between gap-3'>
+                <div className='flex flex-wrap items-center gap-3'>
                   <div className='text-sm font-semibold'>
                     Foto o video destacado
                   </div>
@@ -659,7 +667,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
               </div>
 
               <div className='space-y-2'>
-                <div className='flex items-center justify-between gap-3'>
+                <div className='flex flex-wrap items-center gap-3'>
                   <div className='text-sm font-semibold'>Adjuntos</div>
                   <Button
                     type='button'
@@ -702,8 +710,13 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
             </div>
           </div>
 
+          {hasUnsavedChanges ? (
+            <div className='mb-1 text-sm text-red-500'>
+              Hay cambios sin guardar.
+            </div>
+          ) : null}
           <Button type='submit' disabled={saving || loading}>
-            {saving ? 'Saving...' : 'Save Exhibition'}
+            {saving ? 'Guardando...' : 'Guardar exhibición'}
           </Button>
         </Form>
         <MediaPickerDialog

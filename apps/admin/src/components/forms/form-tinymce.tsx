@@ -91,6 +91,7 @@ function FormTinyMce<
           )}
           <FormControl>
             <Editor
+              plugins={'image'}
               key={editorKey}
               apiKey={apiKey}
               value={field.value ?? ''}

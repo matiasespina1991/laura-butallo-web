@@ -10,7 +10,7 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Exhibitions',
+    title: 'Exhibiciones',
     url: '/dashboard/exhibitions',
     icon: 'exhibitions',
     shortcut: ['e', 'e'],

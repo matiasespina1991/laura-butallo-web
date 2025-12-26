@@ -124,16 +124,18 @@ export function FileUploader(props: FileUploaderProps) {
     prop: valueProp,
     onChange: onValueChange
   });
+  const uploadToastIdRef = React.useRef<string | number | null>(null);
+  const processingToastShownRef = React.useRef(false);
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       if (!multiple && maxFiles === 1 && acceptedFiles.length > 1) {
-        toast.error('Cannot upload more than 1 file at a time');
+        toast.error('No podés subir más de 1 archivo a la vez.');
         return;
       }
 
       if ((files?.length ?? 0) + acceptedFiles.length > maxFiles) {
-        toast.error(`Cannot upload more than ${maxFiles} files`);
+        toast.error(`No podés subir más de ${maxFiles} archivos.`);
         return;
       }
 
@@ -149,7 +151,7 @@ export function FileUploader(props: FileUploaderProps) {
 
       if (rejectedFiles.length > 0) {
         rejectedFiles.forEach(({ file }) => {
-          toast.error(`File ${file.name} was rejected`);
+          toast.error(`El archivo ${file.name} fue rechazado.`);
         });
       }
 
@@ -159,16 +161,36 @@ export function FileUploader(props: FileUploaderProps) {
         updatedFiles.length <= maxFiles
       ) {
         const target =
-          updatedFiles.length > 0 ? `${updatedFiles.length} files` : `file`;
+          updatedFiles.length === 1
+            ? '1 archivo'
+            : `${updatedFiles.length} archivos`;
 
-        toast.promise(onUpload(updatedFiles), {
-          loading: `Uploading ${target}...`,
-          success: () => {
+        if (uploadToastIdRef.current) {
+          toast.dismiss(uploadToastIdRef.current);
+        }
+        processingToastShownRef.current = false;
+        uploadToastIdRef.current = toast.loading(`Subiendo ${target}...`);
+
+        onUpload(updatedFiles)
+          .then(() => {
             setFiles([]);
-            return `${target} uploaded`;
-          },
-          error: `Failed to upload ${target}`
-        });
+            if (uploadToastIdRef.current) {
+              toast.success('Procesando tu archivo... Por favor esperá.', {
+                id: uploadToastIdRef.current
+              });
+            }
+          })
+          .catch(() => {
+            if (uploadToastIdRef.current) {
+              toast.error(`Falló la subida de ${target}.`, {
+                id: uploadToastIdRef.current
+              });
+            }
+          })
+          .finally(() => {
+            uploadToastIdRef.current = null;
+            processingToastShownRef.current = false;
+          });
       }
     },
 
@@ -183,6 +205,20 @@ export function FileUploader(props: FileUploaderProps) {
   }
 
   // Revoke preview url when component unmounts
+  React.useEffect(() => {
+    if (!uploadToastIdRef.current || !files?.length || !progresses) return;
+    const allComplete = files.every((file) => {
+      const progress = progresses[file.name];
+      return typeof progress === 'number' && progress >= 100;
+    });
+    if (allComplete && !processingToastShownRef.current) {
+      toast.loading('Procesando tu archivo... Por favor esperá.', {
+        id: uploadToastIdRef.current
+      });
+      processingToastShownRef.current = true;
+    }
+  }, [files, progresses]);
+
   React.useEffect(() => {
     return () => {
       if (!files) return;
@@ -309,7 +345,9 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
           file.type.startsWith('video/') ? (
             <video
               src={file.preview}
-              className='aspect-square shrink-0 rounded-md object-cover'
+              className='h-12 w-12 shrink-0 rounded-md object-cover'
+              width={48}
+              height={48}
               muted
               playsInline
               preload='metadata'
@@ -337,7 +375,14 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
               {formatBytes(file.size)}
             </p>
           </div>
-          {progress ? <Progress value={progress} /> : null}
+          {typeof progress === 'number' && progress < 100 ? (
+            <Progress value={progress} />
+          ) : null}
+          {typeof progress === 'number' && progress >= 100 ? (
+            <p className='text-muted-foreground text-left text-xs'>
+              Subida completada. Procesando tu archivo...
+            </p>
+          ) : null}
         </div>
       </div>
       <div className='flex items-center gap-2'>
@@ -350,7 +395,7 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
           className='size-8 rounded-full'
         >
           <IconX className='text-muted-foreground' />
-          <span className='sr-only'>Remove file</span>
+          <span className='sr-only'>Eliminar archivo</span>
         </Button>
       </div>
     </div>

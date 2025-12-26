@@ -15,14 +15,14 @@ export default function Page() {
   return (
     <PageContainer
       scrollable={false}
-      pageTitle='Exhibitions'
-      pageDescription='Manage exhibition entries and key highlights.'
+      pageTitle='Exhibiciones'
+      pageDescription='Administra y agrega nuevas exhibiciones.'
       pageHeaderAction={
         <Link
           href='/dashboard/exhibitions/new'
           className={cn(buttonVariants(), 'text-xs md:text-sm')}
         >
-          <IconPlus className='mr-2 h-4 w-4' /> Add Exhibition
+          <IconPlus className='mr-2 h-4 w-4' /> Agregar Nueva Exhibición
         </Link>
       }
     >
