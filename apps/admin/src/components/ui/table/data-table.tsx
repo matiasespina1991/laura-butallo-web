@@ -21,12 +21,18 @@ interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   table: TanstackTable<TData>;
   actionBar?: React.ReactNode;
   onRowClick?: (row: TanstackRow<TData>) => void;
+  renderRow?: (
+    row: TanstackRow<TData>,
+    cells: React.ReactNode[],
+    onRowClick?: (row: TanstackRow<TData>) => void
+  ) => React.ReactNode;
 }
 
 export function DataTable<TData>({
   table,
   actionBar,
   onRowClick,
+  renderRow,
   children
 }: DataTableProps<TData>) {
   return (
@@ -60,35 +66,47 @@ export function DataTable<TData>({
               </TableHeader>
               <TableBody>
                 {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                      className={onRowClick ? 'hover:bg-muted/40 cursor-pointer' : undefined}
-                      onClick={(event) => {
-                        if (!onRowClick) return;
-                        const target = event.target as HTMLElement | null;
-                        if (target?.closest('[data-row-click="ignore"]')) {
-                          return;
+                  table.getRowModel().rows.map((row) => {
+                    const cells = row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        style={{
+                          ...getCommonPinningStyles({ column: cell.column })
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ));
+
+                    if (renderRow) {
+                      return renderRow(row, cells, onRowClick);
+                    }
+
+                    return (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                        className={
+                          onRowClick
+                            ? 'hover:bg-muted/40 cursor-pointer'
+                            : undefined
                         }
-                        onRowClick(row);
-                      }}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          style={{
-                            ...getCommonPinningStyles({ column: cell.column })
-                          }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
+                        onClick={(event) => {
+                          if (!onRowClick) return;
+                          const target = event.target as HTMLElement | null;
+                          if (target?.closest('[data-row-click="ignore"]')) {
+                            return;
+                          }
+                          onRowClick(row);
+                        }}
+                      >
+                        {cells}
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell

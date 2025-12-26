@@ -34,7 +34,7 @@ export default function ExhibitionListingPage({}: ExhibitionListingPage) {
     let isMounted = true;
     const exhibitionsQuery = query(
       collection(db, 'exhibitions'),
-      orderBy('createdAt', 'desc')
+      orderBy('order', 'asc')
     );
 
     const unsubscribe = onSnapshot(
@@ -72,7 +72,8 @@ export default function ExhibitionListingPage({}: ExhibitionListingPage) {
                 posterPath,
                 videoCount:
                   (values.mediaIds?.length ?? 0) +
-                  (values.featureMediaId ? 1 : 0)
+                  (values.featureMediaId ? 1 : 0),
+                order: typeof values.order === 'number' ? values.order : 0
               };
             })
           );
@@ -109,11 +110,10 @@ export default function ExhibitionListingPage({}: ExhibitionListingPage) {
   if (loading) {
     return (
       <DataTableSkeleton
-        columnCount={6}
+        columnCount={7}
         rowCount={6}
         filterCount={1}
-        cellWidths={['96px', '20%', '20%', '44%', '8%', '48px']}
-        firstCellVariant='poster'
+        cellWidths={['40px', '96px', '20%', '20%', '44%', '8%', '48px']}
       />
     );
   }

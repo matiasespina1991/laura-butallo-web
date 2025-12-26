@@ -9,9 +9,10 @@ import { db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { doc, updateDoc } from 'firebase/firestore';
-import { Text } from 'lucide-react';
+import { GripVertical, Text } from 'lucide-react';
 import { toast } from 'sonner';
 import { CellAction } from './cell-action';
+import { useRowDndContext } from './row-dnd-context';
 
 function PosterCell({
   title,
@@ -166,7 +167,48 @@ function EditableTextCell({
   );
 }
 
+function RowDragHandle() {
+  const context = useRowDndContext();
+
+  if (!context) return null;
+
+  return (
+    <button
+      type='button'
+      data-row-click='ignore'
+      ref={context.setActivatorNodeRef}
+      className={cn(
+        'text-muted-foreground hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors',
+        context.isDragging ? 'text-foreground' : null
+      )}
+      title={
+        context.isDisabled
+          ? 'Desactiva filtros o ordenamiento para reordenar'
+          : 'Arrastrar para reordenar'
+      }
+      aria-label='Reordenar exhibición'
+      disabled={context.isDisabled}
+      {...context.attributes}
+      {...context.listeners}
+    >
+      <GripVertical className='h-4 w-4' />
+    </button>
+  );
+}
+
 export const columns: ColumnDef<ExhibitionRow>[] = [
+  {
+    id: 'orderHandle',
+    header: '',
+    enableSorting: false,
+    enableColumnFilter: false,
+    size: 40,
+    cell: () => (
+      <div className='flex cursor-grab items-center justify-center'>
+        <RowDragHandle />
+      </div>
+    )
+  },
   {
     accessorKey: 'posterPath',
     header: '',
@@ -233,7 +275,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
     header: 'Cuerpo',
     meta: { label: 'Cuerpo' },
     cell: ({ cell }) => (
-      <div className='text-foreground max-w-[25rem] line-clamp-3 text-sm'>
+      <div className='text-foreground line-clamp-3 max-w-[25rem] text-sm'>
         {cell.getValue<ExhibitionRow['body']>()}
       </div>
     )

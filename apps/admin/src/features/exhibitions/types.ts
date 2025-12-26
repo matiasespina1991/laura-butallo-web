@@ -5,6 +5,7 @@ export type ExhibitionRow = {
   body: string;
   posterPath?: string;
   videoCount: number;
+  order: number;
 };
 
 export type ExhibitionDoc = {
@@ -13,4 +14,5 @@ export type ExhibitionDoc = {
   body: string;
   featureMediaId?: string | null;
   mediaIds?: string[];
+  order?: number;
 };

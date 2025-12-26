@@ -29,6 +29,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
   serverTimestamp,
@@ -57,6 +58,17 @@ const VIDEO_PROCESSING_TIMEOUT_MS = 20 * 60 * 1000;
 const IMAGE_PROCESSING_TIMEOUT_MS = 4 * 60 * 1000;
 
 const uniqueIds = (items: string[]) => Array.from(new Set(items));
+
+const getNextExhibitionOrder = async () => {
+  const orderQuery = query(
+    collection(db, 'exhibitions'),
+    orderBy('order', 'desc'),
+    limit(1)
+  );
+  const snapshot = await getDocs(orderQuery);
+  const lastOrder = snapshot.docs[0]?.data()?.order;
+  return typeof lastOrder === 'number' ? lastOrder + 1 : 0;
+};
 
 function getPreviewPath(media: MediaDoc) {
   if (media.type === 'video') {
@@ -603,12 +615,14 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
         form.reset(values);
         toast.success('Exhibición actualizada.');
       } else {
+        const nextOrder = await getNextExhibitionOrder();
         await addDoc(collection(db, 'exhibitions'), {
           title: values.title,
           dateAndLocation: values.dateAndLocation,
           body: values.body,
           featureMediaId: values.featureMediaId ?? null,
           mediaIds: values.mediaIds ?? [],
+          order: nextOrder,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
