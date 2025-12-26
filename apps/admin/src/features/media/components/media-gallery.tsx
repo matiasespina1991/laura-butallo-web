@@ -18,6 +18,7 @@ import { cn, formatBytes } from '@/lib/utils';
 import {
   IconChevronLeft,
   IconChevronRight,
+  IconArrowsMaximize,
   IconPhoto,
   IconVideo
 } from '@tabler/icons-react';
@@ -116,7 +117,7 @@ function MediaCard({
   return (
     <div
       className={cn(
-        'border-border/60 bg-card flex h-full flex-col overflow-hidden rounded-lg border shadow-xs',
+        'border-border/60 bg-card relative flex h-full flex-col overflow-hidden rounded-lg border shadow-xs',
         isSelected &&
           'ring-offset-background ring-2 ring-[#006cd1]/40 ring-offset-2'
       )}
@@ -171,7 +172,7 @@ function MediaCard({
             'absolute top-2 left-2 z-10 inline-flex items-center justify-center rounded-full p-1.5',
             media.type === 'video'
               ? 'bg-sky-100/80 text-sky-700'
-              : 'bg-amber-100/80 text-amber-700'
+              : 'bg-amber-50/80 text-amber-800'
           )}
         >
           {media.type === 'video' ? (
@@ -183,11 +184,14 @@ function MediaCard({
             {media.type === 'video' ? 'Video' : 'Imagen'}
           </span>
         </span>
+        <span className='bg-background/80 text-foreground pointer-events-none absolute right-2 bottom-2 z-10 inline-flex h-8 w-8 scale-90 items-center justify-center rounded-full border opacity-0 shadow-sm transition duration-250 ease-out group-hover/preview:scale-100 group-hover/preview:opacity-100'>
+          <IconArrowsMaximize className='h-4 w-4' />
+        </span>
         <span className='pointer-events-none absolute inset-0 bg-black/10 opacity-0 transition group-hover/preview:opacity-100' />
       </button>
       <div
         className={cn(
-          'flex flex-1 flex-col gap-1 rounded-b-lg px-3 py-2 transition-colors',
+          'peer flex flex-1 flex-col gap-1 rounded-b-lg px-3 py-2 transition-colors',
           onSelect && 'hover:bg-muted/40 cursor-pointer',
           isSelected && 'bg-muted/40'
         )}
@@ -202,7 +206,7 @@ function MediaCard({
           className={cn(
             'text-foreground text-left text-sm font-medium outline-none',
             isEditing
-              ? 'inline-block min-h-[1.25rem] min-w-[6ch] cursor-text caret-foreground'
+              ? 'caret-foreground inline-block min-h-[1.25rem] min-w-[6ch] cursor-text'
               : 'w-fit truncate'
           )}
           onClick={() => {
@@ -240,6 +244,9 @@ function MediaCard({
           ) : null}
         </div>
       </div>
+      {!isSelected ? (
+        <span className='pointer-events-none absolute inset-0 rounded-lg ring-0 ring-transparent ring-offset-0 transition peer-hover:ring-2 peer-hover:ring-muted-foreground/30 peer-hover:ring-offset-2 peer-hover:ring-offset-background' />
+      ) : null}
     </div>
   );
 }
