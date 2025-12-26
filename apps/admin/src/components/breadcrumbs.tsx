@@ -14,25 +14,33 @@ import { Fragment } from 'react';
 export function Breadcrumbs() {
   const items = useBreadcrumbs();
   if (items.length === 0) return null;
+  const displayItems = items.filter(
+    (item, index) => index === 0 || item.title !== items[index - 1].title
+  );
 
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {items.map((item, index) => (
-          <Fragment key={item.title}>
-            {index !== items.length - 1 && (
+        {displayItems.map((item, index) => (
+          <Fragment key={`${item.link}-${index}`}>
+            {index !== displayItems.length - 1 && (
               <BreadcrumbItem className='hidden md:block'>
                 <BreadcrumbLink href={item.link}>{item.title}</BreadcrumbLink>
               </BreadcrumbItem>
             )}
-            {index < items.length - 1 && (
+            {index < displayItems.length - 1 && (
               <BreadcrumbSeparator className='hidden md:block'>
                 <IconSlash />
               </BreadcrumbSeparator>
             )}
-            {index === items.length - 1 && (
-              <BreadcrumbPage>{item.title}</BreadcrumbPage>
-            )}
+            {index === displayItems.length - 1 &&
+              (displayItems.length === 1 ? (
+                <BreadcrumbItem className='hidden md:block'>
+                  <BreadcrumbLink href={item.link}>{item.title}</BreadcrumbLink>
+                </BreadcrumbItem>
+              ) : (
+                <BreadcrumbPage>{item.title}</BreadcrumbPage>
+              ))}
           </Fragment>
         ))}
       </BreadcrumbList>

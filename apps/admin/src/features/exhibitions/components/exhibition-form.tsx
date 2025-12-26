@@ -396,6 +396,14 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
     const loadExhibition = async () => {
       try {
         const snap = await getDoc(doc(db, 'exhibitions', exhibitionId));
+        if (!snap.exists()) {
+          if (isMounted) {
+            setLoading(false);
+            toast.error('La exhibición no existe.');
+          }
+          router.replace('/dashboard/exhibitions');
+          return;
+        }
         const data = snap.data() as {
           title?: string;
           dateAndLocation?: string;
@@ -425,7 +433,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
     return () => {
       isMounted = false;
     };
-  }, [exhibitionId, form]);
+  }, [exhibitionId, form, router]);
 
   useEffect(() => {
     if (!featureMediaId) {

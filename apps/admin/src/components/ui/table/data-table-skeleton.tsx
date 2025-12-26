@@ -17,6 +17,7 @@ interface DataTableSkeletonProps extends React.ComponentProps<'div'> {
   withViewOptions?: boolean;
   withPagination?: boolean;
   shrinkZero?: boolean;
+  firstCellVariant?: 'poster';
 }
 
 export function DataTableSkeleton({
@@ -27,6 +28,7 @@ export function DataTableSkeleton({
   withViewOptions = true,
   withPagination = true,
   shrinkZero = false,
+  firstCellVariant,
   className,
   ...props
 }: DataTableSkeletonProps) {
@@ -80,7 +82,13 @@ export function DataTableSkeleton({
                       minWidth: shrinkZero ? cozyCellWidths[j] : 'auto'
                     }}
                   >
-                    <Skeleton className='h-6 w-full' />
+                    {firstCellVariant === 'poster' && j === 0 ? (
+                      <div className='mr-[5vw] flex items-center'>
+                        <Skeleton className='h-20 w-20 rounded-md' />
+                      </div>
+                    ) : (
+                      <Skeleton className='h-6 w-full' />
+                    )}
                   </TableCell>
                 ))}
               </TableRow>

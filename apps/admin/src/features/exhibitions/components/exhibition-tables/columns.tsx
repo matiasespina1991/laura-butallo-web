@@ -170,6 +170,8 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   {
     accessorKey: 'posterPath',
     header: '',
+    meta: { label: 'Cover' },
+    enableColumnFilter: false,
     cell: ({ row }) => {
       return (
         <PosterCell
@@ -197,6 +199,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   {
     id: 'title',
     accessorKey: 'title',
+    meta: { label: 'Título' },
     header: ({ column }: { column: Column<ExhibitionRow, unknown> }) => (
       <DataTableColumnHeader column={column} title='Título' />
     ),
@@ -213,6 +216,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   {
     accessorKey: 'dateAndLocation',
     header: 'Fecha y lugar',
+    meta: { label: 'Fecha y lugar' },
     cell: ({ row, cell }) => (
       <EditableTextCell
         value={cell.getValue<ExhibitionRow['dateAndLocation']>()}
@@ -226,9 +230,10 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   },
   {
     accessorKey: 'body',
-    header: 'Texto',
+    header: 'Cuerpo',
+    meta: { label: 'Cuerpo' },
     cell: ({ cell }) => (
-      <div className='text-foreground max-w-[25rem] truncate text-sm'>
+      <div className='text-foreground max-w-[25rem] line-clamp-3 text-sm'>
         {cell.getValue<ExhibitionRow['body']>()}
       </div>
     )
@@ -236,6 +241,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   {
     accessorKey: 'videoCount',
     header: 'Videos',
+    meta: { label: 'Cantidad de videos' },
     cell: ({ cell }) => (
       <Badge variant='outline' className='tabular-nums'>
         {cell.getValue<ExhibitionRow['videoCount']>()}
@@ -244,6 +250,7 @@ export const columns: ColumnDef<ExhibitionRow>[] = [
   },
   {
     id: 'actions',
+    meta: { label: 'Acciones' },
     cell: ({ row }) => <CellAction data={row.original} />
   }
 ];

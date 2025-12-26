@@ -86,7 +86,7 @@ function FormTinyMce<
           {label && (
             <FormLabel>
               {label}
-              {required && <span className='ml-1 text-red-500'>*</span>}
+              {required && <span className='text-red-500'>*</span>}
             </FormLabel>
           )}
           <FormControl>

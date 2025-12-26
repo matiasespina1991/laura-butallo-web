@@ -34,7 +34,9 @@ export function DataTableViewOptions<TData>({
         .getAllColumns()
         .filter(
           (column) =>
-            typeof column.accessorFn !== 'undefined' && column.getCanHide()
+            typeof column.accessorFn !== 'undefined' &&
+            column.getCanHide() &&
+            column.id !== 'search'
         ),
     [table]
   );
@@ -43,22 +45,22 @@ export function DataTableViewOptions<TData>({
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          aria-label='Toggle columns'
+          aria-label='Mostrar columnas'
           role='combobox'
           variant='outline'
           size='sm'
           className='ml-auto hidden h-8 lg:flex'
         >
           <Settings2 />
-          View
+          Ver
           <CaretSortIcon className='ml-auto opacity-50' />
         </Button>
       </PopoverTrigger>
       <PopoverContent align='end' className='w-44 p-0'>
         <Command>
-          <CommandInput placeholder='Search columns...' />
+          <CommandInput placeholder='Buscar columnas...' />
           <CommandList>
-            <CommandEmpty>No columns found.</CommandEmpty>
+            <CommandEmpty>No se encontraron columnas.</CommandEmpty>
             <CommandGroup>
               {columns.map((column) => (
                 <CommandItem

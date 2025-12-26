@@ -47,9 +47,9 @@ function FormInput<
       render={({ field }) => (
         <FormItem className={className}>
           {label && (
-            <FormLabel>
+            <FormLabel className='gap-0.5'>
               {label}
-              {required && <span className='ml-1 text-red-500'>*</span>}
+              {required && <span className='text-red-500'>*</span>}
             </FormLabel>
           )}
           <FormControl>

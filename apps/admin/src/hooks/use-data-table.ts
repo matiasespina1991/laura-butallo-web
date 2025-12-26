@@ -46,9 +46,7 @@ interface UseDataTableProps<TData>
       | 'state'
       | 'pageCount'
       | 'getCoreRowModel'
-      | 'manualFiltering'
       | 'manualPagination'
-      | 'manualSorting'
     >,
     Required<Pick<TableOptions<TData>, 'pageCount'>> {
   initialState?: Omit<Partial<TableState>, 'sorting'> & {
@@ -59,6 +57,8 @@ interface UseDataTableProps<TData>
   throttleMs?: number;
   clearOnDefault?: boolean;
   enableAdvancedFilter?: boolean;
+  manualFiltering?: boolean;
+  manualSorting?: boolean;
   scroll?: boolean;
   shallow?: boolean;
   startTransition?: React.TransitionStartFunction;
@@ -74,6 +74,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     throttleMs = THROTTLE_MS,
     clearOnDefault = false,
     enableAdvancedFilter = false,
+    manualFiltering = false,
+    manualSorting = false,
     scroll = false,
     shallow = true,
     startTransition,
@@ -169,8 +171,12 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const filterableColumns = React.useMemo(() => {
     if (enableAdvancedFilter) return [];
 
-    return columns.filter((column) => column.enableColumnFilter);
-  }, [columns, enableAdvancedFilter]);
+    return columns.filter(
+      (column) =>
+        column.enableColumnFilter &&
+        (column.id ? columnIds.has(column.id) : true)
+    );
+  }, [columns, enableAdvancedFilter, columnIds]);
 
   const filterParsers = React.useMemo(() => {
     if (enableAdvancedFilter) return {};
@@ -206,15 +212,9 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     return Object.entries(filterValues).reduce<ColumnFiltersState>(
       (filters, [key, value]) => {
         if (value !== null) {
-          const processedValue = Array.isArray(value)
-            ? value
-            : typeof value === 'string' && /[^a-zA-Z0-9]/.test(value)
-              ? value.split(/[^a-zA-Z0-9]+/).filter(Boolean)
-              : [value];
-
           filters.push({
             id: key,
-            value: processedValue
+            value
           });
         }
         return filters;
@@ -288,8 +288,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     manualPagination: true,
-    manualSorting: true,
-    manualFiltering: true
+    manualSorting,
+    manualFiltering
   });
 
   return { table, shallow, debounceMs, throttleMs };

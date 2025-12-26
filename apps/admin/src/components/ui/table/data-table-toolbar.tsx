@@ -56,7 +56,7 @@ export function DataTableToolbar<TData>({
             onClick={onReset}
           >
             <Cross2Icon />
-            Reset
+            Reiniciar
           </Button>
         )}
       </div>
