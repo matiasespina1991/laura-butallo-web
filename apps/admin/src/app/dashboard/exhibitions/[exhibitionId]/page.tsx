@@ -2,7 +2,7 @@ import PageContainer from '@/components/layout/page-container';
 import ExhibitionForm from '@/features/exhibitions/components/exhibition-form';
 
 export const metadata = {
-  title: 'Dashboard: Edit Exhibition'
+  title: 'Dashboard: Editar exhibición'
 };
 
 export default async function Page({
@@ -14,8 +14,8 @@ export default async function Page({
 
   return (
     <PageContainer
-      pageTitle='Edit Exhibition'
-      pageDescription='Update exhibition details and media.'
+      pageTitle='Editar exhibición'
+      pageDescription='Actualizá los detalles y los medios de la exhibición.'
     >
       <ExhibitionForm exhibitionId={exhibitionId} />
     </PageContainer>

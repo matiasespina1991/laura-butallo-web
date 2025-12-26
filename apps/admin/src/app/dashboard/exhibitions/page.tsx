@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 export const metadata = {
-  title: 'Dashboard: Exhibitions'
+  title: 'Dashboard: Exhibiciones'
 };
 
 export default function Page() {
