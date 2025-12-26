@@ -34,6 +34,7 @@ type ExhibitionDoc = {
   body?: string;
   mediaIds?: string[];
   featureMediaId?: string | null;
+  order?: number;
 };
 
 const parseBodyParagraphs = (body: string) => {
@@ -147,7 +148,7 @@ export default function Exhibitions() {
       setLoading(true);
       try {
         const exhibitionsSnap = await getDocs(
-          query(collection(db, 'exhibitions'), orderBy('createdAt', 'desc'))
+          query(collection(db, 'exhibitions'), orderBy('order', 'asc'))
         );
 
         const rows = await Promise.all(
