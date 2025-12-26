@@ -91,7 +91,49 @@ function FormTinyMce<
           )}
           <FormControl>
             <Editor
-              plugins={'image'}
+              plugins={[
+                // Core editing features
+                'anchor',
+                'autolink',
+                'charmap',
+                'codesample',
+                'emoticons',
+                'link',
+                'lists',
+                'media',
+                'searchreplace',
+                'table',
+                'visualblocks',
+                'wordcount',
+                // Your account includes a free trial of TinyMCE premium features
+                // Try the most popular premium features until Jan 5, 2026:
+                'checklist',
+                'mediaembed',
+                'casechange',
+                'formatpainter',
+                'pageembed',
+                'a11ychecker',
+                'tinymcespellchecker',
+                'permanentpen',
+                'powerpaste',
+                'advtable',
+                'advcode',
+                'advtemplate',
+                'ai',
+                'uploadcare',
+                'mentions',
+                'tinycomments',
+                'tableofcontents',
+                'footnotes',
+                'mergetags',
+                'autocorrect',
+                'typography',
+                'inlinecss',
+                'markdown',
+                'importword',
+                'exportword',
+                'exportpdf'
+              ]}
               key={editorKey}
               apiKey={apiKey}
               value={field.value ?? ''}
