@@ -167,6 +167,9 @@ function FormQuill<
             .dark .quill-editor .ql-toolbar .ql-picker-label {
               color: rgba(255, 255, 255, 0.85);
             }
+            .dark .quill-editor .ql-editor.ql-blank::before {
+              color: rgba(255, 255, 255, 0.55);
+            }
           `}</style>
           <QuillController
             editorRef={editorRef}

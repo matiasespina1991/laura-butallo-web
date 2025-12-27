@@ -26,6 +26,14 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
+    title: 'Contacto',
+    url: '/dashboard/contact',
+    icon: 'contact',
+    shortcut: ['c', 'c'],
+    isActive: false,
+    items: []
+  },
+  {
     title: 'Galería',
     url: '/dashboard/media',
     icon: 'media',

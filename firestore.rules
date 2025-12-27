@@ -37,6 +37,18 @@ service cloud.firestore {
       allow update: if isAuthorized();
     }
 
+    // About Me (admin UI)
+    match /about_me/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthorized();
+    }
+
+    // Contact (admin UI)
+    match /contact/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAuthorized();
+    }
+
     // About Me + Contact collection (admin UI)
     match /about_me_contact/{docId} {
       allow read: if true;
