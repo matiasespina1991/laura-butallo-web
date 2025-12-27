@@ -18,6 +18,20 @@ import { db } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   MediaDoc,
   uploadMediaFiles,
   waitForMediaByUploadId
@@ -35,11 +49,12 @@ import {
   serverTimestamp,
   updateDoc
 } from 'firebase/firestore';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { IconPhoto, IconTrash, IconVideo } from '@tabler/icons-react';
+import { GripVertical } from 'lucide-react';
 
 type ExhibitionFormValues = {
   title: string;
@@ -98,10 +113,12 @@ function getGalleryPreviewPath(media: MediaDoc) {
 
 function MediaPreviewCard({
   media,
-  onRemove
+  onRemove,
+  actions
 }: {
   media: MediaDoc;
   onRemove?: () => void;
+  actions?: ReactNode;
 }) {
   const previewPath = getPreviewPath(media);
   const { src, hasSource, handleError } = useStorageAssetSrc(
@@ -132,17 +149,78 @@ function MediaPreviewCard({
         </div>
         <div className='text-muted-foreground truncate text-xs'>{media.id}</div>
       </div>
-      {onRemove ? (
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          onClick={onRemove}
-          className='cursor-pointer'
-        >
-          <IconTrash className='h-4 w-4' />
-        </Button>
-      ) : null}
+      {actions
+        ? actions
+        : onRemove
+          ? (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                onClick={onRemove}
+                className='cursor-pointer'
+              >
+                <IconTrash className='h-4 w-4' />
+              </Button>
+            )
+          : null}
+    </div>
+  );
+}
+
+function SortableAttachmentCard({
+  media,
+  onRemove
+}: {
+  media: MediaDoc;
+  onRemove: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: media.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition
+      }}
+      className={cn(isDragging ? 'opacity-70' : null)}
+    >
+      <MediaPreviewCard
+        media={media}
+        onRemove={onRemove}
+        actions={
+          <div className='flex items-center gap-1'>
+            <button
+              type='button'
+              ref={setActivatorNodeRef}
+              className='text-muted-foreground hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors cursor-grab active:cursor-grabbing'
+              aria-label='Reordenar adjunto'
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className='h-4 w-4' />
+            </button>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              onClick={onRemove}
+              className='cursor-pointer'
+            >
+              <IconTrash className='h-4 w-4' />
+            </Button>
+          </div>
+        }
+      />
     </div>
   );
 }
@@ -426,6 +504,13 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
       control: form.control,
       name: 'mediaIds'
     }) ?? [];
+  const orderedAttachmentMedia = mediaIds
+    .map((id) => attachmentMedia.find((media) => media.id === id))
+    .filter((media): media is MediaDoc => Boolean(media));
+  const attachmentIds = orderedAttachmentMedia.map((media) => media.id);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   const handleUndoChanges = () => {
     if (!lastSavedValuesRef.current) return;
@@ -613,6 +698,22 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
     form.setValue('mediaIds', next, { shouldDirty: true });
   };
 
+  const handleAttachmentDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const currentIds = form.getValues('mediaIds') ?? [];
+    const oldIndex = currentIds.indexOf(active.id as string);
+    const newIndex = currentIds.indexOf(over.id as string);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const nextIds = arrayMove(currentIds, oldIndex, newIndex);
+    form.setValue('mediaIds', nextIds, { shouldDirty: true });
+    setAttachmentMedia((prev) => {
+      const map = new Map(prev.map((item) => [item.id, item]));
+      return nextIds
+        .map((id) => map.get(id))
+        .filter((item): item is MediaDoc => Boolean(item));
+    });
+  };
+
   const onSubmit = async (values: ExhibitionFormValues) => {
     setSaving(true);
     try {
@@ -740,20 +841,27 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
                     Agregar desde galería
                   </Button>
                 </div>
-                {attachmentMedia.length ? (
-                  <div className='flex flex-wrap gap-3'>
-                    {attachmentMedia.map((media) => (
-                      <div
-                        key={media.id}
-                        className='min-w-[220px] flex-[1_1_220px]'
-                      >
-                        <MediaPreviewCard
-                          media={media}
-                          onRemove={() => removeAttachment(media.id)}
-                        />
+                {orderedAttachmentMedia.length ? (
+                  <DndContext
+                    sensors={sensors}
+                    onDragEnd={handleAttachmentDragEnd}
+                  >
+                    <SortableContext
+                      items={attachmentIds}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className='flex flex-col gap-3'>
+                        {orderedAttachmentMedia.map((media) => (
+                          <div key={media.id}>
+                            <SortableAttachmentCard
+                              media={media}
+                              onRemove={() => removeAttachment(media.id)}
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </SortableContext>
+                  </DndContext>
                 ) : (
                   <div className='text-muted-foreground text-sm'>
                     No hay adjuntos todavía.

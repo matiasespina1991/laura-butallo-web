@@ -16,7 +16,10 @@ import {
   orderBy,
   query,
 } from 'firebase/firestore';
-import { selectVideoAssets } from '@/utils/media/assetSelectors';
+import {
+  selectImageAssets,
+  selectVideoAssets,
+} from '@/utils/media/assetSelectors';
 import { useStorageAssetSrc } from '@/hooks/useStorageAssetSrc';
 import { isMobile } from 'react-device-detect';
 
@@ -25,7 +28,7 @@ type Exhibition = {
   title: string;
   meta?: string;
   paragraphs: string[];
-  videoMedias?: Media[];
+  mediaItems?: Media[];
 };
 
 type ExhibitionDoc = {
@@ -128,6 +131,35 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
   );
 }
 
+function ExhibitionImage({ media }: { media: Media }) {
+  const isMobileDevice = isMobile;
+  const sources = useMemo(
+    () => selectImageAssets(media, isMobileDevice),
+    [media, isMobileDevice]
+  );
+  const imageSource = useStorageAssetSrc(
+    sources.high ?? sources.low ?? sources.original
+  );
+
+  return (
+    <Box>
+      <img
+        src={imageSource.src || ''}
+        alt={media.title ?? 'Imagen de exhibición'}
+        onError={imageSource.handleError}
+        style={{
+          objectFit: 'contain',
+          width: '100%',
+          height: 'auto',
+          maxHeight: '45rem',
+          display: 'block',
+          borderRadius: isMobileDevice ? '8px' : '10px',
+        }}
+      />
+    </Box>
+  );
+}
+
 export default function Exhibitions() {
   const { mode } = useContext(ThemeContext);
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
@@ -173,16 +205,18 @@ export default function Exhibitions() {
               })
             );
 
-            const videoMedias = mediaDocs.filter((item): item is Media =>
-              Boolean(item && item.type === 'video')
-            );
+            const mediaItems = mediaIds
+              .map((mediaId) =>
+                mediaDocs.find((item) => item?.id === mediaId)
+              )
+              .filter((item): item is Media => Boolean(item));
 
             return {
               id: docSnap.id,
               title: data.title ?? '',
               meta,
               paragraphs,
-              videoMedias: videoMedias.length ? videoMedias : undefined,
+              mediaItems: mediaItems.length ? mediaItems : undefined,
             };
           })
         );
@@ -371,7 +405,7 @@ export default function Exhibitions() {
                                     </>
                                   );
 
-                                  if (!exhibition.videoMedias?.length) {
+                                  if (!exhibition.mediaItems?.length) {
                                     return textContent;
                                   }
 
@@ -409,9 +443,14 @@ export default function Exhibitions() {
                                             gap: '2rem',
                                           }}
                                         >
-                                          {exhibition.videoMedias.map(
-                                            (media) => (
+                                          {exhibition.mediaItems.map((media) =>
+                                            media.type === 'video' ? (
                                               <ExhibitionVideoPlayer
+                                                key={media.id}
+                                                media={media}
+                                              />
+                                            ) : (
+                                              <ExhibitionImage
                                                 key={media.id}
                                                 media={media}
                                               />
