@@ -97,6 +97,7 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
         transition: 'opacity 300ms ease',
         display: 'flex',
         justifyContent: 'center',
+        width: '100%',
       }}
     >
       <video
@@ -115,10 +116,11 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
         onMouseLeave={() => setShowControls(false)}
         style={{
           objectFit: 'contain',
-          width: 'fit-content',
-          height: '100%',
-          maxWidth: '65rem',
+          width: '100%',
+          height: 'auto',
+          maxWidth: '45rem',
           maxHeight: '45rem',
+          paddingInline: '5rem',
           display: 'block',
           borderRadius: isMobileDevice ? '8px' : '10px',
           touchAction: 'pan-y',
@@ -152,6 +154,8 @@ function ExhibitionImage({ media }: { media: Media }) {
           width: '100%',
           height: 'auto',
           maxHeight: '45rem',
+
+          // maxHeight: '90vh',
           display: 'block',
           borderRadius: isMobileDevice ? '8px' : '10px',
         }}
@@ -206,9 +210,7 @@ export default function Exhibitions() {
             );
 
             const mediaItems = mediaIds
-              .map((mediaId) =>
-                mediaDocs.find((item) => item?.id === mediaId)
-              )
+              .map((mediaId) => mediaDocs.find((item) => item?.id === mediaId))
               .filter((item): item is Media => Boolean(item));
 
             return {
@@ -419,28 +421,30 @@ export default function Exhibitions() {
                                   return (
                                     <Box
                                       sx={{
-                                        display: 'flex',
-                                        flexDirection: {
-                                          xs: 'column',
-                                          md: 'row',
+                                        display: 'grid',
+                                        gridTemplateColumns: {
+                                          xs: '1fr',
+                                          md: 'minmax(0, 1fr) minmax(0, 1fr)',
                                         },
-                                        gap: '1.5rem',
+                                        alignItems: 'start',
+                                        columnGap: {
+                                          xs: '0',
+                                          md: '1.5rem',
+                                        },
+                                        rowGap: {
+                                          xs: '1.5rem',
+                                          md: 0,
+                                        },
                                         padding: '1rem',
                                       }}
                                     >
-                                      <Box flex={1}>{textContent}</Box>
+                                      <Box sx={{ minWidth: 0 }}>
+                                        {textContent}
+                                      </Box>
                                       <Box
-                                        flex={1}
-                                        width="100%"
                                         sx={{
-                                          paddingLeft: {
-                                            xs: 0,
-                                            md: '3rem',
-                                          },
-                                          paddingTop: {
-                                            xs: '1.5rem',
-                                            md: 0,
-                                          },
+                                          minWidth: 0,
+                                          width: '100%',
                                         }}
                                       >
                                         <Box
