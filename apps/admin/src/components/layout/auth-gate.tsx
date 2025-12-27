@@ -29,7 +29,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!authReady || !user) {
     return (
-      <div className='text-muted-foreground flex h-[90vh] min-h-[60vh] flex-col items-center justify-center gap-1 text-sm'>
+      <div className='text-muted-foreground flex h-[95vh] min-h-[60vh] flex-col items-center justify-center gap-1 text-sm'>
         <svg
           className='text-muted-foreground mb-2 h-6 w-6 animate-spin'
           xmlns='http://www.w3.org/2000/svg'

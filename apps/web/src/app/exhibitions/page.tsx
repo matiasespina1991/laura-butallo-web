@@ -98,6 +98,7 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
         display: 'flex',
         justifyContent: 'center',
         width: '100%',
+        paddingInline: isMobileDevice ? '0rem' : '3rem',
       }}
     >
       <video
@@ -120,7 +121,7 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
           height: 'auto',
           maxWidth: '45rem',
           maxHeight: '45rem',
-          paddingInline: '5rem',
+          paddingInline: '0rem',
           display: 'block',
           borderRadius: isMobileDevice ? '8px' : '10px',
           touchAction: 'pan-y',
@@ -435,7 +436,7 @@ export default function Exhibitions() {
                                           xs: '1.5rem',
                                           md: 0,
                                         },
-                                        padding: '1rem',
+                                        padding: isMobile ? '0rem' : '1rem',
                                       }}
                                     >
                                       <Box sx={{ minWidth: 0 }}>
