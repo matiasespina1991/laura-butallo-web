@@ -356,6 +356,11 @@ export default function Exhibitions() {
                                                 sm: '1.1rem',
                                               },
                                               lineHeight: 1.6,
+                                              '& a': {
+                                                display: 'inline',
+                                                textDecoration: 'underline',
+                                                textUnderlineOffset: '2px',
+                                              },
                                             }}
                                             dangerouslySetInnerHTML={{
                                               __html: paragraph,
