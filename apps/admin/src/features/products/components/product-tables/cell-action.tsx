@@ -35,20 +35,20 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant='ghost' className='h-8 w-8 p-0'>
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>Abrir menú</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
 
           <DropdownMenuItem
             onClick={() => router.push(`/dashboard/product/${data.id}`)}
           >
-            <IconEdit className='mr-2 h-4 w-4' /> Update
+            <IconEdit className='mr-2 h-4 w-4' /> Actualizar
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpen(true)}>
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
+            <IconTrash className='mr-2 h-4 w-4' /> Eliminar
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

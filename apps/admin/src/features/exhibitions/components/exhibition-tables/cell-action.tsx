@@ -57,19 +57,19 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             onClick={(event) => event.stopPropagation()}
             onPointerDown={(event) => event.stopPropagation()}
           >
-            <span className='sr-only'>Open menu</span>
+            <span className='sr-only'>Abrir menú</span>
             <IconDotsVertical className='h-4 w-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
           <DropdownMenuItem
             onClick={(event) => {
               event.stopPropagation();
               router.push(`/dashboard/exhibitions/${data.id}`);
             }}
           >
-            <IconEdit className='mr-2 h-4 w-4' /> Edit
+            <IconEdit className='mr-2 h-4 w-4' /> Editar
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={(event) => {
@@ -77,7 +77,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
               setOpen(true);
             }}
           >
-            <IconTrash className='mr-2 h-4 w-4' /> Delete
+            <IconTrash className='mr-2 h-4 w-4' /> Eliminar
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
