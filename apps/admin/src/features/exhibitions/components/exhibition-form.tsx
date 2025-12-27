@@ -1,7 +1,7 @@
 'use client';
 
 import { FormInput } from '@/components/forms/form-input';
-import { FormTinyMce } from '@/components/forms/form-tinymce';
+import { FormQuill } from '@/components/forms/form-quill';
 import { FileUploader } from '@/components/file-uploader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -867,7 +867,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
                 />
               </div>
 
-              <FormTinyMce
+              <FormQuill
                 control={form.control}
                 name='body'
                 label='Texto'

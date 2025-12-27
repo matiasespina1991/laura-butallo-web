@@ -21,7 +21,7 @@ import {
 import { BaseFormFieldProps } from '@/types/base-form';
 import { toast } from 'sonner';
 
-interface FormTinyMceProps<
+interface FormQuillProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > extends BaseFormFieldProps<TFieldValues, TName> {
@@ -30,7 +30,7 @@ interface FormTinyMceProps<
   onRequestImage?: (insertImage: (url: string) => void) => void;
 }
 
-function FormTinyMce<
+function FormQuill<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 >({
@@ -44,7 +44,7 @@ function FormTinyMce<
   disabled,
   onRequestImage,
   className
-}: FormTinyMceProps<TFieldValues, TName>) {
+}: FormQuillProps<TFieldValues, TName>) {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const quillRef = useRef<Quill | null>(null);
   const lastHtmlRef = useRef<string>('');
@@ -188,7 +188,7 @@ function FormTinyMce<
   );
 }
 
-export { FormTinyMce };
+export { FormQuill };
 
 function QuillController({
   editorRef,
