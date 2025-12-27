@@ -504,15 +504,17 @@ function MediaPickerDialog({
             No hay archivos disponibles.
           </div>
         ) : (
-          <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-            {pagedItems.map((media) => (
-              <MediaPickerCard
-                key={media.id}
-                media={media}
-                selected={selection.includes(media.id)}
-                onSelect={() => toggleSelection(media.id)}
-              />
-            ))}
+          <div className='min-h-[480px]'>
+            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+              {pagedItems.map((media) => (
+                <MediaPickerCard
+                  key={media.id}
+                  media={media}
+                  selected={selection.includes(media.id)}
+                  onSelect={() => toggleSelection(media.id)}
+                />
+              ))}
+            </div>
           </div>
         )}
         <DialogFooter>
