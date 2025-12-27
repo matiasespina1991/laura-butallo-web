@@ -22,8 +22,8 @@ export const onVideoFinalize = onObjectFinalized(
   {
     region: 'europe-west3',
     memory: '8GiB',
-    timeoutSeconds: 2200,
-    cpu: 2,
+    timeoutSeconds: 2800,
+    cpu: 4,
     maxInstances: 10,
   },
   async (event) => {
@@ -46,8 +46,8 @@ export const onVideoFinalize = onObjectFinalized(
         originRoleRaw === 'feature' || originRoleRaw === 'attachment'
           ? originRoleRaw
           : originContext === 'exhibition'
-            ? 'attachment'
-            : 'gallery';
+          ? 'attachment'
+          : 'gallery';
       const originExhibitionId = metadata.exhibitionId ?? null;
 
       const db = getDb();

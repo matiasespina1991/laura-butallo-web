@@ -55,7 +55,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { IconPhoto, IconTrash, IconVideo } from '@tabler/icons-react';
-import { GripVertical } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 
 type ExhibitionFormValues = {
   title: string;
@@ -172,21 +172,19 @@ function MediaPreviewCard({
         </div>
         <div className='text-muted-foreground truncate text-xs'>{media.id}</div>
       </div>
-      {actions
-        ? actions
-        : onRemove
-          ? (
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                onClick={onRemove}
-                className='cursor-pointer'
-              >
-                <IconTrash className='h-4 w-4' />
-              </Button>
-            )
-          : null}
+      {actions ? (
+        actions
+      ) : onRemove ? (
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          onClick={onRemove}
+          className='cursor-pointer'
+        >
+          <IconTrash className='h-4 w-4' />
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -225,7 +223,7 @@ function SortableAttachmentCard({
             <button
               type='button'
               ref={setActivatorNodeRef}
-              className='text-muted-foreground hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors cursor-grab active:cursor-grabbing'
+              className='text-muted-foreground hover:text-foreground inline-flex h-8 w-8 cursor-grab items-center justify-center rounded-md transition-colors active:cursor-grabbing'
               aria-label='Reordenar adjunto'
               {...attributes}
               {...listeners}
@@ -368,11 +366,14 @@ function MediaPickerDialog({
   const [items, setItems] = useState<MediaDoc[]>([]);
   const [loading, setLoading] = useState(false);
   const [selection, setSelection] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
   const wasOpenRef = useRef(false);
+  const pageSize = 8;
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
       setSelection(selectedIds);
+      setPage(1);
     }
     wasOpenRef.current = open;
   }, [open, selectedIds]);
@@ -409,6 +410,18 @@ function MediaPickerDialog({
     ? items.filter((item) => allowedTypes.includes(item.type))
     : items;
 
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedItems = filteredItems.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    setPage((prev) => Math.min(prev, totalPages));
+  }, [open, totalPages]);
+
   const toggleSelection = (id: string) => {
     setSelection((prev) => {
       if (selectionMode === 'single') {
@@ -429,10 +442,41 @@ function MediaPickerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='min-h-[560px] max-w-[min(96vw,1200px)] sm:max-w-5xl'>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description ? (
-            <DialogDescription>{description}</DialogDescription>
+        <DialogHeader className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+          <div className='space-y-1'>
+            <DialogTitle>{title}</DialogTitle>
+            {description ? (
+              <DialogDescription>{description}</DialogDescription>
+            ) : null}
+          </div>
+          {filteredItems.length > pageSize ? (
+            <div className='bg-background inline-flex items-center gap-2 self-end rounded-md px-2 py-1 text-xs'>
+              <Button
+                type='button'
+                variant='outline'
+                size='icon'
+                className='h-7 w-7'
+                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage <= 1}
+              >
+                <ChevronLeft className='h-4 w-4' />
+              </Button>
+              <span className='min-w-[4.5rem] text-center'>
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                type='button'
+                variant='outline'
+                size='icon'
+                className='h-7 w-7'
+                onClick={() =>
+                  setPage((prev) => Math.min(totalPages, prev + 1))
+                }
+                disabled={currentPage >= totalPages}
+              >
+                <ChevronRight className='h-4 w-4' />
+              </Button>
+            </div>
           ) : null}
         </DialogHeader>
         {loading ? (
@@ -460,8 +504,8 @@ function MediaPickerDialog({
             No hay archivos disponibles.
           </div>
         ) : (
-          <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5'>
-            {filteredItems.map((media) => (
+          <div className='grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+            {pagedItems.map((media) => (
               <MediaPickerCard
                 key={media.id}
                 media={media}
