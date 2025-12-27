@@ -395,6 +395,13 @@ export default function Exhibitions() {
                                                 textDecoration: 'underline',
                                                 textUnderlineOffset: '2px',
                                               },
+                                              '& img': {
+                                                display: 'block',
+                                                maxWidth: '640px',
+                                                maxHeight: '640px',
+                                                width: '100%',
+                                                height: 'auto',
+                                              },
                                             }}
                                             dangerouslySetInnerHTML={{
                                               __html: paragraph,

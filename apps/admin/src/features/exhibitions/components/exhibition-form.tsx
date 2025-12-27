@@ -115,8 +115,9 @@ function getGalleryPreviewPath(media: MediaDoc) {
 function getEditorImageSource(media: MediaDoc) {
   const derivatives = media.paths?.derivatives ?? {};
   const downloadUrl =
-    derivatives.webp_large?.downloadURL ??
+    derivatives.webp_small?.downloadURL ??
     derivatives.webp_medium?.downloadURL ??
+    derivatives.webp_large?.downloadURL ??
     media.paths?.original?.downloadURL ??
     null;
   if (downloadUrl) {
@@ -125,8 +126,9 @@ function getEditorImageSource(media: MediaDoc) {
 
   return {
     storagePath:
-      derivatives.webp_large?.storagePath ??
+      derivatives.webp_small?.storagePath ??
       derivatives.webp_medium?.storagePath ??
+      derivatives.webp_large?.storagePath ??
       media.paths?.original?.storagePath ??
       null
   };
