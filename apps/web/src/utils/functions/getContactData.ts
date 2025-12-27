@@ -1,5 +1,5 @@
-import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
-import { AboutMeContactData, PhotoSetData, ContactData } from '../types/types';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { AboutMeContactData, ContactData } from '../types/types';
 import db from '../config/firebase';
 
 export async function getContactData(): Promise<ContactData | null> {
@@ -25,5 +25,11 @@ export async function getContactData(): Promise<ContactData | null> {
 
   const contactData: ContactData = firstAboutMeContactDoc.contact;
 
-  return contactData;
+  const items = (contactData?.items ?? []).slice().sort((a, b) => {
+    const orderA = a.order ?? 0;
+    const orderB = b.order ?? 0;
+    return orderA - orderB;
+  });
+
+  return { items };
 }

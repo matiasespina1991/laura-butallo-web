@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import styles from '../page.module.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
@@ -13,11 +13,7 @@ import Footer from '../components/Footer';
 export default function Contact() {
   const { mode } = useContext(ThemeContext);
   const [contactData, setContactData] = useState<ContactData>({
-    contact_email: '',
-    whatsapp_number: '',
-    instagram_url: '',
-    linktree_url: '',
-    behance_url: '',
+    items: [],
   });
 
   const fetchContactData = async () => {
@@ -79,130 +75,44 @@ export default function Contact() {
                   CONTACT
                 </Typography>
                 <Box height={10}></Box>
-                {contactData.contact_email && (
-                  <Link href={`mailto:${contactData.contact_email}`}>
-                    <Typography
-                      sx={{
-                        overflowWrap: 'break-word',
-                        fontSize: {
-                          xs: '1.4rem',
-                          sm: '2.5rem',
-                        },
-                      }}
-                      fontWeight="bold"
-                      variant="h3"
-                    >
-                      <img
-                        src="/images/icons/arrows/arrow_contact_light.png"
-                        alt="Email"
-                        style={{
-                          width: '0.72em',
-                          height: '0.72em',
-                          marginRight: '0.3em',
-                          filter: mode === 'dark' ? 'invert(1)' : 'none',
-                        }}
-                      />
-                      Email
-                    </Typography>
-                  </Link>
-                )}
-                <Box height={10}></Box>
-                {contactData.instagram_url && (
-                  <Link
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${contactData.instagram_url}`}
-                  >
-                    <Typography
-                      sx={{
-                        overflowWrap: 'break-word',
-                        fontSize: {
-                          xs: '1.4rem',
-                          sm: '2.5rem',
-                        },
-                      }}
-                      fontWeight="bold"
-                      variant="h3"
-                    >
-                      <img
-                        src="/images/icons/arrows/arrow_contact_light.png"
-                        alt="Instagram"
-                        style={{
-                          width: '0.72em',
-                          height: '0.72em',
-                          marginRight: '0.3em',
-                          filter: mode === 'dark' ? 'invert(1)' : 'none',
-                        }}
-                      />
-                      Instagram
-                    </Typography>
-                  </Link>
-                )}
-
-                <Box height={10}></Box>
-                {contactData.linktree_url && (
-                  <Link
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${contactData.linktree_url}`}
-                  >
-                    <Typography
-                      sx={{
-                        overflowWrap: 'break-word',
-                        fontSize: {
-                          xs: '1.4rem',
-                          sm: '2.5rem',
-                        },
-                      }}
-                      fontWeight="bold"
-                      variant="h3"
-                    >
-                      <img
-                        src="/images/icons/arrows/arrow_contact_light.png"
-                        alt="Linktree"
-                        style={{
-                          width: '0.72em',
-                          height: '0.72em',
-                          marginRight: '0.3em',
-                          filter: mode === 'dark' ? 'invert(1)' : 'none',
-                        }}
-                      />
-                      Linktree
-                    </Typography>
-                  </Link>
-                )}
-                <Box height={10}></Box>
-                {contactData.behance_url && (
-                  <Link
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${contactData.behance_url}`}
-                  >
-                    <Typography
-                      sx={{
-                        overflowWrap: 'break-word',
-                        fontSize: {
-                          xs: '1.4rem',
-                          sm: '2.5rem',
-                        },
-                      }}
-                      fontWeight="bold"
-                      variant="h3"
-                    >
-                      <img
-                        src="/images/icons/arrows/arrow_contact_light.png"
-                        alt="Behance"
-                        style={{
-                          width: '0.72em',
-                          height: '0.72em',
-                          marginRight: '0.3em',
-                          filter: mode === 'dark' ? 'invert(1)' : 'none',
-                        }}
-                      />
-                      Behance
-                    </Typography>
-                  </Link>
-                )}
+                {contactData.items.map((item) => {
+                  const isMail = item.url.startsWith('mailto:');
+                  const isHttp = item.url.startsWith('http');
+                  return (
+                    <div key={item.id}>
+                      <Link
+                        href={item.url}
+                        target={isHttp ? '_blank' : undefined}
+                        rel={isHttp ? 'noopener noreferrer' : undefined}
+                      >
+                        <Typography
+                          sx={{
+                            overflowWrap: 'break-word',
+                            fontSize: {
+                              xs: '1.4rem',
+                              sm: '2.5rem',
+                            },
+                          }}
+                          fontWeight="bold"
+                          variant="h3"
+                        >
+                          <img
+                            src="/images/icons/arrows/arrow_contact_light.png"
+                            alt={item.label}
+                            style={{
+                              width: '0.72em',
+                              height: '0.72em',
+                              marginRight: '0.3em',
+                              filter: mode === 'dark' ? 'invert(1)' : 'none',
+                            }}
+                          />
+                          {item.label}
+                        </Typography>
+                      </Link>
+                      <Box height={10}></Box>
+                    </div>
+                  );
+                })}
               </Stack>
             </motion.div>
           </AnimatePresence>

@@ -14,6 +14,13 @@ export interface AboutMeContactData {
   about_me: AboutMeData;
   contact: ContactData;
 }
+
+export interface ContactItem {
+  id: string;
+  label: string;
+  url: string;
+  order?: number;
+}
 export interface AboutMeData {
   title: string;
   content: string;
@@ -29,9 +36,5 @@ export interface EducationContent {
 }
 
 export interface ContactData {
-  contact_email: string;
-  whatsapp_number: string;
-  instagram_url: string;
-  linktree_url: string;
-  behance_url: string;
+  items: ContactItem[];
 }
