@@ -3,7 +3,13 @@
 import Quill, { type RangeStatic, type QuillOptionsStatic } from 'quill';
 import 'quill/dist/quill.snow.css';
 import { FieldPath, FieldValues } from 'react-hook-form';
-import { useEffect, useMemo, useRef, type MutableRefObject } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type MutableRefObject
+} from 'react';
 import {
   FormControl,
   FormDescription,
@@ -13,6 +19,7 @@ import {
   FormMessage
 } from '@/components/ui/form';
 import { BaseFormFieldProps } from '@/types/base-form';
+import { toast } from 'sonner';
 
 interface FormTinyMceProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -20,6 +27,7 @@ interface FormTinyMceProps<
 > extends BaseFormFieldProps<TFieldValues, TName> {
   placeholder?: string;
   height?: number;
+  onRequestImage?: (insertImage: (url: string) => void) => void;
 }
 
 function FormTinyMce<
@@ -34,26 +42,9 @@ function FormTinyMce<
   placeholder,
   height = 401,
   disabled,
+  onRequestImage,
   className
 }: FormTinyMceProps<TFieldValues, TName>) {
-  const modules = useMemo(
-    () => ({
-      toolbar: [
-        [{ header: [2, 3, 4, false] }],
-        ['bold', 'italic', 'underline'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        ['link'],
-        ['clean']
-      ]
-    }),
-    []
-  );
-
-  const formats = useMemo(
-    () => ['header', 'bold', 'italic', 'underline', 'list', 'bullet', 'link'],
-    []
-  );
-
   const editorRef = useRef<HTMLDivElement | null>(null);
   const quillRef = useRef<Quill | null>(null);
   const lastHtmlRef = useRef<string>('');
@@ -61,6 +52,56 @@ function FormTinyMce<
   const onBlurRef = useRef<() => void>(() => {});
   const disabledRef = useRef<boolean>(false);
   const placeholderRef = useRef<string | undefined>(undefined);
+
+  const insertImage = useCallback((url: string) => {
+    const quill = quillRef.current;
+    if (!quill) return;
+    const range = quill.getSelection(true);
+    const insertAt = range?.index ?? quill.getLength();
+    quill.insertEmbed(insertAt, 'image', url, 'user');
+    quill.setSelection(insertAt + 1, 0);
+  }, []);
+
+  const handleImageRequest = useCallback(() => {
+    if (disabledRef.current) return;
+    if (!onRequestImage) {
+      toast.error('No hay galería configurada.');
+      return;
+    }
+    onRequestImage(insertImage);
+  }, [onRequestImage, insertImage]);
+
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [2, 3, 4, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['link', 'image'],
+          ['clean']
+        ],
+        handlers: {
+          image: handleImageRequest
+        }
+      }
+    }),
+    [handleImageRequest]
+  );
+
+  const formats = useMemo(
+    () => [
+      'header',
+      'bold',
+      'italic',
+      'underline',
+      'list',
+      'bullet',
+      'link',
+      'image'
+    ],
+    []
+  );
   const modulesRef = useRef<QuillOptionsStatic['modules']>(modules);
   const formatsRef = useRef<string[]>(formats);
 

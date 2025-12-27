@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { db } from '@/lib/firebase';
+import { resolveSignedUrl } from '@/lib/asset-url';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -109,6 +110,26 @@ function getGalleryPreviewPath(media: MediaDoc) {
     media.paths?.original?.storagePath ??
     null
   );
+}
+
+function getEditorImageSource(media: MediaDoc) {
+  const derivatives = media.paths?.derivatives ?? {};
+  const downloadUrl =
+    derivatives.webp_large?.downloadURL ??
+    derivatives.webp_medium?.downloadURL ??
+    media.paths?.original?.downloadURL ??
+    null;
+  if (downloadUrl) {
+    return { url: downloadUrl };
+  }
+
+  return {
+    storagePath:
+      derivatives.webp_large?.storagePath ??
+      derivatives.webp_medium?.storagePath ??
+      media.paths?.original?.storagePath ??
+      null
+  };
 }
 
 function MediaPreviewCard({
@@ -234,7 +255,7 @@ type MediaPickerDialogProps = {
   selectionMode?: MediaPickerSelectionMode;
   selectedIds?: string[];
   allowedTypes?: Array<MediaDoc['type']>;
-  onConfirm: (items: MediaDoc[]) => void;
+  onConfirm: (items: MediaDoc[]) => void | Promise<void>;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -345,11 +366,13 @@ function MediaPickerDialog({
   const [items, setItems] = useState<MediaDoc[]>([]);
   const [loading, setLoading] = useState(false);
   const [selection, setSelection] = useState<string[]>([]);
+  const wasOpenRef = useRef(false);
 
   useEffect(() => {
-    if (open) {
+    if (open && !wasOpenRef.current) {
       setSelection(selectedIds);
     }
+    wasOpenRef.current = open;
   }, [open, selectedIds]);
 
   useEffect(() => {
@@ -456,8 +479,8 @@ function MediaPickerDialog({
           </Button>
           <Button
             type='button'
-            onClick={() => {
-              onConfirm(selectedItems);
+            onClick={async () => {
+              await onConfirm(selectedItems);
               onOpenChange(false);
             }}
             disabled={selection.length === 0}
@@ -493,6 +516,8 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
   >({});
   const [isFeaturePickerOpen, setIsFeaturePickerOpen] = useState(false);
   const [isAttachmentPickerOpen, setIsAttachmentPickerOpen] = useState(false);
+  const [isEditorPickerOpen, setIsEditorPickerOpen] = useState(false);
+  const pendingEditorInsertRef = useRef<((url: string) => void) | null>(null);
   const lastSavedValuesRef = useRef<ExhibitionFormValues | null>(null);
   const hasUnsavedChanges = Boolean(exhibitionId && form.formState.isDirty);
   const featureMediaId = useWatch({
@@ -714,6 +739,11 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
     });
   };
 
+  const handleRequestEditorImage = (insertImage: (url: string) => void) => {
+    pendingEditorInsertRef.current = insertImage;
+    setIsEditorPickerOpen(true);
+  };
+
   const onSubmit = async (values: ExhibitionFormValues) => {
     setSaving(true);
     try {
@@ -794,6 +824,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
                 name='body'
                 label='Texto'
                 placeholder='Escribí el texto de la exhibición...'
+                onRequestImage={handleRequestEditorImage}
               />
             </div>
 
@@ -923,6 +954,39 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
               ...items.map((item) => item.id)
             ]);
             form.setValue('mediaIds', merged, { shouldDirty: true });
+          }}
+        />
+        <MediaPickerDialog
+          open={isEditorPickerOpen}
+          onOpenChange={(open) => {
+            if (!open) pendingEditorInsertRef.current = null;
+            setIsEditorPickerOpen(open);
+          }}
+          title='Insertar imagen desde la galería'
+          description='Seleccioná una imagen para insertar en el texto.'
+          selectionMode='single'
+          allowedTypes={['image']}
+          onConfirm={async (items) => {
+            const media = items[0];
+            if (!media) return;
+            const source = getEditorImageSource(media);
+            try {
+              const url =
+                source.url ??
+                (source.storagePath
+                  ? await resolveSignedUrl(source.storagePath)
+                  : null);
+              if (!url) {
+                toast.error('La imagen no tiene un archivo disponible.');
+                return;
+              }
+              pendingEditorInsertRef.current?.(url);
+            } catch (error) {
+              console.error('[Exhibitions] editor image error', error);
+              toast.error('No se pudo cargar la imagen.');
+            } finally {
+              pendingEditorInsertRef.current = null;
+            }
           }}
         />
       </CardContent>
