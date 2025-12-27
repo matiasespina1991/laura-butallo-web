@@ -79,5 +79,6 @@ export const Icons = {
   exclusive: IconStar,
   account: IconUserCircle,
   profile: IconUser,
-  exhibitions: IconPresentation
+  exhibitions: IconPresentation,
+  about: IconFileText
 };

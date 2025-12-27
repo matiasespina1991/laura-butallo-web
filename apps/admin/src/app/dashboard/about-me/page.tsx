@@ -1,0 +1,18 @@
+import PageContainer from '@/components/layout/page-container';
+import AboutForm from '@/features/about/components/about-form';
+
+export const metadata = {
+  title: 'Dashboard: About Me'
+};
+
+export default function Page() {
+  return (
+    <PageContainer
+      scrollable={true}
+      pageTitle='About Me'
+      pageDescription='Edita el contenido de la sección About Me.'
+    >
+      <AboutForm />
+    </PageContainer>
+  );
+}

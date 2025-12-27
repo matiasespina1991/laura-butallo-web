@@ -4,7 +4,6 @@ import { Box, Typography } from '@mui/material';
 import styles from '../page.module.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { title } from 'process';
 import { getAboutMeData } from '@/utils/functions/getAboutMeData';
 import { AboutMeData } from '@/utils/types/types';
 import Footer from '../components/Footer';
@@ -91,10 +90,23 @@ export default function AboutMe() {
                     xs: '1.3rem',
                     sm: '1.5rem',
                   },
+                  '& p': {
+                    margin: 0,
+                  },
+                  '& a': {
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '2px',
+                  },
+                  '& img': {
+                    display: 'block',
+                    maxWidth: '640px',
+                    maxHeight: '640px',
+                    width: '100%',
+                    height: 'auto',
+                  },
                 }}
-              >
-                {aboutMeData.content}
-              </Typography>
+                dangerouslySetInnerHTML={{ __html: aboutMeData.content }}
+              />
             </Box>
 
             <Box height={30}></Box>
@@ -130,10 +142,25 @@ export default function AboutMe() {
                     xs: '1.2rem',
                     sm: '1.4rem',
                   },
+                  '& p': {
+                    margin: 0,
+                  },
+                  '& a': {
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '2px',
+                  },
+                  '& img': {
+                    display: 'block',
+                    maxWidth: '640px',
+                    maxHeight: '640px',
+                    width: '100%',
+                    height: 'auto',
+                  },
                 }}
-              >
-                {aboutMeData.subcontent.education.content}
-              </Typography>
+                dangerouslySetInnerHTML={{
+                  __html: aboutMeData.subcontent.education.content,
+                }}
+              />
             </Box>
           </motion.div>
         </AnimatePresence>
