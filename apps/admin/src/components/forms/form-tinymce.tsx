@@ -1,8 +1,9 @@
 'use client';
 
-import { Editor } from '@tinymce/tinymce-react';
+import Quill, { type RangeStatic, type QuillOptionsStatic } from 'quill';
+import 'quill/dist/quill.snow.css';
 import { FieldPath, FieldValues } from 'react-hook-form';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, type MutableRefObject } from 'react';
 import {
   FormControl,
   FormDescription,
@@ -35,53 +36,47 @@ function FormTinyMce<
   disabled,
   className
 }: FormTinyMceProps<TFieldValues, TName>) {
-  const apiKey = process.env.NEXT_PUBLIC_TINYMCE_API_KEY ?? '';
-
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const root = document.documentElement;
-
-    const computeIsDark = () => root.classList.contains('dark');
-
-    // Inicial
-    setIsDark(computeIsDark());
-
-    // Escucha cambios en la clase del <html> (Tailwind dark mode por class, next-themes, etc.)
-    const observer = new MutationObserver(() => {
-      setIsDark(computeIsDark());
-    });
-
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
-
-  // TinyMCE no siempre aplica cambios de skin/content_css en caliente.
-  // Forzamos un remount al cambiar el tema.
-  const editorKey = isDark ? 'tinymce-dark' : 'tinymce-light';
-
-  const init = useMemo(
+  const modules = useMemo(
     () => ({
-      height,
-      menubar: false,
-      placeholder,
-
-      skin: isDark ? 'oxide-dark' : 'oxide',
-      content_css: isDark ? 'dark' : 'default',
-
-      plugins:
-        'lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount',
-      toolbar:
-        'undo redo | blocks | bold italic underline | alignleft aligncenter alignright | bullist numlist outdent indent | removeformat | help'
+      toolbar: [
+        [{ header: [2, 3, 4, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean']
+      ]
     }),
-    [height, placeholder, isDark]
+    []
   );
+
+  const formats = useMemo(
+    () => ['header', 'bold', 'italic', 'underline', 'list', 'bullet', 'link'],
+    []
+  );
+
+  const editorRef = useRef<HTMLDivElement | null>(null);
+  const quillRef = useRef<Quill | null>(null);
+  const lastHtmlRef = useRef<string>('');
+  const onChangeRef = useRef<(value: string) => void>(() => {});
+  const onBlurRef = useRef<() => void>(() => {});
+  const disabledRef = useRef<boolean>(false);
+  const placeholderRef = useRef<string | undefined>(undefined);
+  const modulesRef = useRef<QuillOptionsStatic['modules']>(modules);
+  const formatsRef = useRef<string[]>(formats);
 
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
+      render={({ field }) => {
+        onChangeRef.current = (value: string) => field.onChange(value);
+        onBlurRef.current = () => field.onBlur();
+        disabledRef.current = Boolean(disabled);
+        placeholderRef.current = placeholder;
+        modulesRef.current = modules;
+        formatsRef.current = formats;
+
+        return (
         <FormItem className={className}>
           {label && (
             <FormLabel>
@@ -90,65 +85,170 @@ function FormTinyMce<
             </FormLabel>
           )}
           <FormControl>
-            <Editor
-              plugins={[
-                // Core editing features
-                'anchor',
-                'autolink',
-                'charmap',
-                'codesample',
-                'emoticons',
-                'link',
-                'lists',
-                'media',
-                'searchreplace',
-                'table',
-                'visualblocks',
-                'wordcount',
-                // Your account includes a free trial of TinyMCE premium features
-                // Try the most popular premium features until Jan 5, 2026:
-                'checklist',
-                'mediaembed',
-                'casechange',
-                'formatpainter',
-                'pageembed',
-                'a11ychecker',
-                'tinymcespellchecker',
-                'permanentpen',
-                'powerpaste',
-                'advtable',
-                'advcode',
-                'advtemplate',
-                'ai',
-                'uploadcare',
-                'mentions',
-                'tinycomments',
-                'tableofcontents',
-                'footnotes',
-                'mergetags',
-                'autocorrect',
-                'typography',
-                'inlinecss',
-                'markdown',
-                'importword',
-                'exportword',
-                'exportpdf'
-              ]}
-              key={editorKey}
-              apiKey={apiKey}
-              value={field.value ?? ''}
-              onEditorChange={field.onChange}
-              onBlur={field.onBlur}
-              disabled={disabled}
-              init={init}
-            />
+            <div className='quill-editor' style={{ height }}>
+              <div ref={editorRef} />
+            </div>
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
+          <style jsx global>{`
+            .quill-editor {
+              display: flex;
+              flex-direction: column;
+            }
+            .quill-editor .ql-toolbar {
+              border-radius: 0.5rem 0.5rem 0 0;
+            }
+            .quill-editor .ql-container {
+              flex: 1 1 auto;
+              border-radius: 0 0 0.5rem 0.5rem;
+            }
+            .quill-editor .ql-editor {
+              min-height: 100%;
+            }
+            .dark .quill-editor .ql-toolbar,
+            .dark .quill-editor .ql-container {
+              border-color: rgba(255, 255, 255, 0.15);
+            }
+            .dark .quill-editor .ql-toolbar .ql-stroke {
+              stroke: rgba(255, 255, 255, 0.8);
+            }
+            .dark .quill-editor .ql-toolbar .ql-fill {
+              fill: rgba(255, 255, 255, 0.8);
+            }
+            .dark .quill-editor .ql-toolbar .ql-picker {
+              color: rgba(255, 255, 255, 0.85);
+            }
+            .dark .quill-editor .ql-toolbar .ql-picker-options {
+              background: #1b1b1b;
+              border-color: rgba(255, 255, 255, 0.2);
+            }
+            .dark .quill-editor .ql-toolbar .ql-picker-label {
+              color: rgba(255, 255, 255, 0.85);
+            }
+          `}</style>
+          <QuillController
+            editorRef={editorRef}
+            quillRef={quillRef}
+            lastHtmlRef={lastHtmlRef}
+            value={field.value ?? ''}
+            onChangeRef={onChangeRef}
+            onBlurRef={onBlurRef}
+            disabledRef={disabledRef}
+            disabled={Boolean(disabled)}
+            placeholderRef={placeholderRef}
+            modulesRef={modulesRef}
+            formatsRef={formatsRef}
+          />
         </FormItem>
-      )}
+      );
+      }}
     />
   );
 }
 
 export { FormTinyMce };
+
+function QuillController({
+  editorRef,
+  quillRef,
+  lastHtmlRef,
+  value,
+  onChangeRef,
+  onBlurRef,
+  disabledRef,
+  disabled,
+  placeholderRef,
+  modulesRef,
+  formatsRef
+}: {
+  editorRef: MutableRefObject<HTMLDivElement | null>;
+  quillRef: MutableRefObject<Quill | null>;
+  lastHtmlRef: MutableRefObject<string>;
+  value: string;
+  onChangeRef: MutableRefObject<(value: string) => void>;
+  onBlurRef: MutableRefObject<() => void>;
+  disabledRef: MutableRefObject<boolean>;
+  disabled: boolean;
+  placeholderRef: MutableRefObject<string | undefined>;
+  modulesRef: MutableRefObject<QuillOptionsStatic['modules']>;
+  formatsRef: MutableRefObject<string[]>;
+}) {
+  useEffect(() => {
+    if (!editorRef.current || quillRef.current) return;
+
+    const host = editorRef.current;
+    const hostParent = host.parentElement;
+    if (hostParent) {
+      hostParent
+        .querySelectorAll('.ql-toolbar')
+        .forEach((toolbar) => toolbar.remove());
+    }
+    host.innerHTML = '';
+
+    const quill = new Quill(host, {
+      theme: 'snow',
+      modules: modulesRef.current,
+      formats: formatsRef.current,
+      placeholder: placeholderRef.current,
+      readOnly: disabledRef.current
+    });
+
+    quill.root.innerHTML = value;
+    lastHtmlRef.current = value;
+
+    const handleTextChange = (
+      _delta: unknown,
+      _oldDelta: unknown,
+      source: 'api' | 'user' | 'silent'
+    ) => {
+      if (source !== 'user') return;
+      const html = quill.root.innerHTML;
+      const normalized = html === '<p><br></p>' ? '' : html;
+      lastHtmlRef.current = normalized;
+      onChangeRef.current(normalized);
+    };
+
+    const handleSelectionChange = (
+      range: RangeStatic | null,
+      oldRange: RangeStatic | null
+    ) => {
+      if (oldRange && !range) onBlurRef.current();
+    };
+
+    quill.on('text-change', handleTextChange);
+    quill.on('selection-change', handleSelectionChange);
+    quillRef.current = quill;
+
+    return () => {
+      quill.off('text-change', handleTextChange);
+      quill.off('selection-change', handleSelectionChange);
+      quillRef.current = null;
+      if (hostParent) {
+        hostParent
+          .querySelectorAll('.ql-toolbar')
+          .forEach((toolbar) => toolbar.remove());
+      }
+      host.innerHTML = '';
+    };
+  }, [editorRef, quillRef, lastHtmlRef, onChangeRef, onBlurRef, disabledRef, placeholderRef, modulesRef, formatsRef]);
+
+  useEffect(() => {
+    const quill = quillRef.current;
+    if (!quill) return;
+    quill.enable(!disabled);
+  }, [disabled, quillRef]);
+
+  useEffect(() => {
+    const quill = quillRef.current;
+    if (!quill) return;
+    if (value === lastHtmlRef.current) return;
+    const selection = quill.getSelection();
+    quill.clipboard.dangerouslyPasteHTML(value);
+    if (selection) {
+      quill.setSelection(selection);
+    }
+  }, [value, quillRef, lastHtmlRef]);
+
+  return null;
+}

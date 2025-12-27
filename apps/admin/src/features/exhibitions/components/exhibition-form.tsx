@@ -35,7 +35,7 @@ import {
   serverTimestamp,
   updateDoc
 } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -325,7 +325,7 @@ function MediaPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-[min(96vw,1200px)] min-h-[560px] sm:max-w-5xl'>
+      <DialogContent className='min-h-[560px] max-w-[min(96vw,1200px)] sm:max-w-5xl'>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description ? (
@@ -415,6 +415,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
   >({});
   const [isFeaturePickerOpen, setIsFeaturePickerOpen] = useState(false);
   const [isAttachmentPickerOpen, setIsAttachmentPickerOpen] = useState(false);
+  const lastSavedValuesRef = useRef<ExhibitionFormValues | null>(null);
   const hasUnsavedChanges = Boolean(exhibitionId && form.formState.isDirty);
   const featureMediaId = useWatch({
     control: form.control,
@@ -425,6 +426,11 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
       control: form.control,
       name: 'mediaIds'
     }) ?? [];
+
+  const handleUndoChanges = () => {
+    if (!lastSavedValuesRef.current) return;
+    form.reset(lastSavedValuesRef.current);
+  };
 
   useEffect(() => {
     if (!exhibitionId) return;
@@ -456,6 +462,13 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           featureMediaId: data?.featureMediaId ?? null,
           mediaIds: data?.mediaIds ?? []
         });
+        lastSavedValuesRef.current = {
+          title: data?.title ?? '',
+          dateAndLocation: data?.dateAndLocation ?? '',
+          body: data?.body ?? '',
+          featureMediaId: data?.featureMediaId ?? null,
+          mediaIds: data?.mediaIds ?? []
+        };
       } catch (error) {
         console.error('[Exhibitions] load exhibition error', error);
       } finally {
@@ -613,6 +626,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           updatedAt: serverTimestamp()
         });
         form.reset(values);
+        lastSavedValuesRef.current = values;
         toast.success('Exhibición actualizada.');
       } else {
         const nextOrder = await getNextExhibitionOrder();
@@ -758,8 +772,17 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
           </div>
 
           {hasUnsavedChanges ? (
-            <div className='mb-1 text-sm text-red-500'>
-              Hay cambios sin guardar.
+            <div className='mb-1 flex items-center text-sm'>
+              <span className='text-red-500'>Hay cambios sin guardar.</span>
+              <Button
+                type='button'
+                variant='link'
+                className='text-foreground ml-1 h-auto p-0 text-sm underline underline-offset-2'
+                onClick={handleUndoChanges}
+              >
+                Deshacer
+              </Button>
+              <span>.</span>
             </div>
           ) : null}
           <Button type='submit' disabled={saving || loading}>
