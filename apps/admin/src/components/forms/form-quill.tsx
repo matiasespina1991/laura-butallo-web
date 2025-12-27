@@ -1,14 +1,13 @@
 'use client';
 
-import Quill, { type RangeStatic, type QuillOptionsStatic } from 'quill';
+import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import { FieldPath, FieldValues } from 'react-hook-form';
 import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
-  type MutableRefObject
+  useRef
 } from 'react';
 import {
   FormControl,
@@ -20,6 +19,10 @@ import {
 } from '@/components/ui/form';
 import { BaseFormFieldProps } from '@/types/base-form';
 import { toast } from 'sonner';
+
+type SelectionRange = { index: number; length: number } | null;
+type QuillModules = Record<string, unknown>;
+type RefValue<T> = { current: T };
 
 interface FormQuillProps<
   TFieldValues extends FieldValues = FieldValues,
@@ -102,7 +105,7 @@ function FormQuill<
     ],
     []
   );
-  const modulesRef = useRef<QuillOptionsStatic['modules']>(modules);
+  const modulesRef = useRef<QuillModules>(modules);
   const formatsRef = useRef<string[]>(formats);
 
   return (
@@ -206,17 +209,17 @@ function QuillController({
   modulesRef,
   formatsRef
 }: {
-  editorRef: MutableRefObject<HTMLDivElement | null>;
-  quillRef: MutableRefObject<Quill | null>;
-  lastHtmlRef: MutableRefObject<string>;
+  editorRef: RefValue<HTMLDivElement | null>;
+  quillRef: RefValue<Quill | null>;
+  lastHtmlRef: RefValue<string>;
   value: string;
-  onChangeRef: MutableRefObject<(value: string) => void>;
-  onBlurRef: MutableRefObject<() => void>;
-  disabledRef: MutableRefObject<boolean>;
+  onChangeRef: RefValue<(value: string) => void>;
+  onBlurRef: RefValue<() => void>;
+  disabledRef: RefValue<boolean>;
   disabled: boolean;
-  placeholderRef: MutableRefObject<string | undefined>;
-  modulesRef: MutableRefObject<QuillOptionsStatic['modules']>;
-  formatsRef: MutableRefObject<string[]>;
+  placeholderRef: RefValue<string | undefined>;
+  modulesRef: RefValue<QuillModules>;
+  formatsRef: RefValue<string[]>;
 }) {
   useEffect(() => {
     if (!editorRef.current || quillRef.current) return;
@@ -253,9 +256,9 @@ function QuillController({
       onChangeRef.current(normalized);
     };
 
-    const handleSelectionChange = (
-      range: RangeStatic | null,
-      oldRange: RangeStatic | null
+  const handleSelectionChange = (
+      range: SelectionRange,
+      oldRange: SelectionRange
     ) => {
       if (oldRange && !range) onBlurRef.current();
     };
