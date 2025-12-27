@@ -37,12 +37,6 @@ export default function Header() {
   const [isHome, setIsHome] = useState<boolean>(true);
   const { toggleTheme, mode } = useContext(ThemeContext);
 
-  useEffect(() => {
-    console.log('isDevBranch:', isDevBranch);
-    console.log('NEXT_PUBLIC_DEPLOY_ENV:', process.env.NEXT_PUBLIC_DEPLOY_ENV);
-    console.log('NODE_ENV:', process.env.NODE_ENV);
-  }, [process.env.NEXT_PUBLIC_DEPLOY_ENV, process.env.NODE_ENV]);
-
   // Custom transition function with top-right origin
   const startTransitionFromTopRight = () => {
     const styleId = `theme-transition-${Date.now()}`;

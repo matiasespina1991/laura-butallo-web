@@ -50,10 +50,10 @@ const parseBodyParagraphs = (body: string) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(trimmed, 'text/html');
   const paragraphs = Array.from(doc.body.querySelectorAll('p'))
-    .map((node) => node.textContent?.trim() ?? '')
+    .map((node) => node.innerHTML.trim())
     .filter(Boolean);
   if (paragraphs.length) return paragraphs;
-  const fallback = doc.body.textContent?.trim() ?? '';
+  const fallback = doc.body.innerHTML.trim();
   return fallback ? [fallback] : [];
 };
 
@@ -347,6 +347,7 @@ export default function Exhibitions() {
                                         (paragraph, paragraphIndex) => (
                                           <Typography
                                             key={`${exhibition.id}-${paragraphIndex}`}
+                                            component="div"
                                             sx={{
                                               mt:
                                                 paragraphIndex === 0 ? 1.5 : 1,
@@ -356,9 +357,10 @@ export default function Exhibitions() {
                                               },
                                               lineHeight: 1.6,
                                             }}
-                                          >
-                                            {paragraph}
-                                          </Typography>
+                                            dangerouslySetInnerHTML={{
+                                              __html: paragraph,
+                                            }}
+                                          />
                                         )
                                       )}
                                     </>
