@@ -1,16 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  query,
-  setDoc,
-  where
-} from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import {
   DndContext,
@@ -48,9 +39,6 @@ type ContactDoc = {
   items?: ContactItem[];
 };
 
-type LegacyContactDoc = {
-  contact?: Record<string, string> | { items?: ContactItem[] };
-};
 
 const createId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
@@ -63,52 +51,6 @@ function normalizeContactItems(items: ContactItem[]) {
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
-function mapLegacyContact(contact?: Record<string, string>) {
-  if (!contact) return [];
-  const items: ContactItem[] = [];
-  if (contact.contact_email) {
-    items.push({
-      id: createId(),
-      label: 'Email',
-      url: `mailto:${contact.contact_email}`,
-      order: items.length
-    });
-  }
-  if (contact.instagram_url) {
-    items.push({
-      id: createId(),
-      label: 'Instagram',
-      url: contact.instagram_url,
-      order: items.length
-    });
-  }
-  if (contact.linktree_url) {
-    items.push({
-      id: createId(),
-      label: 'Linktree',
-      url: contact.linktree_url,
-      order: items.length
-    });
-  }
-  if (contact.behance_url) {
-    items.push({
-      id: createId(),
-      label: 'Behance',
-      url: contact.behance_url,
-      order: items.length
-    });
-  }
-  if (contact.whatsapp_number) {
-    const digits = contact.whatsapp_number.replace(/\D/g, '');
-    items.push({
-      id: createId(),
-      label: 'WhatsApp',
-      url: digits ? `https://wa.me/${digits}` : contact.whatsapp_number,
-      order: items.length
-    });
-  }
-  return items;
-}
 
 function SortableContactRow({
   item,
