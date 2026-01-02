@@ -111,6 +111,7 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
         preload="metadata"
         controls={showControls}
         poster={posterSource.src || undefined}
+        src={videoSource.src || undefined}
         onLoadedData={() => setLoaded(true)}
         onError={handleVideoError}
         onMouseEnter={() => setShowControls(true)}
@@ -127,7 +128,6 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
           touchAction: 'pan-y',
         }}
       >
-        <source src={videoSource.src || ''} type="video/webm" />
         Your browser does not support video.
       </video>
     </Box>
@@ -305,10 +305,7 @@ export default function Exhibitions() {
                 </Typography>
                 <Box height={10}></Box>
                 {loading ? (
-                  <Typography
-                    sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}
-                    color="text.secondary"
-                  >
+                  <Typography sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}>
                     Loading exhibitions...
                   </Typography>
                 ) : exhibitions.length === 0 ? (

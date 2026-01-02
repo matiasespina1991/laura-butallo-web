@@ -3,13 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AssetFile } from '@/utils/types/media';
 import {
-  buildStorageUrl,
   clearCachedSignedUrl,
   getCachedSignedUrl,
   resolveSignedUrl,
 } from '@/utils/storage/assetUrl';
 
-type Mode = 'none' | 'direct' | 'storage' | 'signed';
+type Mode = 'none' | 'signed';
 
 type Options = {
   preferDirect?: boolean;
@@ -17,26 +16,19 @@ type Options = {
 
 export function useStorageAssetSrc(
   asset?: AssetFile | null,
-  options?: Options
+  _options?: Options
 ) {
-  const preferDirect = options?.preferDirect ?? true;
-  const directUrl = preferDirect ? (asset?.downloadURL ?? '') : '';
   const storagePath = asset?.storagePath ?? '';
-  const storageUrl = useMemo(
-    () => buildStorageUrl(storagePath) || '',
-    [storagePath]
-  );
   const cachedSigned = useMemo(
     () => (storagePath ? getCachedSignedUrl(storagePath) : null),
     [storagePath]
   );
-  const initialSrc = directUrl || cachedSigned || storageUrl;
+  const initialSrc = cachedSigned || '';
 
   const [src, setSrc] = useState(initialSrc);
   const [mode, setMode] = useState<Mode>(() => {
-    if (directUrl) return 'direct';
     if (!storagePath) return 'none';
-    return cachedSigned ? 'signed' : 'storage';
+    return cachedSigned ? 'signed' : 'none';
   });
 
   const triedSignedRef = useRef<boolean>(Boolean(cachedSigned));
@@ -44,15 +36,13 @@ export function useStorageAssetSrc(
 
   useEffect(() => {
     setSrc(initialSrc);
-    if (directUrl) {
-      setMode('direct');
-    } else if (!storagePath) {
+    if (!storagePath) {
       setMode('none');
     } else {
-      setMode(cachedSigned ? 'signed' : 'storage');
+      setMode(cachedSigned ? 'signed' : 'none');
     }
     triedSignedRef.current = Boolean(cachedSigned);
-  }, [initialSrc, storagePath, cachedSigned, directUrl]);
+  }, [initialSrc, storagePath, cachedSigned]);
 
   const attemptSigned = useCallback(async () => {
     if (!storagePath) return;
@@ -70,8 +60,8 @@ export function useStorageAssetSrc(
           err
         );
         clearCachedSignedUrl(storagePath);
-        setSrc(storageUrl);
-        setMode(storageUrl ? 'storage' : 'none');
+        setSrc('');
+        setMode('none');
         triedSignedRef.current = false;
       } finally {
         resolvingRef.current = null;
@@ -79,31 +69,22 @@ export function useStorageAssetSrc(
     })();
     resolvingRef.current = promise;
     return promise;
-  }, [storagePath, storageUrl]);
+  }, [storagePath]);
 
-  const fallbackToStorage = useCallback(() => {
-    setSrc(storageUrl);
-    setMode(storageUrl ? 'storage' : 'none');
-  }, [storageUrl]);
+  useEffect(() => {
+    if (!storagePath) return;
+    if (cachedSigned) return;
+    attemptSigned();
+  }, [storagePath, cachedSigned, attemptSigned]);
 
   const handleError = useCallback(() => {
     if (!storagePath) return;
-    if (mode === 'direct') {
-      fallbackToStorage();
-      triedSignedRef.current = false;
-      attemptSigned();
-    } else if (mode === 'storage') {
-      if (triedSignedRef.current) {
-        return;
-      }
-      attemptSigned();
-    } else if (mode === 'signed') {
-      clearCachedSignedUrl(storagePath);
-      triedSignedRef.current = false;
-      fallbackToStorage();
-      attemptSigned();
-    }
-  }, [attemptSigned, fallbackToStorage, mode, storagePath]);
+    clearCachedSignedUrl(storagePath);
+    triedSignedRef.current = false;
+    setSrc('');
+    setMode('none');
+    attemptSigned();
+  }, [attemptSigned, storagePath]);
 
   return {
     src,

@@ -5,11 +5,9 @@ import { getDownloadURL, ref } from 'firebase/storage';
 
 type CacheEntry = {
   url: string;
-  expiresAt: number | null;
 };
 
 const CACHE_KEY = 'lbw_asset_signed_urls';
-const DEFAULT_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
 const memoryCache = new Map<string, CacheEntry>();
 const inflight = new Map<string, Promise<string>>();
 let cacheHydrated = false;
@@ -67,34 +65,15 @@ function pruneEntry(path: string) {
   persistCache();
 }
 
-function extractExpiry(url: string) {
-  try {
-    const parsed = new URL(url);
-    const rawExpires = parsed.searchParams.get('Expires');
-    if (rawExpires) {
-      const expiresSeconds = Number(rawExpires);
-      if (Number.isFinite(expiresSeconds)) {
-        return expiresSeconds * 1000;
-      }
-    }
-  } catch {}
-  return Date.now() + DEFAULT_TTL_MS;
-}
-
 export function getCachedSignedUrl(storagePath: string) {
   hydrateCache();
   const entry = memoryCache.get(storagePath);
   if (!entry) return null;
-  if (entry.expiresAt && entry.expiresAt <= Date.now()) {
-    pruneEntry(storagePath);
-    return null;
-  }
   return entry.url;
 }
 
 export function cacheSignedUrl(storagePath: string, url: string) {
-  const expiresAt = extractExpiry(url);
-  memoryCache.set(storagePath, { url, expiresAt });
+  memoryCache.set(storagePath, { url });
   persistCache();
 }
 
