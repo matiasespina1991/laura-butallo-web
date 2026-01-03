@@ -1,11 +1,20 @@
 'use client';
 
-import { Box, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  Stack,
+  Theme,
+  Typography,
+  useMediaQuery,
+} from '@mui/material';
 import styles from '../page.module.css';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { ThemeContext } from '../ThemeRegistry';
 import Footer from '../components/Footer';
+import ZoomableImage from '../components/ZoomeableImage';
+import ZoomeableVideo from '../components/ZoomeableVideo';
 import { Media } from '@/utils/types/media';
 import db from '@/utils/config/firebase';
 import {
@@ -72,11 +81,16 @@ const uniqueIds = (items: string[]) => {
 function ExhibitionVideoPlayer({
   media,
   maxHeight = '45rem',
+  onClick,
 }: {
   media: Media;
   maxHeight?: string;
+  onClick?: () => void;
 }) {
   const isMobileDevice = isMobile;
+  const isSmallViewport = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down('sm')
+  );
   const [loaded, setLoaded] = useState(false);
   const [showControls, setShowControls] = useState(false);
 
@@ -104,7 +118,7 @@ function ExhibitionVideoPlayer({
         display: 'flex',
         justifyContent: 'center',
         width: '100%',
-        paddingInline: isMobileDevice ? '0rem' : '3rem',
+        paddingInline: isSmallViewport ? '0rem' : '3rem',
       }}
     >
       <video
@@ -120,6 +134,7 @@ function ExhibitionVideoPlayer({
         src={videoSource.src || undefined}
         onLoadedData={() => setLoaded(true)}
         onError={handleVideoError}
+        onClick={onClick}
         onMouseEnter={() => setShowControls(true)}
         onMouseLeave={() => setShowControls(false)}
         style={{
@@ -143,9 +158,11 @@ function ExhibitionVideoPlayer({
 function ExhibitionImage({
   media,
   maxHeight = '45rem',
+  onClick,
 }: {
   media: Media;
   maxHeight?: string;
+  onClick?: () => void;
 }) {
   const isMobileDevice = isMobile;
   const sources = useMemo(
@@ -162,6 +179,7 @@ function ExhibitionImage({
         src={imageSource.src || ''}
         alt={media.title ?? 'Imagen de exhibición'}
         onError={imageSource.handleError}
+        onClick={onClick}
         style={{
           objectFit: 'contain',
           width: '100%',
@@ -180,9 +198,11 @@ function ExhibitionImage({
 function ExhibitionMediaCarousel({
   items,
   mode,
+  onMediaClick,
 }: {
   items: Media[];
   mode: 'light' | 'dark';
+  onMediaClick?: (media: Media) => void;
 }) {
   const isMobileDevice = isMobile;
   const [activeIndex, setActiveIndex] = useState(0);
@@ -204,8 +224,8 @@ function ExhibitionMediaCarousel({
 
   const controlColor = '#ffffff';
   const controlBg = mode === 'dark' ? 'rgba(10, 10, 10, 0.6)' : '#00000099';
-  const controlBorder = '#ffffff';
-  const dotColor = '#4a4a4a';
+  const controlBorder = 'transparent';
+  const dotColor = '#202020ff';
 
   return (
     <Box
@@ -243,8 +263,8 @@ function ExhibitionMediaCarousel({
                   width: isActive ? '0.50rem' : '0.45rem',
                   height: isActive ? '0.50rem' : '0.45rem',
                   borderRadius: '999px',
-                  border: `1px solid #000000`,
-                  backgroundColor: isActive ? '#1c1c1cff' : 'transparent',
+                  border: `1px solid ${dotColor}`,
+                  backgroundColor: isActive ? dotColor : 'transparent',
                   opacity: isActive ? 1 : 0.6,
                   transition: 'all 200ms ease',
                   cursor: 'pointer',
@@ -275,8 +295,8 @@ function ExhibitionMediaCarousel({
                 left: 0,
                 top: '50%',
                 transform: 'translate(-30%, -50%)',
-                width: '2.6rem',
-                height: '2.6rem',
+                width: '2.4rem',
+                height: '2.4rem',
                 borderRadius: '999px',
                 backgroundColor: controlBg,
                 border: `1px solid ${controlBorder}`,
@@ -302,8 +322,8 @@ function ExhibitionMediaCarousel({
                 right: 0,
                 top: '50%',
                 transform: 'translate(30%, -50%)',
-                width: '2.6rem',
-                height: '2.6rem',
+                width: '2.4rem',
+                height: '2.4rem',
                 borderRadius: '999px',
                 backgroundColor: controlBg,
                 border: `1px solid ${controlBorder}`,
@@ -337,9 +357,17 @@ function ExhibitionMediaCarousel({
             }}
           >
             {activeItem.type === 'video' ? (
-              <ExhibitionVideoPlayer media={activeItem} maxHeight="28rem" />
+              <ExhibitionVideoPlayer
+                media={activeItem}
+                maxHeight="28rem"
+                onClick={() => onMediaClick?.(activeItem)}
+              />
             ) : (
-              <ExhibitionImage media={activeItem} maxHeight="28rem" />
+              <ExhibitionImage
+                media={activeItem}
+                maxHeight="28rem"
+                onClick={() => onMediaClick?.(activeItem)}
+              />
             )}
           </motion.div>
         </AnimatePresence>
@@ -348,11 +376,86 @@ function ExhibitionMediaCarousel({
   );
 }
 
+type LightboxMediaProps = {
+  media: Media;
+  isMobileQuery: boolean;
+  isMobileDevice: boolean;
+};
+
+function LightboxMediaContent(props: LightboxMediaProps) {
+  if (props.media.type === 'image') {
+    return <LightboxImageContent {...props} />;
+  }
+  return <LightboxVideoContent {...props} />;
+}
+
+function LightboxImageContent({
+  media,
+  isMobileQuery,
+  isMobileDevice,
+}: LightboxMediaProps) {
+  const sources = useMemo(
+    () => selectImageAssets(media, isMobileDevice),
+    [media, isMobileDevice]
+  );
+  const lowImage = useStorageAssetSrc(sources.low ?? sources.original);
+  const highImage = useStorageAssetSrc(sources.high ?? sources.original);
+
+  return (
+    <ZoomableImage
+      className="auto-cursor"
+      lowSrc={lowImage.src || ''}
+      highSrc={highImage.src || undefined}
+      alt="Fullscreen Image"
+      zoomScale={2.5}
+      maxHeight={isMobileQuery ? '80vh' : '70vh'}
+      onLowSrcError={lowImage.handleError}
+      onHighSrcError={highImage.handleError}
+    />
+  );
+}
+
+function LightboxVideoContent({
+  media,
+  isMobileQuery,
+  isMobileDevice,
+}: LightboxMediaProps) {
+  const sources = useMemo(
+    () => selectVideoAssets(media, isMobileDevice),
+    [media, isMobileDevice]
+  );
+  const lowVideo = useStorageAssetSrc(sources.low, { preferDirect: false });
+  const highVideo = useStorageAssetSrc(sources.high, { preferDirect: false });
+  const posterSource = useStorageAssetSrc(sources.poster);
+
+  return (
+    <ZoomeableVideo
+      className="auto-cursor"
+      lowSrc={lowVideo.src || ''}
+      highSrc={highVideo.src || undefined}
+      poster={posterSource.src || undefined}
+      zoomScale={isMobileDevice ? 2 : 3}
+      maxHeight={isMobileQuery ? '80vh' : '70vh'}
+      autoPlay={true}
+      muted={true}
+      loop={true}
+      onLowSrcError={lowVideo.handleError}
+      onHighSrcError={highVideo.handleError}
+    />
+  );
+}
+
 export default function Exhibitions() {
   const { mode } = useContext(ThemeContext);
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   const [loading, setLoading] = useState(true);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [activeMedia, setActiveMedia] = useState<Media | null>(null);
+
+  const isMobileQuery = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down('sm')
+  );
 
   useEffect(() => {
     // Defensive: avoid getting stuck with a global scroll-lock class
@@ -360,6 +463,20 @@ export default function Exhibitions() {
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
   }, []);
+
+  useEffect(() => {
+    if (lightboxOpen) {
+      document.body.classList.add('no-scroll');
+      document.documentElement.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+      document.documentElement.classList.remove('no-scroll');
+    }
+    return () => {
+      document.body.classList.remove('no-scroll');
+      document.documentElement.classList.remove('no-scroll');
+    };
+  }, [lightboxOpen]);
 
   useEffect(() => {
     let isMounted = true;
@@ -438,6 +555,16 @@ export default function Exhibitions() {
 
   const toggleExhibition = (index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
+  };
+
+  const openLightbox = (media: Media) => {
+    setActiveMedia(media);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+    setActiveMedia(null);
   };
 
   return (
@@ -631,6 +758,7 @@ export default function Exhibitions() {
                                         <ExhibitionMediaCarousel
                                           items={exhibition.mediaItems}
                                           mode={mode}
+                                          onMediaClick={openLightbox}
                                         />
                                       </Box>
                                     </Box>
@@ -647,6 +775,142 @@ export default function Exhibitions() {
                 )}
               </Stack>
             </motion.div>
+          </AnimatePresence>
+          <AnimatePresence mode="wait">
+            {lightboxOpen && activeMedia && (
+              <motion.div
+                onClick={closeLightbox}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                style={{
+                  touchAction: 'none',
+                  display: 'flex',
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  height: '100vh',
+                  width: '100vw',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingBottom: isMobileQuery ? '5rem' : '0',
+                  zIndex: 900,
+                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                  backdropFilter: 'blur(2px) saturate(0)',
+                  overscrollBehavior: 'none',
+                  pointerEvents: 'auto',
+                  WebkitTouchCallout: 'none',
+                  WebkitUserSelect: 'none',
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 900,
+                    background: 'transparent',
+                    pointerEvents: 'auto',
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'relative',
+                    cursor: 'pointer',
+                    zIndex: 900,
+                    display: 'grid',
+                    width: '100%',
+                    height: '100%',
+                    placeItems: 'center',
+                  }}
+                  onClick={closeLightbox}
+                >
+                  <motion.div
+                    key={activeMedia.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                    style={{
+                      gridArea: '1 / 1',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    <Box
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                      style={{
+                        display: 'block',
+                        userSelect: 'none',
+                        pointerEvents: 'auto',
+                        maxWidth: '99vw',
+                        maxHeight: '80vh',
+                        margin: '0 auto',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <IconButton
+                          sx={{
+                            position: 'absolute',
+                            top: '1rem',
+                            right: '1rem',
+                            color: 'white',
+                            zIndex: 9999,
+                            transition: 'opacity 0.3s',
+                            transform: 'scale(1.3)',
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            closeLightbox();
+                          }}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            width="35px"
+                            height="35px"
+                          >
+                            <line
+                              x1="6"
+                              y1="6"
+                              x2="18"
+                              y2="18"
+                              stroke="currentColor"
+                              strokeWidth="0.6"
+                            />
+                            <line
+                              x1="18"
+                              y1="6"
+                              x2="6"
+                              y2="18"
+                              stroke="currentColor"
+                              strokeWidth="0.6"
+                            />
+                          </svg>
+                        </IconButton>
+                        <LightboxMediaContent
+                          media={activeMedia}
+                          isMobileQuery={isMobileQuery}
+                          isMobileDevice={isMobile}
+                        />
+                      </Box>
+                    </Box>
+                  </motion.div>
+                </Box>
+              </motion.div>
+            )}
           </AnimatePresence>
         </Box>
       </Box>
