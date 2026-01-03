@@ -226,6 +226,7 @@ function ExhibitionMediaCarousel({
             right: 0,
             display: 'flex',
             justifyContent: 'center',
+            alignItems: 'center',
             gap: '0.5rem',
           }}
         >
@@ -239,11 +240,11 @@ function ExhibitionMediaCarousel({
                 onClick={() => setActiveIndex(index)}
                 aria-label={`Go to media ${index + 1}`}
                 sx={{
-                  width: isActive ? '0.6rem' : '0.45rem',
-                  height: isActive ? '0.6rem' : '0.45rem',
+                  width: isActive ? '0.50rem' : '0.45rem',
+                  height: isActive ? '0.50rem' : '0.45rem',
                   borderRadius: '999px',
-                  border: `1px solid ${dotColor}`,
-                  backgroundColor: isActive ? dotColor : 'transparent',
+                  border: `1px solid #000000`,
+                  backgroundColor: isActive ? '#1c1c1cff' : 'transparent',
                   opacity: isActive ? 1 : 0.6,
                   transition: 'all 200ms ease',
                   cursor: 'pointer',
