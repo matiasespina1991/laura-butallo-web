@@ -223,8 +223,8 @@ function ExhibitionMediaCarousel({
   const activeItem = items[activeIndex];
 
   const controlColor = '#ffffff';
-  const controlBg = mode === 'dark' ? 'rgba(10, 10, 10, 0.6)' : '#00000099';
-  const controlBorder = 'transparent';
+  const controlBg = mode === 'dark' ? 'rgba(10, 10, 10, 0.6)' : '#151515c4';
+  const controlBorder = '#d3d3d330';
   const dotColor = '#202020ff';
 
   return (
@@ -237,43 +237,6 @@ function ExhibitionMediaCarousel({
         paddingTop: '2rem',
       }}
     >
-      {total > 1 && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          {items.map((_, index) => {
-            const isActive = index === activeIndex;
-            return (
-              <Box
-                key={`dot-${items[index].id}`}
-                component="button"
-                type="button"
-                onClick={() => setActiveIndex(index)}
-                aria-label={`Go to media ${index + 1}`}
-                sx={{
-                  width: isActive ? '0.50rem' : '0.45rem',
-                  height: isActive ? '0.50rem' : '0.45rem',
-                  borderRadius: '999px',
-                  border: `1px solid ${dotColor}`,
-                  backgroundColor: isActive ? dotColor : 'transparent',
-                  opacity: isActive ? 1 : 0.6,
-                  transition: 'all 200ms ease',
-                  cursor: 'pointer',
-                }}
-              />
-            );
-          })}
-        </Box>
-      )}
       <Box
         sx={{
           position: 'relative',
@@ -294,6 +257,7 @@ function ExhibitionMediaCarousel({
                 position: 'absolute',
                 left: 0,
                 top: '50%',
+                backdropFilter: 'blur(2px)',
                 transform: 'translate(-30%, -50%)',
                 width: '2.4rem',
                 height: '2.4rem',
@@ -305,10 +269,10 @@ function ExhibitionMediaCarousel({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                boxShadow: '0 8px 18px rgba(0,0,0,0.12)',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
               }}
             >
-              <Box component="span" sx={{ fontSize: '1.4rem', mb: '2px' }}>
+              <Box component="span" sx={{ fontSize: '1.4rem', mb: '4px' }}>
                 ‹
               </Box>
             </Box>
@@ -321,6 +285,7 @@ function ExhibitionMediaCarousel({
                 position: 'absolute',
                 right: 0,
                 top: '50%',
+                backdropFilter: 'blur(2px)',
                 transform: 'translate(30%, -50%)',
                 width: '2.4rem',
                 height: '2.4rem',
@@ -332,10 +297,10 @@ function ExhibitionMediaCarousel({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                boxShadow: '0 8px 18px rgba(0,0,0,0.12)',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.12)',
               }}
             >
-              <Box component="span" sx={{ fontSize: '1.4rem', mb: '2px' }}>
+              <Box component="span" sx={{ fontSize: '1.4rem', mb: '4px' }}>
                 ›
               </Box>
             </Box>
@@ -372,6 +337,40 @@ function ExhibitionMediaCarousel({
           </motion.div>
         </AnimatePresence>
       </Box>
+      {total > 1 && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginTop: '0.75rem',
+          }}
+        >
+          {items.map((_, index) => {
+            const isActive = index === activeIndex;
+            return (
+              <Box
+                key={`dot-${items[index].id}`}
+                component="button"
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                aria-label={`Go to media ${index + 1}`}
+                sx={{
+                  width: isActive ? '0.50rem' : '0.45rem',
+                  height: isActive ? '0.50rem' : '0.45rem',
+                  borderRadius: '999px',
+                  border: `1px solid ${dotColor}`,
+                  backgroundColor: isActive ? dotColor : 'transparent',
+                  opacity: isActive ? 1 : 0.6,
+                  transition: 'all 200ms ease',
+                  cursor: 'pointer',
+                }}
+              />
+            );
+          })}
+        </Box>
+      )}
     </Box>
   );
 }
