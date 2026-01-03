@@ -69,7 +69,13 @@ const uniqueIds = (items: string[]) => {
   });
 };
 
-function ExhibitionVideoPlayer({ media }: { media: Media }) {
+function ExhibitionVideoPlayer({
+  media,
+  maxHeight = '45rem',
+}: {
+  media: Media;
+  maxHeight?: string;
+}) {
   const isMobileDevice = isMobile;
   const [loaded, setLoaded] = useState(false);
   const [showControls, setShowControls] = useState(false);
@@ -121,7 +127,7 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
           width: '100%',
           height: 'auto',
           maxWidth: '45rem',
-          maxHeight: '45rem',
+          maxHeight,
           paddingInline: '0rem',
           display: 'block',
           borderRadius: isMobileDevice ? '8px' : '10px',
@@ -134,7 +140,13 @@ function ExhibitionVideoPlayer({ media }: { media: Media }) {
   );
 }
 
-function ExhibitionImage({ media }: { media: Media }) {
+function ExhibitionImage({
+  media,
+  maxHeight = '45rem',
+}: {
+  media: Media;
+  maxHeight?: string;
+}) {
   const isMobileDevice = isMobile;
   const sources = useMemo(
     () => selectImageAssets(media, isMobileDevice),
@@ -154,13 +166,183 @@ function ExhibitionImage({ media }: { media: Media }) {
           objectFit: 'contain',
           width: '100%',
           height: 'auto',
-          maxHeight: '45rem',
+          maxHeight,
 
           // maxHeight: '90vh',
           display: 'block',
           borderRadius: isMobileDevice ? '8px' : '10px',
         }}
       />
+    </Box>
+  );
+}
+
+function ExhibitionMediaCarousel({
+  items,
+  mode,
+}: {
+  items: Media[];
+  mode: 'light' | 'dark';
+}) {
+  const isMobileDevice = isMobile;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const total = items.length;
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [items.map((item) => item.id).join('|')]);
+
+  const goPrev = () => {
+    setActiveIndex((prev) => (prev === 0 ? total - 1 : prev - 1));
+  };
+
+  const goNext = () => {
+    setActiveIndex((prev) => (prev === total - 1 ? 0 : prev + 1));
+  };
+
+  const activeItem = items[activeIndex];
+
+  const controlColor = '#ffffff';
+  const controlBg = mode === 'dark' ? 'rgba(10, 10, 10, 0.6)' : '#00000099';
+  const controlBorder = '#ffffff';
+  const dotColor = '#4a4a4a';
+
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        width: '100%',
+        maxWidth: '48rem',
+        marginInline: 'auto',
+        paddingTop: '2rem',
+      }}
+    >
+      {total > 1 && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          {items.map((_, index) => {
+            const isActive = index === activeIndex;
+            return (
+              <Box
+                key={`dot-${items[index].id}`}
+                component="button"
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                aria-label={`Go to media ${index + 1}`}
+                sx={{
+                  width: isActive ? '0.6rem' : '0.45rem',
+                  height: isActive ? '0.6rem' : '0.45rem',
+                  borderRadius: '999px',
+                  border: `1px solid ${dotColor}`,
+                  backgroundColor: isActive ? dotColor : 'transparent',
+                  opacity: isActive ? 1 : 0.6,
+                  transition: 'all 200ms ease',
+                  cursor: 'pointer',
+                }}
+              />
+            );
+          })}
+        </Box>
+      )}
+      <Box
+        sx={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: isMobileDevice ? '14rem' : '18rem',
+        }}
+      >
+        {total > 1 && (
+          <>
+            <Box
+              component="button"
+              type="button"
+              onClick={goPrev}
+              aria-label="Previous media"
+              sx={{
+                position: 'absolute',
+                left: 0,
+                top: '50%',
+                transform: 'translate(-30%, -50%)',
+                width: '2.6rem',
+                height: '2.6rem',
+                borderRadius: '999px',
+                backgroundColor: controlBg,
+                border: `1px solid ${controlBorder}`,
+                color: controlColor,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 8px 18px rgba(0,0,0,0.12)',
+              }}
+            >
+              <Box component="span" sx={{ fontSize: '1.4rem', mb: '2px' }}>
+                ‹
+              </Box>
+            </Box>
+            <Box
+              component="button"
+              type="button"
+              onClick={goNext}
+              aria-label="Next media"
+              sx={{
+                position: 'absolute',
+                right: 0,
+                top: '50%',
+                transform: 'translate(30%, -50%)',
+                width: '2.6rem',
+                height: '2.6rem',
+                borderRadius: '999px',
+                backgroundColor: controlBg,
+                border: `1px solid ${controlBorder}`,
+                color: controlColor,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 8px 18px rgba(0,0,0,0.12)',
+              }}
+            >
+              <Box component="span" sx={{ fontSize: '1.4rem', mb: '2px' }}>
+                ›
+              </Box>
+            </Box>
+          </>
+        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeItem.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              width: '100%',
+              height: '28rem',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            {activeItem.type === 'video' ? (
+              <ExhibitionVideoPlayer media={activeItem} maxHeight="28rem" />
+            ) : (
+              <ExhibitionImage media={activeItem} maxHeight="28rem" />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </Box>
     </Box>
   );
 }
@@ -445,27 +627,10 @@ export default function Exhibitions() {
                                           width: '100%',
                                         }}
                                       >
-                                        <Box
-                                          sx={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            gap: '2rem',
-                                          }}
-                                        >
-                                          {exhibition.mediaItems.map((media) =>
-                                            media.type === 'video' ? (
-                                              <ExhibitionVideoPlayer
-                                                key={media.id}
-                                                media={media}
-                                              />
-                                            ) : (
-                                              <ExhibitionImage
-                                                key={media.id}
-                                                media={media}
-                                              />
-                                            )
-                                          )}
-                                        </Box>
+                                        <ExhibitionMediaCarousel
+                                          items={exhibition.mediaItems}
+                                          mode={mode}
+                                        />
                                       </Box>
                                     </Box>
                                   );
