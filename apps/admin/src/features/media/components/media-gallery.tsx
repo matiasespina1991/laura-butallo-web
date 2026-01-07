@@ -58,6 +58,7 @@ function MediaCard({
     previewPath ? { storagePath: previewPath } : null,
     { preferDirect: false }
   );
+  const [isPreviewLoaded, setIsPreviewLoaded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [localTitle, setLocalTitle] = useState(media.title ?? '');
   const [isSaving, setIsSaving] = useState(false);
@@ -72,6 +73,10 @@ function MediaCard({
       draftTitleRef.current = nextTitle;
     }
   }, [media.title, isEditing]);
+
+  useEffect(() => {
+    setIsPreviewLoaded(false);
+  }, [src]);
 
   useEffect(() => {
     if (!isEditing) return;
@@ -131,42 +136,58 @@ function MediaCard({
           onPreviewClick ? 'cursor-pointer' : 'cursor-default'
         )}
       >
-        {hasSource ? (
+        {hasSource && src ? (
           <img
             src={src}
             alt={media.title || media.id}
-            className='h-full w-full object-cover'
-            loading='lazy'
-            onError={handleError}
-          />
-        ) : (
-          <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-xs'>
-            {media.processed ? null : (
-              <svg
-                className='text-muted-foreground mb-2 h-6 w-6 animate-spin'
-                xmlns='http://www.w3.org/2000/svg'
-                fill='none'
-                viewBox='0 0 24 24'
-              >
-                <circle
-                  className='opacity-25'
-                  cx='12'
-                  cy='12'
-                  r='10'
-                  stroke='currentColor'
-                  strokeWidth='4'
-                ></circle>
-                <path
-                  className='opacity-75'
-                  fill='currentColor'
-                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                ></path>
-              </svg>
+            className={cn(
+              'h-full w-full object-cover transition-opacity duration-300',
+              isPreviewLoaded ? 'opacity-100' : 'opacity-0'
             )}
-            {media.processed ? 'Sin vista previa' : <p>Procesando…</p>}
-            {media.processed ? '' : 'Este proceso puede tardar varios minutos.'}
+            loading='lazy'
+            onLoad={() => setIsPreviewLoaded(true)}
+            onError={() => {
+              setIsPreviewLoaded(false);
+              handleError();
+            }}
+          />
+        ) : null}
+        {!hasSource || !src || !isPreviewLoaded ? (
+          <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-xs'>
+            {hasSource && src ? (
+              <span>Cargando vista previa…</span>
+            ) : (
+              <>
+                {media.processed ? null : (
+                  <svg
+                    className='text-muted-foreground mb-2 h-6 w-6 animate-spin'
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                  >
+                    <circle
+                      className='opacity-25'
+                      cx='12'
+                      cy='12'
+                      r='10'
+                      stroke='currentColor'
+                      strokeWidth='4'
+                    ></circle>
+                    <path
+                      className='opacity-75'
+                      fill='currentColor'
+                      d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                    ></path>
+                  </svg>
+                )}
+                {media.processed ? 'Sin vista previa' : <p>Procesando…</p>}
+                {media.processed
+                  ? ''
+                  : 'Este proceso puede tardar varios minutos.'}
+              </>
+            )}
           </div>
-        )}
+        ) : null}
         <span
           className={cn(
             'absolute top-2 left-2 z-10 inline-flex items-center justify-center rounded-full p-1.5',
