@@ -152,40 +152,40 @@ function MediaCard({
             }}
           />
         ) : null}
-        {!hasSource || !src || !isPreviewLoaded ? (
-          <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-xs'>
-            {hasSource && src ? (
-              <span>Cargando vista previa…</span>
-            ) : (
-              <>
-                {media.processed ? null : (
-                  <svg
-                    className='text-muted-foreground mb-2 h-6 w-6 animate-spin'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                  >
-                    <circle
-                      className='opacity-25'
-                      cx='12'
-                      cy='12'
-                      r='10'
-                      stroke='currentColor'
-                      strokeWidth='4'
-                    ></circle>
-                    <path
-                      className='opacity-75'
-                      fill='currentColor'
-                      d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                    ></path>
-                  </svg>
-                )}
-                {media.processed ? 'Sin vista previa' : <p>Procesando…</p>}
-                {media.processed
-                  ? ''
-                  : 'Este proceso puede tardar varios minutos.'}
-              </>
+        {hasSource && src ? (
+          <div
+            className={cn(
+              'bg-muted/50 absolute inset-0 transition-opacity duration-300',
+              isPreviewLoaded ? 'opacity-0' : 'animate-pulse opacity-100'
             )}
+          />
+        ) : null}
+        {!hasSource || !src ? (
+          <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-xs'>
+            {media.processed ? null : (
+              <svg
+                className='text-muted-foreground mb-2 h-6 w-6 animate-spin'
+                xmlns='http://www.w3.org/2000/svg'
+                fill='none'
+                viewBox='0 0 24 24'
+              >
+                <circle
+                  className='opacity-25'
+                  cx='12'
+                  cy='12'
+                  r='10'
+                  stroke='currentColor'
+                  strokeWidth='4'
+                ></circle>
+                <path
+                  className='opacity-75'
+                  fill='currentColor'
+                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                ></path>
+              </svg>
+            )}
+            {media.processed ? 'Sin vista previa' : <p>Procesando…</p>}
+            {media.processed ? '' : 'Este proceso puede tardar varios minutos.'}
           </div>
         ) : null}
         <span
@@ -266,7 +266,7 @@ function MediaCard({
         </div>
       </div>
       {!isSelected ? (
-        <span className='pointer-events-none absolute inset-0 rounded-lg ring-0 ring-transparent ring-offset-0 transition peer-hover:ring-2 peer-hover:ring-muted-foreground/30 peer-hover:ring-offset-2 peer-hover:ring-offset-background' />
+        <span className='peer-hover:ring-muted-foreground/30 peer-hover:ring-offset-background pointer-events-none absolute inset-0 rounded-lg ring-0 ring-transparent ring-offset-0 transition peer-hover:ring-2 peer-hover:ring-offset-2' />
       ) : null}
     </div>
   );
@@ -338,6 +338,7 @@ export default function MediaGallery({
   const [loading, setLoading] = useState(true);
   const [progresses, setProgresses] = useState<Record<string, number>>({});
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isLightboxLoaded, setIsLightboxLoaded] = useState(false);
   const activeMedia =
     activeIndex === null ? null : (items[activeIndex] ?? null);
   const totalItems = items.length;
@@ -448,6 +449,10 @@ export default function MediaGallery({
       setActiveIndex(items.length - 1);
     }
   }, [activeIndex, items.length]);
+
+  useEffect(() => {
+    setIsLightboxLoaded(false);
+  }, [activeMedia?.id, lightboxImageSrc, lightboxVideoSrc]);
 
   useEffect(() => {
     if (!selectedId || !onSelectionChange) return;
@@ -579,7 +584,7 @@ export default function MediaGallery({
                 </div>
               </div>
               <div className='flex-1 contain-size'>
-                <div className='bg-muted/40 flex h-full items-center justify-center overflow-hidden rounded-lg'>
+                <div className='bg-muted/40 relative flex h-full items-center justify-center overflow-hidden rounded-lg'>
                   {activeMedia.type === 'video' ? (
                     hasVideoSource ? (
                       <video
@@ -589,7 +594,11 @@ export default function MediaGallery({
                         controls
                         poster={lightboxPosterSrc || undefined}
                         src={lightboxVideoSrc}
-                        onError={handleVideoError}
+                        onLoadedData={() => setIsLightboxLoaded(true)}
+                        onError={() => {
+                          setIsLightboxLoaded(false);
+                          handleVideoError();
+                        }}
                       />
                     ) : (
                       <div className='text-muted-foreground text-sm'>
@@ -602,13 +611,35 @@ export default function MediaGallery({
                       alt={activeMedia.title || activeMedia.id}
                       className='max-h-full max-w-full object-contain'
                       loading='lazy'
-                      onError={handleImageError}
+                      onLoad={() => setIsLightboxLoaded(true)}
+                      onError={() => {
+                        setIsLightboxLoaded(false);
+                        handleImageError();
+                      }}
                     />
                   ) : (
                     <div className='text-muted-foreground text-sm'>
                       No hay vista previa disponible.
                     </div>
                   )}
+                  {(activeMedia.type === 'video' && hasVideoSource) ||
+                  (activeMedia.type === 'image' && hasImageSource) ? (
+                    <div
+                      className={cn(
+                        'bg-background/60 absolute inset-0 flex items-center justify-center transition-opacity duration-300',
+                        isLightboxLoaded ? 'opacity-0' : 'opacity-100'
+                      )}
+                    >
+                      <img
+                        src='/assets/system/loaders/loader.webp'
+                        alt='Cargando...'
+                        className={cn(
+                          'h-[1.8rem] w-[1.8rem] transition-opacity duration-300',
+                          isLightboxLoaded ? 'opacity-0' : 'opacity-100'
+                        )}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
