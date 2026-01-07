@@ -62,6 +62,8 @@ function MediaCard({
   const [isEditing, setIsEditing] = useState(false);
   const [localTitle, setLocalTitle] = useState(media.title ?? '');
   const [isSaving, setIsSaving] = useState(false);
+  const loadStartRef = useRef(0);
+  const loadTimeoutRef = useRef<number | null>(null);
   const titleRef = useRef<HTMLSpanElement | null>(null);
   const draftTitleRef = useRef(media.title ?? '');
   const savingRef = useRef(false);
@@ -76,6 +78,11 @@ function MediaCard({
 
   useEffect(() => {
     setIsPreviewLoaded(false);
+    loadStartRef.current = Date.now();
+    if (loadTimeoutRef.current !== null) {
+      window.clearTimeout(loadTimeoutRef.current);
+      loadTimeoutRef.current = null;
+    }
   }, [src]);
 
   useEffect(() => {
@@ -141,13 +148,28 @@ function MediaCard({
             src={src}
             alt={media.title || media.id}
             className={cn(
-              'h-full w-full object-cover transition-opacity duration-300',
+              'h-full w-full object-cover transition-opacity duration-500',
               isPreviewLoaded ? 'opacity-100' : 'opacity-0'
             )}
             loading='lazy'
-            onLoad={() => setIsPreviewLoaded(true)}
+            onLoad={() => {
+              const elapsed = Date.now() - loadStartRef.current;
+              const remaining = Math.max(0, 180 - elapsed);
+              if (remaining === 0) {
+                setIsPreviewLoaded(true);
+                return;
+              }
+              loadTimeoutRef.current = window.setTimeout(() => {
+                setIsPreviewLoaded(true);
+                loadTimeoutRef.current = null;
+              }, remaining);
+            }}
             onError={() => {
               setIsPreviewLoaded(false);
+              if (loadTimeoutRef.current !== null) {
+                window.clearTimeout(loadTimeoutRef.current);
+                loadTimeoutRef.current = null;
+              }
               handleError();
             }}
           />
@@ -155,7 +177,7 @@ function MediaCard({
         {hasSource && src ? (
           <div
             className={cn(
-              'bg-muted/50 absolute inset-0 transition-opacity duration-300',
+              'bg-muted/50 absolute inset-0 transition-opacity duration-500',
               isPreviewLoaded ? 'opacity-0' : 'animate-pulse opacity-100'
             )}
           />
