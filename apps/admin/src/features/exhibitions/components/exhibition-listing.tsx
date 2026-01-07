@@ -52,9 +52,24 @@ export default function ExhibitionListingPage({}: ExhibitionListingPage) {
                 try {
                   const mediaSnap = await getDoc(doc(db, 'media', mediaId));
                   const mediaData = mediaSnap.data() as {
-                    paths?: { poster?: { storagePath?: string } };
+                    type?: 'image' | 'video';
+                    paths?: {
+                      poster?: { storagePath?: string };
+                      derivatives?: {
+                        webp_medium?: { storagePath?: string };
+                        webp_small?: { storagePath?: string };
+                      };
+                      original?: { storagePath?: string };
+                    };
                   };
-                  posterPath = mediaData?.paths?.poster?.storagePath;
+                  if (mediaData?.type === 'video') {
+                    posterPath = mediaData?.paths?.poster?.storagePath;
+                  } else {
+                    posterPath =
+                      mediaData?.paths?.derivatives?.webp_medium?.storagePath ??
+                      mediaData?.paths?.derivatives?.webp_small?.storagePath ??
+                      mediaData?.paths?.original?.storagePath;
+                  }
                 } catch (error) {
                   console.warn(
                     '[Exhibitions] poster load error',
