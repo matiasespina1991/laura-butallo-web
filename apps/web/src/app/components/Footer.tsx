@@ -31,7 +31,10 @@ export default function Footer() {
           </Typography>
 
           <Typography color="textSecondary" fontSize="0.7rem">
-            Website by <b>Cymatics Ideas</b>
+            Website by{' '}
+            <a href="mailto:matiasespina1991@gmail.com">
+              <b>Cymatics Ideas</b>
+            </a>
           </Typography>
         </Box>
       </footer>

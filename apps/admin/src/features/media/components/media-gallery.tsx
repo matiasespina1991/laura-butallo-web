@@ -656,8 +656,8 @@ export default function MediaGallery({
                         src='/assets/system/loaders/loader.webp'
                         alt='Cargando...'
                         className={cn(
-                          'h-[1.8rem] w-[1.8rem] transition-opacity duration-300',
-                          isLightboxLoaded ? 'opacity-0' : 'opacity-100'
+                          'w-[1.8rem]transition-opacity h-[1.8rem] duration-300',
+                          isLightboxLoaded ? 'opacity-0' : 'opacity-60'
                         )}
                       />
                     </div>

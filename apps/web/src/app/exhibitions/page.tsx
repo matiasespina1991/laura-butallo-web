@@ -567,7 +567,7 @@ export default function Exhibitions() {
   };
 
   return (
-    <main className={`${styles.main} ${styles.contactPage}`}>
+    <main className={`${styles.main} ${styles.exhibitionsPage}`}>
       <Box
         px={{ xs: '1.2rem', sm: '2rem' }}
         py={{ xs: '1.7rem', sm: '2rem' }}
@@ -584,7 +584,7 @@ export default function Exhibitions() {
             },
           }}
         ></Box>
-        <Box className={styles.contact_page_container} width="100%">
+        <Box className={styles.exhibition_page_container} width="100%">
           <AnimatePresence mode="wait">
             <motion.div
               initial={{ opacity: 0 }}

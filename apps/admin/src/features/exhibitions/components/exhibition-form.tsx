@@ -273,6 +273,18 @@ function MediaPickerCard({
     previewPath ? { storagePath: previewPath } : null,
     { preferDirect: false }
   );
+  const [isPreviewLoaded, setIsPreviewLoaded] = useState(false);
+  const loadStartRef = useRef(0);
+  const loadTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setIsPreviewLoaded(false);
+    loadStartRef.current = Date.now();
+    if (loadTimeoutRef.current !== null) {
+      window.clearTimeout(loadTimeoutRef.current);
+      loadTimeoutRef.current = null;
+    }
+  }, [src]);
 
   return (
     <button
@@ -287,15 +299,46 @@ function MediaPickerCard({
     >
       <span className='pointer-events-none absolute inset-0 z-0 bg-black/3 opacity-0 transition group-hover:opacity-100' />
       <div className='bg-muted relative z-10 aspect-[4/3] w-full overflow-hidden'>
-        {hasSource ? (
+        {hasSource && src ? (
           <img
             src={src}
             alt={media.title || media.id}
-            className='h-full w-full object-cover'
+            className={cn(
+              'h-full w-full object-cover transition-opacity duration-500',
+              isPreviewLoaded ? 'opacity-100' : 'opacity-0'
+            )}
             loading='lazy'
-            onError={handleError}
+            onLoad={() => {
+              const elapsed = Date.now() - loadStartRef.current;
+              const remaining = Math.max(0, 180 - elapsed);
+              if (remaining === 0) {
+                setIsPreviewLoaded(true);
+                return;
+              }
+              loadTimeoutRef.current = window.setTimeout(() => {
+                setIsPreviewLoaded(true);
+                loadTimeoutRef.current = null;
+              }, remaining);
+            }}
+            onError={() => {
+              setIsPreviewLoaded(false);
+              if (loadTimeoutRef.current !== null) {
+                window.clearTimeout(loadTimeoutRef.current);
+                loadTimeoutRef.current = null;
+              }
+              handleError();
+            }}
           />
-        ) : (
+        ) : null}
+        {hasSource && src ? (
+          <div
+            className={cn(
+              'bg-muted/50 absolute inset-0 transition-opacity duration-500',
+              isPreviewLoaded ? 'opacity-0' : 'animate-pulse opacity-100'
+            )}
+          />
+        ) : null}
+        {!hasSource || !src ? (
           <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-xs'>
             {media.processed ? null : (
               <svg
@@ -322,7 +365,7 @@ function MediaPickerCard({
             {media.processed ? 'Sin vista previa' : <p>Procesando…</p>}
             {media.processed ? '' : 'Este proceso puede tardar varios minutos.'}
           </div>
-        )}
+        ) : null}
         <span
           className={cn(
             'absolute top-2 left-2 z-10 inline-flex items-center justify-center rounded-full p-1.5',
@@ -441,7 +484,7 @@ function MediaPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='min-h-[560px] max-w-[min(96vw,1200px)] sm:max-w-5xl'>
+      <DialogContent className='flex max-h-[calc(100vh-2rem)] w-[min(96vw,1200px)] flex-col overflow-hidden sm:max-w-5xl'>
         <DialogHeader className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
           <div className='space-y-1'>
             <DialogTitle>{title}</DialogTitle>
@@ -504,8 +547,13 @@ function MediaPickerDialog({
             No hay archivos disponibles.
           </div>
         ) : (
-          <div className='min-h-[480px]'>
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='max-h-[calc(100vh-12rem)] overflow-y-auto'>
+            <div
+              className={cn(
+                'bg-muted/30 grid grid-cols-2 gap-4 rounded-md p-3 sm:bg-transparent sm:p-0',
+                'lg:grid-cols-4'
+              )}
+            >
               {pagedItems.map((media) => (
                 <MediaPickerCard
                   key={media.id}
@@ -904,6 +952,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
                   accept={{ 'image/*': [], 'video/*': [] }}
                   maxFiles={1}
                   maxSize={MAX_UPLOAD_SIZE}
+                  onPickFromGallery={() => setIsFeaturePickerOpen(true)}
                 />
               </div>
 
@@ -953,6 +1002,7 @@ export default function ExhibitionForm({ exhibitionId }: ExhibitionFormProps) {
                   maxFiles={10}
                   maxSize={MAX_UPLOAD_SIZE}
                   multiple
+                  onPickFromGallery={() => setIsAttachmentPickerOpen(true)}
                 />
               </div>
             </div>

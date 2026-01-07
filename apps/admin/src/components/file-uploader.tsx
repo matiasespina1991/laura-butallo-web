@@ -1,6 +1,6 @@
 'use client';
 
-import { IconX, IconUpload } from '@tabler/icons-react';
+import { IconPhoto, IconUpload, IconX } from '@tabler/icons-react';
 import Image from 'next/image';
 import * as React from 'react';
 import Dropzone, {
@@ -101,6 +101,19 @@ export interface FileUploaderProps
    * Use compact copy sizes for tight layouts.
    */
   compact?: boolean;
+
+  /**
+   * Optional action to open a gallery picker instead of uploading.
+   */
+  onPickFromGallery?: () => void;
+
+  /**
+   * Override dropdown menu labels.
+   */
+  pickerMenuLabels?: {
+    computer?: string;
+    gallery?: string;
+  };
 }
 
 export function FileUploader(props: FileUploaderProps) {
@@ -117,6 +130,8 @@ export function FileUploader(props: FileUploaderProps) {
     className,
     containerClassName,
     compact = false,
+    onPickFromGallery,
+    pickerMenuLabels,
     ...dropzoneProps
   } = props;
 
@@ -126,6 +141,10 @@ export function FileUploader(props: FileUploaderProps) {
   });
   const uploadToastIdRef = React.useRef<string | number | null>(null);
   const processingToastShownRef = React.useRef(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [menuVisible, setMenuVisible] = React.useState(false);
+  const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
+  const menuRef = React.useRef<HTMLDivElement | null>(null);
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -232,6 +251,39 @@ export function FileUploader(props: FileUploaderProps) {
   }, []);
 
   const isDisabled = disabled || (files?.length ?? 0) >= maxFiles;
+  const showPickerMenu = Boolean(onPickFromGallery);
+  const computerLabel = pickerMenuLabels?.computer ?? 'Subir archivos';
+  const galleryLabel = pickerMenuLabels?.gallery ?? 'Agregar desde galería';
+
+  React.useEffect(() => {
+    if (!menuVisible) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!menuRef.current) return;
+      if (menuRef.current.contains(event.target as Node)) return;
+      setMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuVisible]);
+
+  React.useEffect(() => {
+    if (menuOpen) {
+      setMenuVisible(true);
+      return;
+    }
+    if (!menuVisible) return;
+    const timeout = window.setTimeout(() => {
+      setMenuVisible(false);
+    }, 180);
+    return () => window.clearTimeout(timeout);
+  }, [menuOpen, menuVisible]);
 
   return (
     <div
@@ -247,71 +299,136 @@ export function FileUploader(props: FileUploaderProps) {
         maxFiles={maxFiles}
         multiple={maxFiles > 1 || multiple}
         disabled={isDisabled}
+        noClick={showPickerMenu}
       >
-        {({ getRootProps, getInputProps, isDragActive }) => (
-          <div
-            {...getRootProps()}
-            className={cn(
-              'group border-muted-foreground/25 hover:bg-muted/40 relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-2.5 text-center transition',
-              'ring-offset-background focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
-              isDragActive && 'border-muted-foreground/50',
-              isDisabled && 'pointer-events-none opacity-60',
-              className
-            )}
-            {...dropzoneProps}
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <div className='flex flex-col items-center justify-center gap-4 sm:px-5'>
-                <div className='rounded-full border border-dashed p-3'>
-                  <IconUpload
-                    className='text-muted-foreground size-7'
-                    aria-hidden='true'
-                  />
-                </div>
-                <p
-                  className={cn(
-                    'text-muted-foreground font-medium',
-                    compact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
-                  )}
-                >
-                  Soltá los archivos acá
-                </p>
-              </div>
-            ) : (
-              <div className='flex flex-col items-center justify-center gap-4 sm:px-5'>
-                <div className='rounded-full border border-dashed p-3'>
-                  <IconUpload
-                    className='text-muted-foreground size-7'
-                    aria-hidden='true'
-                  />
-                </div>
-                <div className='space-y-px'>
+        {({ getRootProps, getInputProps, isDragActive, open }) => {
+          const handleMenuClick = (
+            event: React.PointerEvent<HTMLDivElement>
+          ) => {
+            if (!showPickerMenu) return;
+            event.preventDefault();
+            event.stopPropagation();
+            setMenuPosition({ x: event.clientX, y: event.clientY });
+            setMenuOpen((prev) => !prev);
+          };
+          const dropzone = (
+            <div
+              {...getRootProps(
+                showPickerMenu
+                  ? {
+                      onPointerDown: handleMenuClick
+                    }
+                  : undefined
+              )}
+              className={cn(
+                'group border-muted-foreground/25 hover:bg-muted/40 relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed px-5 py-2.5 text-center transition',
+                'ring-offset-background focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+                isDragActive && 'border-muted-foreground/50',
+                isDisabled && 'pointer-events-none opacity-60',
+                className
+              )}
+              {...dropzoneProps}
+            >
+              <input {...getInputProps()} />
+              {isDragActive ? (
+                <div className='flex flex-col items-center justify-center gap-4 sm:px-5'>
+                  <div className='rounded-full border border-dashed p-3'>
+                    <IconUpload
+                      className='text-muted-foreground size-7'
+                      aria-hidden='true'
+                    />
+                  </div>
                   <p
                     className={cn(
                       'text-muted-foreground font-medium',
                       compact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
                     )}
                   >
-                    Arrastrá y soltá archivos acá, o hacé clic para elegirlos
-                  </p>
-                  <p
-                    className={cn(
-                      'text-muted-foreground/70',
-                      compact ? 'text-[11px] sm:text-xs' : 'text-sm'
-                    )}
-                  >
-                    Podés subir
-                    {maxFiles > 1
-                      ? ` ${maxFiles === Infinity ? 'varios' : maxFiles}
-                      archivos (hasta ${formatBytes(maxSize)} cada uno)`
-                      : ` un archivo de hasta ${formatBytes(maxSize)}`}
+                    Soltá los archivos acá
                   </p>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              ) : (
+                <div className='flex flex-col items-center justify-center gap-4 sm:px-5'>
+                  <div className='rounded-full border border-dashed p-3'>
+                    <IconUpload
+                      className='text-muted-foreground size-7'
+                      aria-hidden='true'
+                    />
+                  </div>
+                  <div className='space-y-px'>
+                    <p
+                      className={cn(
+                        'text-muted-foreground font-medium',
+                        compact ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
+                      )}
+                    >
+                      {showPickerMenu
+                        ? 'Arrastrá y soltá archivos acá, o hacé clic para elegir una opción'
+                        : 'Arrastrá y soltá archivos acá, o hacé clic para elegirlos'}
+                    </p>
+                    <p
+                      className={cn(
+                        'text-muted-foreground/70',
+                        compact ? 'text-[11px] sm:text-xs' : 'text-sm'
+                      )}
+                    >
+                      Podés subir
+                      {maxFiles > 1
+                        ? ` ${maxFiles === Infinity ? 'varios' : maxFiles}
+                      archivos (hasta ${formatBytes(maxSize)} cada uno)`
+                        : ` un archivo de hasta ${formatBytes(maxSize)}`}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+
+          if (!showPickerMenu) return dropzone;
+
+          return (
+            <>
+              {dropzone}
+              {menuVisible ? (
+                <div
+                  ref={menuRef}
+                  className={cn(
+                    'bg-popover text-popover-foreground fixed z-50 w-64 rounded-md border p-1 shadow-md transition-opacity duration-200',
+                    menuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                  )}
+                  style={{
+                    top: menuPosition.y,
+                    left: menuPosition.x,
+                    transform: 'translate(-100%, 0)'
+                  }}
+                >
+                  <button
+                    type='button'
+                    className='hover:bg-muted flex w-full cursor-pointer items-center justify-between rounded-sm px-2 py-2 text-sm'
+                    onClick={() => {
+                      open();
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <span>{computerLabel}</span>
+                    <IconUpload className='text-muted-foreground h-4 w-4' />
+                  </button>
+                  <button
+                    type='button'
+                    className='hover:bg-muted flex w-full cursor-pointer items-center justify-between rounded-sm px-2 py-2 text-sm'
+                    onClick={() => {
+                      onPickFromGallery?.();
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <span>{galleryLabel}</span>
+                    <IconPhoto className='text-muted-foreground h-4 w-4' />
+                  </button>
+                </div>
+              ) : null}
+            </>
+          );
+        }}
       </Dropzone>
       {files?.length ? (
         <ScrollArea className='h-fit w-full px-3'>

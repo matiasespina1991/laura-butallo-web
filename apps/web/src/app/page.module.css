@@ -15,14 +15,20 @@
   pointer-events: none;
 }
 .contact_page_container,
+.exhibition_page_container,
 .about_me_container {
   padding-left: 0.7rem;
   padding-right: 0.7rem;
   padding-bottom: 1rem;
 }
 
+.exhibition_page_container a {
+  color: blue;
+}
+
 @media (max-width: 600px) {
   .contact_page_container,
+  .exhibition_page_container,
   .about_me_container {
     padding-bottom: 0;
   }
@@ -87,6 +93,10 @@
   }
   .main.contactPage {
     min-height: calc(100vh - 12rem);
+    padding-bottom: 0;
+  }
+
+  .main.exhibitionsPage {
     padding-bottom: 0;
   }
   .main.homePage {
