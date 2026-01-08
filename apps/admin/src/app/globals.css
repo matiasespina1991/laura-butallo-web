@@ -160,3 +160,7 @@
 .tox-statusbar {
   display: none !important;
 }
+
+.quill-editor .ql-editor p {
+  font-size: 0.95rem;
+}

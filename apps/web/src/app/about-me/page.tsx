@@ -109,59 +109,7 @@ export default function AboutMe() {
               />
             </Box>
 
-            <Box height={30}></Box>
-            <Box
-              px={{
-                xs: '0.3rem',
-                sm: '0',
-              }}
-              width="100%"
-            >
-              <Typography
-                sx={{
-                  fontSize: {
-                    xs: '1.5rem',
-                    sm: '2.2rem',
-                  },
-                }}
-                fontWeight="bold"
-                variant="h4"
-              >
-                {aboutMeData.subcontent.education.title}
-              </Typography>
-              <Box height={10}></Box>
-              <Typography
-                maxWidth={{
-                  sm: '100%',
-                  md: '95%',
-                  lg: '95%',
-                  xl: '78%',
-                }}
-                sx={{
-                  fontSize: {
-                    xs: '1.2rem',
-                    sm: '1.4rem',
-                  },
-                  '& p': {
-                    margin: 0,
-                  },
-                  '& a': {
-                    textDecoration: 'underline',
-                    textUnderlineOffset: '2px',
-                  },
-                  '& img': {
-                    display: 'block',
-                    maxWidth: '640px',
-                    maxHeight: '640px',
-                    width: '100%',
-                    height: 'auto',
-                  },
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: aboutMeData.subcontent.education.content,
-                }}
-              />
-            </Box>
+            <Box height={120}></Box>
           </motion.div>
         </AnimatePresence>
       </Box>

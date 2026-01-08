@@ -27,7 +27,6 @@ type AboutMeDoc = {
   subcontent?: { education?: { title?: string; content?: string } };
 };
 
-
 export default function AboutForm() {
   const form = useForm<AboutMeFormValues>({
     defaultValues: {
@@ -107,11 +106,9 @@ export default function AboutForm() {
   };
 
   return (
-    <Card className='mx-auto w-full'>
+    <Card className='mx-auto w-full max-w-[64rem]'>
       <CardHeader>
-        <CardTitle className='text-left text-2xl font-bold'>
-          About Me
-        </CardTitle>
+        <CardTitle className='text-left text-2xl font-bold'>About Me</CardTitle>
       </CardHeader>
       <CardContent>
         <Form
@@ -143,24 +140,8 @@ export default function AboutForm() {
             />
           </div>
 
-          <div className='space-y-6'>
-            <FormInput
-              control={form.control}
-              name='educationTitle'
-              label='Título de Educación'
-              placeholder='Ingresá el título de educación'
-            />
-            <FormQuill
-              control={form.control}
-              name='educationContent'
-              label='Contenido de Educación'
-              placeholder='Escribí el contenido de educación...'
-              height={280}
-            />
-          </div>
-
           <Button type='submit' disabled={saving || loading}>
-            {saving ? 'Guardando...' : 'Guardar About Me'}
+            {saving ? 'Guardando...' : 'Guardar'}
           </Button>
         </Form>
       </CardContent>

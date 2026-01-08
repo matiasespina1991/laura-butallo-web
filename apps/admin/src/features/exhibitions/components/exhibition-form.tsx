@@ -484,7 +484,7 @@ function MediaPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='flex max-h-[calc(100vh-2rem)] w-[min(96vw,1200px)] flex-col overflow-hidden sm:max-w-5xl'>
+      <DialogContent className='flex max-h-[calc(100vh-2rem)] w-[min(96vw,980px)] flex-col overflow-hidden sm:max-w-[980px]'>
         <DialogHeader className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
           <div className='space-y-1'>
             <DialogTitle>{title}</DialogTitle>
