@@ -8,10 +8,10 @@ import Dropzone, {
   type FileRejection
 } from 'react-dropzone';
 import { toast } from 'sonner';
-
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useControllableState } from '@/hooks/use-controllable-state';
 import { cn, formatBytes } from '@/lib/utils';
 
@@ -145,6 +145,7 @@ export function FileUploader(props: FileUploaderProps) {
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [menuPosition, setMenuPosition] = React.useState({ x: 0, y: 0 });
   const menuRef = React.useRef<HTMLDivElement | null>(null);
+  const isMobile = useIsMobile(640);
 
   const onDrop = React.useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -252,7 +253,7 @@ export function FileUploader(props: FileUploaderProps) {
 
   const isDisabled = disabled || (files?.length ?? 0) >= maxFiles;
   const showPickerMenu = Boolean(onPickFromGallery);
-  const computerLabel = pickerMenuLabels?.computer ?? 'Subir archivos';
+  const uploadLabel = pickerMenuLabels?.computer ?? 'Subir archivos';
   const galleryLabel = pickerMenuLabels?.gallery ?? 'Agregar desde galería';
 
   React.useEffect(() => {
@@ -303,7 +304,7 @@ export function FileUploader(props: FileUploaderProps) {
       >
         {({ getRootProps, getInputProps, isDragActive, open }) => {
           const handleMenuClick = (
-            event: React.MouseEvent<HTMLDivElement>
+            event: React.PointerEvent<HTMLDivElement>
           ) => {
             if (!showPickerMenu) return;
             event.preventDefault();
@@ -316,7 +317,7 @@ export function FileUploader(props: FileUploaderProps) {
               {...getRootProps(
                 showPickerMenu
                   ? {
-                      onClick: handleMenuClick
+                      onPointerDown: handleMenuClick
                     }
                   : undefined
               )}
@@ -364,7 +365,9 @@ export function FileUploader(props: FileUploaderProps) {
                     >
                       {showPickerMenu
                         ? 'Arrastrá y soltá archivos acá, o hacé clic para elegir una opción'
-                        : 'Arrastrá y soltá archivos acá, o hacé clic para elegirlos'}
+                        : isMobile
+                          ? 'Tocá para elegir archivos'
+                          : 'Arrastrá y soltá archivos acá, o hacé clic para elegirlos'}
                     </p>
                     <p
                       className={cn(
@@ -394,7 +397,7 @@ export function FileUploader(props: FileUploaderProps) {
                   ref={menuRef}
                   className={cn(
                     'bg-popover text-popover-foreground fixed z-50 w-64 rounded-md border p-1 shadow-md transition-opacity duration-200',
-                    menuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                    menuOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
                   )}
                   style={{
                     top: menuPosition.y,
@@ -410,7 +413,7 @@ export function FileUploader(props: FileUploaderProps) {
                       setMenuOpen(false);
                     }}
                   >
-                    <span>{computerLabel}</span>
+                    <span>{uploadLabel}</span>
                     <IconUpload className='text-muted-foreground h-4 w-4' />
                   </button>
                   <button

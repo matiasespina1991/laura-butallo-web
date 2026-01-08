@@ -556,7 +556,7 @@ export default function MediaGallery({
           if (!open) setActiveIndex(null);
         }}
       >
-        <DialogContent className='h-[min(92vh,860px)] max-w-[min(96vw,1200px)] overflow-visible p-0 sm:max-w-5xl'>
+        <DialogContent className='data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 h-[min(84vh,800px)] max-w-[min(96vw,1200px)] overflow-visible p-0 duration-400 ease-out sm:h-[min(92vh,860px)] sm:max-w-5xl'>
           {activeMedia ? (
             <div className='relative flex h-full flex-col'>
               <DialogTitle className='sr-only'>
@@ -567,7 +567,7 @@ export default function MediaGallery({
               <button
                 type='button'
                 className={cn(
-                  'bg-background/90 text-foreground absolute top-1/2 left-[-1.25rem] inline-flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border shadow-sm transition sm:left-[-6rem]',
+                  'bg-background/90 text-foreground absolute top-1/2 left-2 z-20 inline-flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border shadow-sm transition sm:left-[-6rem]',
                   canGoPrev
                     ? 'hover:bg-background'
                     : 'pointer-events-none opacity-40'
@@ -581,7 +581,7 @@ export default function MediaGallery({
               <button
                 type='button'
                 className={cn(
-                  'bg-background/90 text-foreground absolute top-1/2 right-[-1.25rem] inline-flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border shadow-sm transition sm:right-[-6rem]',
+                  'bg-background/90 text-foreground absolute top-1/2 right-2 z-20 inline-flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border shadow-sm transition sm:right-[-6rem]',
                   canGoNext
                     ? 'hover:bg-background'
                     : 'pointer-events-none opacity-40'
