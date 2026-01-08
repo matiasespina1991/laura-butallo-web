@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 import { Heading } from '../ui/heading';
 
 function PageSkeleton() {
@@ -25,7 +26,9 @@ export default function PageContainer({
   accessFallback,
   pageTitle,
   pageDescription,
-  pageHeaderAction
+  pageHeaderAction,
+  className,
+  style
 }: {
   children: React.ReactNode;
   scrollable?: boolean;
@@ -35,6 +38,8 @@ export default function PageContainer({
   pageTitle?: string;
   pageDescription?: string;
   pageHeaderAction?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
 }) {
   if (!access) {
     return (
@@ -52,7 +57,11 @@ export default function PageContainer({
 
   return scrollable ? (
     <ScrollArea className='h-[calc(100dvh-52px)]'>
-      <div className='flex flex-1 flex-col justify-self-start p-4 md:px-6'>
+      <div
+        id='global-page-container'
+        className={cn('flex flex-1 flex-col p-4 md:px-6', className)}
+        style={style}
+      >
         <div className='mb-4 flex items-start justify-between'>
           <div>
             <Heading
@@ -66,7 +75,10 @@ export default function PageContainer({
       </div>
     </ScrollArea>
   ) : (
-    <div className='flex flex-1 flex-col p-4 md:px-6'>
+    <div
+      className={cn('flex flex-1 flex-col p-4 md:px-6', className)}
+      style={style}
+    >
       <div className='mb-4 flex items-start justify-between'>
         <div>
           <Heading

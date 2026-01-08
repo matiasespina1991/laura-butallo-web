@@ -9,6 +9,7 @@ export default function Page() {
   return (
     <PageContainer
       scrollable={true}
+      className='w-full max-w-[66rem] justify-self-start'
       pageTitle='Contacto'
       pageDescription='Edita los links de contacto.'
     >

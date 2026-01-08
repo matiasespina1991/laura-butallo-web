@@ -39,7 +39,6 @@ type ContactDoc = {
   items?: ContactItem[];
 };
 
-
 const createId = () =>
   typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
@@ -50,7 +49,6 @@ function normalizeContactItems(items: ContactItem[]) {
     .map((item, index) => ({ ...item, order: item.order ?? index }))
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
-
 
 function SortableContactRow({
   item,
@@ -86,33 +84,28 @@ function SortableContactRow({
       <button
         type='button'
         ref={setActivatorNodeRef}
-        className='text-muted-foreground hover:text-foreground inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors cursor-grab active:cursor-grabbing'
+        className='text-muted-foreground hover:text-foreground inline-flex h-9 w-9 cursor-grab items-center justify-center rounded-md transition-colors active:cursor-grabbing'
         aria-label='Reordenar contacto'
         {...attributes}
         {...listeners}
       >
         <GripVertical className='h-4 w-4' />
       </button>
-      <div className='grid flex-1 gap-3 sm:grid-cols-2'>
+      <div className='flex flex-1 gap-3 sm:grid-cols-2'>
         <Input
+          className='flex-1'
           value={item.label}
           placeholder='Etiqueta'
-          onChange={(event) =>
-            onChange({ ...item, label: event.target.value })
-          }
+          onChange={(event) => onChange({ ...item, label: event.target.value })}
         />
         <Input
+          className='flex-4'
           value={item.url}
           placeholder='URL'
           onChange={(event) => onChange({ ...item, url: event.target.value })}
         />
       </div>
-      <Button
-        type='button'
-        variant='ghost'
-        size='icon'
-        onClick={onRemove}
-      >
+      <Button type='button' variant='ghost' size='icon' onClick={onRemove}>
         <IconTrash className='h-4 w-4' />
       </Button>
     </div>
@@ -232,29 +225,12 @@ export default function ContactForm() {
 
   return (
     <Card className='mx-auto w-full'>
-      <CardHeader>
-        <CardTitle className='text-left text-2xl font-bold'>
-          Contacto
-        </CardTitle>
-      </CardHeader>
-      <CardContent className='space-y-6'>
+      <CardContent className='space-y-6 pt-2'>
         {loading ? (
           <div className='text-muted-foreground text-sm'>
             Cargando Contacto...
           </div>
         ) : null}
-
-        <div className='flex flex-wrap items-center justify-end gap-2'>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className='h-8 px-3 text-xs'
-            onClick={handleContactAdd}
-          >
-            Agregar contacto
-          </Button>
-        </div>
 
         {contactItems.length ? (
           <DndContext sensors={sensors} onDragEnd={handleContactDragEnd}>
@@ -279,6 +255,17 @@ export default function ContactForm() {
             No hay contactos todavía.
           </div>
         )}
+        <div className='flex flex-wrap items-center justify-end gap-2'>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            className='h-8 px-3 text-xs'
+            onClick={handleContactAdd}
+          >
+            Agregar contacto
+          </Button>
+        </div>
 
         <Button type='button' disabled={saving || loading} onClick={handleSave}>
           {saving ? 'Guardando...' : 'Guardar Contacto'}

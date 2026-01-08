@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
@@ -39,6 +39,15 @@ export default function AboutForm() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const lastSavedValuesRef = useRef<AboutMeFormValues | null>(null);
+  const hasUnsavedChanges = Boolean(
+    lastSavedValuesRef.current && form.formState.isDirty
+  );
+
+  const handleUndoChanges = () => {
+    if (!lastSavedValuesRef.current) return;
+    form.reset(lastSavedValuesRef.current);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -46,22 +55,18 @@ export default function AboutForm() {
       setLoading(true);
       try {
         const docSnap = await getDoc(doc(db, 'about_me', ABOUT_DOC_ID));
-        if (!docSnap.exists()) {
-          if (isMounted) {
-            setLoading(false);
-          }
-          return;
-        }
-
-        const data = docSnap.data() as AboutMeDoc | undefined;
-        const about = data;
+        const data = docSnap.exists()
+          ? (docSnap.data() as AboutMeDoc | undefined)
+          : undefined;
+        const nextValues = {
+          title: data?.title ?? '',
+          content: data?.content ?? '',
+          educationTitle: data?.subcontent?.education?.title ?? '',
+          educationContent: data?.subcontent?.education?.content ?? ''
+        };
         if (isMounted) {
-          form.reset({
-            title: about?.title ?? '',
-            content: about?.content ?? '',
-            educationTitle: about?.subcontent?.education?.title ?? '',
-            educationContent: about?.subcontent?.education?.content ?? ''
-          });
+          form.reset(nextValues);
+          lastSavedValuesRef.current = nextValues;
         }
       } catch (error) {
         console.error('[About] load error', error);
@@ -96,6 +101,7 @@ export default function AboutForm() {
         { merge: true }
       );
       form.reset(values);
+      lastSavedValuesRef.current = values;
       toast.success('About Me actualizado.');
     } catch (error) {
       console.error('[About] update error', error);
@@ -139,6 +145,21 @@ export default function AboutForm() {
               height={280}
             />
           </div>
+
+          {hasUnsavedChanges ? (
+            <div className='mb-1 flex items-center text-sm'>
+              <span className='text-red-500'>Hay cambios sin guardar.</span>
+              <Button
+                type='button'
+                variant='link'
+                className='text-foreground ml-1 h-auto p-0 text-sm underline underline-offset-2'
+                onClick={handleUndoChanges}
+              >
+                Deshacer
+              </Button>
+              <span>.</span>
+            </div>
+          ) : null}
 
           <Button type='submit' disabled={saving || loading}>
             {saving ? 'Guardando...' : 'Guardar'}
