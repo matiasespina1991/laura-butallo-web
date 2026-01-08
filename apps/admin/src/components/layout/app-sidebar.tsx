@@ -180,20 +180,28 @@ export default function AppSidebar() {
                       Billing
                     </DropdownMenuItem>
                   )} */}
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    style={{
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => router.push('/dashboard/settings')}
+                  >
                     <IconSettings className='mr-2 h-4 w-4' />
                     Configuración
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
+                  style={{
+                    cursor: 'pointer'
+                  }}
                   onClick={() => {
                     signOut();
                     router.push('/auth/sign-in');
                   }}
                 >
                   <IconLogout className='mr-2 h-4 w-4' />
-                  Sign out
+                  Cerrar sesión
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

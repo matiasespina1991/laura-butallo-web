@@ -54,7 +54,12 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { IconPhoto, IconTrash, IconVideo } from '@tabler/icons-react';
+import {
+  IconMovie,
+  IconPhoto,
+  IconTrash,
+  IconVideo
+} from '@tabler/icons-react';
 import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 
 type ExhibitionFormValues = {
@@ -375,7 +380,7 @@ function MediaPickerCard({
           )}
         >
           {media.type === 'video' ? (
-            <IconVideo className='h-3.5 w-3.5' aria-hidden='true' />
+            <IconMovie className='h-3.5 w-3.5' aria-hidden='true' />
           ) : (
             <IconPhoto className='h-3.5 w-3.5' aria-hidden='true' />
           )}
@@ -484,7 +489,7 @@ function MediaPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='flex max-h-[calc(100vh-9rem)] w-[min(96vw,980px)] flex-col overflow-hidden sm:max-w-[980px]'>
+      <DialogContent className='flex max-h-[calc(100vh-9rem)] w-[min(96vw,980px)] flex-col overflow-hidden sm:max-h-[calc(100vh-4rem)] sm:max-w-[980px]'>
         <DialogHeader className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
           <div className='space-y-1'>
             <DialogTitle>{title}</DialogTitle>
@@ -547,7 +552,7 @@ function MediaPickerDialog({
             No hay archivos disponibles.
           </div>
         ) : (
-          <div className='max-h-[calc(100vh-12rem)] overflow-y-auto'>
+          <div className='max-h-[calc(100vh-12rem)] overflow-y-auto sm:p-[1rem]'>
             <div
               className={cn(
                 'bg-muted/30 grid grid-cols-2 gap-4 rounded-md p-3 sm:bg-transparent sm:p-0',

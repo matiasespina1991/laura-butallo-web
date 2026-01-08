@@ -602,6 +602,9 @@ export default function MediaGallery({
                     {activeMedia.title || 'Sin título'}
                   </div>
                   <div className='text-muted-foreground text-xs'>
+                    {activeMedia.id}
+                  </div>
+                  <div className='text-muted-foreground text-xs'>
                     {activeMedia.type === 'video' ? 'Video' : 'Imagen'} ·{' '}
                     {activeMedia.origin?.context === 'exhibition'
                       ? 'Exhibición'

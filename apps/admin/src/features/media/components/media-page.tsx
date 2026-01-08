@@ -37,7 +37,7 @@ export default function MediaPage() {
   const downloadName = useMemo(() => {
     if (!selectedMedia) return 'media';
     const rawPath = downloadAsset?.storagePath ?? '';
-    const lastSegment = rawPath ? rawPath.split('/').pop() ?? '' : '';
+    const lastSegment = rawPath ? (rawPath.split('/').pop() ?? '') : '';
     const dashed = lastSegment.indexOf('-');
     if (lastSegment) {
       return dashed >= 0 && dashed < lastSegment.length - 1
@@ -57,7 +57,12 @@ export default function MediaPage() {
     if (!selectedMedia) return;
     if (!downloadAsset?.storagePath || downloadAsset?.downloadURL) return;
     resolveDownload();
-  }, [downloadAsset?.downloadURL, downloadAsset?.storagePath, resolveDownload, selectedMedia]);
+  }, [
+    downloadAsset?.downloadURL,
+    downloadAsset?.storagePath,
+    resolveDownload,
+    selectedMedia
+  ]);
 
   const handleDelete = useCallback(async () => {
     if (!selectedMedia) return;
@@ -84,46 +89,43 @@ export default function MediaPage() {
       pageHeaderAction={
         selectedMedia ? (
           <div className='flex items-center gap-2'>
-            <Button
-              asChild
-              variant='outline'
-              disabled={!hasDownloadSource}
-            >
+            <Button asChild variant='outline' disabled={!hasDownloadSource}>
               <a href={downloadSrc} download={downloadName}>
                 <IconDownload className='h-4 w-4' />
                 Descargar
               </a>
             </Button>
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-            <AlertDialogTrigger asChild>
-              <Button
-                type='button'
-                variant='destructive'
-                disabled={isDeleting}
-              >
-                <IconTrash className='h-4 w-4' />
-                Eliminar
-              </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Eliminar media?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta acción marca el media como eliminado y lo saca de la
-                  galería. Podés volver a subirlo más adelante si lo necesitás.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={isDeleting}>
-                  Cancelar
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
+              <AlertDialogTrigger asChild>
+                <Button
+                  type='button'
+                  variant='destructive'
                   disabled={isDeleting}
                 >
-                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
-                </AlertDialogAction>
-              </AlertDialogFooter>
+                  <IconTrash className='h-4 w-4' />
+                  Eliminar
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Eliminar media?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción marca el media como eliminado y lo saca de la
+                    galería. Podés volver a subirlo más adelante si lo
+                    necesitás.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDeleting}>
+                    Cancelar
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>

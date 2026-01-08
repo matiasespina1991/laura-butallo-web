@@ -87,7 +87,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Mi Cuenta',
-    url: '#', // Placeholder as there is no direct link for the parent
+    url: '/dashboard/settings', // Placeholder as there is no direct link for the parent
     icon: 'account',
     isActive: true,
     items: [

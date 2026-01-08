@@ -48,19 +48,27 @@ export function UserNav() {
           {/* <DropdownMenuItem onClick={() => router.push('/dashboard/billing')}>
             Billing
           </DropdownMenuItem> */}
-          <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+          <DropdownMenuItem
+            style={{
+              cursor: 'pointer'
+            }}
+            onClick={() => router.push('/dashboard/settings')}
+          >
             Configuración
           </DropdownMenuItem>
           {/* <DropdownMenuItem>New Team</DropdownMenuItem> */}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
+          style={{
+            cursor: 'pointer'
+          }}
           onClick={() => {
             signOut();
             router.push('/auth/sign-in');
           }}
         >
-          Sign out
+          Cerrar sesión
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
