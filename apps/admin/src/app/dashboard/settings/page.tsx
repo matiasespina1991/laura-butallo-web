@@ -9,15 +9,14 @@ export const metadata = {
 export default function Page() {
   return (
     <PageContainer
+      className='w-full max-w-[40rem] justify-self-start'
       scrollable={true}
       pageTitle='Configuración'
-      pageDescription='Ajusta el tema del panel.'
+      pageDescription='Ajusta las preferencias de tu panel de administración.'
     >
-      <Card className='mx-auto w-full max-w-[40rem]'>
+      <Card className='mx-auto flex w-full flex-row justify-between'>
         <CardHeader>
-          <CardTitle className='text-left text-2xl font-bold'>
-            Tema
-          </CardTitle>
+          <CardTitle className='text-left text-xl font-bold'>Tema</CardTitle>
         </CardHeader>
         <CardContent>
           <ThemeSelector />

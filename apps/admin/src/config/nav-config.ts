@@ -86,29 +86,37 @@ export const navItems: NavItem[] = [
     ]
   },
   {
-    title: 'Mi Cuenta',
-    url: '/dashboard/settings', // Placeholder as there is no direct link for the parent
-    icon: 'account',
-    isActive: true,
-    items: [
-      // {
-      //   title: 'Profile',
-      //   url: '/dashboard/profile',
-      //   icon: 'profile',
-      //   shortcut: ['m', 'm']
-      // },
-      {
-        title: 'Configuración',
-        url: '/dashboard/settings',
-        icon: 'settings',
-        shortcut: ['s', 's']
-      }
-      // {
-      //   title: 'Login',
-      //   shortcut: ['l', 'l'],
-      //   url: '/',
-      //   icon: 'login'
-      // }
-    ]
+    title: 'Configuración',
+    url: '/dashboard/settings',
+    icon: 'settings',
+    shortcut: ['s', 's'],
+    isActive: false,
+    items: []
   }
+  // {
+  //   title: 'Mi Cuenta',
+  //   url: '/dashboard/settings', // Placeholder as there is no direct link for the parent
+  //   icon: 'account',
+  //   isActive: true,
+  //   items: [
+  //     // {
+  //     //   title: 'Profile',
+  //     //   url: '/dashboard/profile',
+  //     //   icon: 'profile',
+  //     //   shortcut: ['m', 'm']
+  //     // },
+  //     {
+  //       title: 'Configuración',
+  //       url: '/dashboard/settings',
+  //       icon: 'settings',
+  //       shortcut: ['s', 's']
+  //     }
+  //     // {
+  //     //   title: 'Login',
+  //     //   shortcut: ['l', 'l'],
+  //     //   url: '/',
+  //     //   icon: 'login'
+  //     // }
+  //   ]
+  // }
 ];
