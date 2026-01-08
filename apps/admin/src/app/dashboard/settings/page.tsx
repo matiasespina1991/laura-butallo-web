@@ -16,7 +16,7 @@ export default function Page() {
     >
       <Card className='mx-auto flex w-full flex-row justify-between'>
         <CardHeader>
-          <CardTitle className='text-left text-xl font-bold'>Tema</CardTitle>
+          <CardTitle className='text-left text-xl'>Tema</CardTitle>
         </CardHeader>
         <CardContent>
           <ThemeSelector />

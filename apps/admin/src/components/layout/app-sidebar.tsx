@@ -36,6 +36,7 @@ import {
   IconBell,
   IconChevronRight,
   IconChevronsDown,
+  IconChevronsUp,
   IconCreditCard,
   IconLogout,
   IconSettings,
@@ -134,7 +135,7 @@ export default function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   size='lg'
-                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                  className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer'
                 >
                   {user && (
                     <UserAvatarProfile
@@ -143,7 +144,6 @@ export default function AppSidebar() {
                       user={user}
                     />
                   )}
-                  <IconChevronsDown className='ml-auto size-4' />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
