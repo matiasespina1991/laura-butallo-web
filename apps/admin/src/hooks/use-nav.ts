@@ -21,7 +21,8 @@ export function useFilteredNavItems(items: NavItem[]) {
       '/dashboard/exhibitions',
       '/dashboard/media',
       '/dashboard/about-me',
-      '/dashboard/contact'
+      '/dashboard/contact',
+      '/dashboard/settings'
     ]);
 
     const filterItems = (entries: NavItem[]): NavItem[] =>

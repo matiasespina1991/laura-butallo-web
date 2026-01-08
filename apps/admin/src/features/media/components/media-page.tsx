@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { IconTrash } from '@tabler/icons-react';
+import { IconDownload, IconTrash } from '@tabler/icons-react';
 import { toast } from 'sonner';
 
 import PageContainer from '@/components/layout/page-container';
@@ -21,17 +21,43 @@ import {
 import { db } from '@/lib/firebase';
 import MediaGallery from '@/features/media/components/media-gallery';
 import type { MediaDoc } from '@/lib/media-upload';
+import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 
 export default function MediaPage() {
   const [selectedMedia, setSelectedMedia] = useState<MediaDoc | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const downloadAsset = selectedMedia?.paths?.original ?? null;
+  const {
+    src: downloadSrc,
+    hasSource: hasDownloadSource,
+    forceSigned: resolveDownload
+  } = useStorageAssetSrc(downloadAsset, { preferDirect: true });
+
+  const downloadName = useMemo(() => {
+    if (!selectedMedia) return 'media';
+    const rawPath = downloadAsset?.storagePath ?? '';
+    const lastSegment = rawPath ? rawPath.split('/').pop() ?? '' : '';
+    const dashed = lastSegment.indexOf('-');
+    if (lastSegment) {
+      return dashed >= 0 && dashed < lastSegment.length - 1
+        ? lastSegment.slice(dashed + 1)
+        : lastSegment;
+    }
+    return (selectedMedia.title ?? selectedMedia.id).trim() || selectedMedia.id;
+  }, [downloadAsset?.storagePath, selectedMedia]);
 
   useEffect(() => {
     if (!selectedMedia) {
       setConfirmOpen(false);
     }
   }, [selectedMedia]);
+
+  useEffect(() => {
+    if (!selectedMedia) return;
+    if (!downloadAsset?.storagePath || downloadAsset?.downloadURL) return;
+    resolveDownload();
+  }, [downloadAsset?.downloadURL, downloadAsset?.storagePath, resolveDownload, selectedMedia]);
 
   const handleDelete = useCallback(async () => {
     if (!selectedMedia) return;
@@ -57,19 +83,29 @@ export default function MediaPage() {
       pageDescription='Gestiona imágenes y videos del sitio.'
       pageHeaderAction={
         selectedMedia ? (
-          <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <div className='flex items-center gap-2'>
+            <Button
+              asChild
+              variant='outline'
+              disabled={!hasDownloadSource}
+            >
+              <a href={downloadSrc} download={downloadName}>
+                <IconDownload className='h-4 w-4' />
+                Descargar
+              </a>
+            </Button>
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
             <AlertDialogTrigger asChild>
               <Button
                 type='button'
                 variant='destructive'
                 disabled={isDeleting}
-                className='bg-red-600/80 text-white hover:bg-red-600'
               >
                 <IconTrash className='h-4 w-4' />
                 Eliminar
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Eliminar media?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -84,13 +120,13 @@ export default function MediaPage() {
                 <AlertDialogAction
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className='bg-red-600/80 text-white hover:bg-red-600'
                 >
                   {isDeleting ? 'Eliminando...' : 'Eliminar'}
                 </AlertDialogAction>
               </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         ) : null
       }
     >

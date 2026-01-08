@@ -45,11 +45,13 @@ export function UserNav() {
           {/* <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
             Profile
           </DropdownMenuItem> */}
-          <DropdownMenuItem onClick={() => router.push('/dashboard/billing')}>
+          {/* <DropdownMenuItem onClick={() => router.push('/dashboard/billing')}>
             Billing
+          </DropdownMenuItem> */}
+          <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+            Configuración
           </DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>New Team</DropdownMenuItem>
+          {/* <DropdownMenuItem>New Team</DropdownMenuItem> */}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem

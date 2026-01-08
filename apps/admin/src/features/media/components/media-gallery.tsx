@@ -19,8 +19,9 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconArrowsMaximize,
-  IconPhoto,
-  IconVideo
+  IconDeviceFloppy,
+  IconMovie,
+  IconPhoto
 } from '@tabler/icons-react';
 import { MediaDoc, uploadMediaFiles } from '@/lib/media-upload';
 import { toast } from 'sonner';
@@ -219,7 +220,7 @@ function MediaCard({
           )}
         >
           {media.type === 'video' ? (
-            <IconVideo className='h-3.5 w-3.5' aria-hidden='true' />
+            <IconMovie className='h-3.5 w-3.5' aria-hidden='true' />
           ) : (
             <IconPhoto className='h-3.5 w-3.5' aria-hidden='true' />
           )}
@@ -283,7 +284,10 @@ function MediaCard({
             {media.origin?.context === 'exhibition' ? 'Exhibición' : 'Galería'}
           </span>
           {typeof media.sizeBytes === 'number' ? (
-            <span>{formatBytes(media.sizeBytes, { decimals: 1 })}</span>
+            <span className='inline-flex items-center gap-1'>
+              <IconDeviceFloppy className='h-3.5 w-3.5' aria-hidden='true' />
+              {formatBytes(media.sizeBytes, { decimals: 1 })}
+            </span>
           ) : null}
         </div>
       </div>

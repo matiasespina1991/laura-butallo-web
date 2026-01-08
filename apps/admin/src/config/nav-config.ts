@@ -86,7 +86,7 @@ export const navItems: NavItem[] = [
     ]
   },
   {
-    title: 'Account',
+    title: 'Mi Cuenta',
     url: '#', // Placeholder as there is no direct link for the parent
     icon: 'account',
     isActive: true,
@@ -98,17 +98,17 @@ export const navItems: NavItem[] = [
       //   shortcut: ['m', 'm']
       // },
       {
-        title: 'Billing',
-        url: '/dashboard/billing',
-        icon: 'billing',
-        shortcut: ['b', 'b']
-      },
-      {
-        title: 'Login',
-        shortcut: ['l', 'l'],
-        url: '/',
-        icon: 'login'
+        title: 'Configuración',
+        url: '/dashboard/settings',
+        icon: 'settings',
+        shortcut: ['s', 's']
       }
+      // {
+      //   title: 'Login',
+      //   shortcut: ['l', 'l'],
+      //   url: '/',
+      //   icon: 'login'
+      // }
     ]
   }
 ];

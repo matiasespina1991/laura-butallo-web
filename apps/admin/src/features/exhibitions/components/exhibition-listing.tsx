@@ -128,6 +128,8 @@ export default function ExhibitionListingPage({}: ExhibitionListingPage) {
         columnCount={7}
         rowCount={6}
         filterCount={1}
+        withPagination={true}
+        firstCellVariant='poster'
         cellWidths={['40px', '96px', '20%', '20%', '44%', '8%', '48px']}
       />
     );

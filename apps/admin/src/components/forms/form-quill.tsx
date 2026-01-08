@@ -92,15 +92,7 @@ function FormQuill<
   );
 
   const formats = useMemo(
-    () => [
-      'header',
-      'bold',
-      'italic',
-      'underline',
-      'list',
-      'link',
-      'image'
-    ],
+    () => ['header', 'bold', 'italic', 'underline', 'list', 'link', 'image'],
     []
   );
   const modulesRef = useRef<QuillModules>(modules);
@@ -127,10 +119,7 @@ function FormQuill<
               </FormLabel>
             )}
             <FormControl>
-              <div
-                className='quill-editor pb-[60px] sm:pb-0'
-                style={{ height }}
-              >
+              <div className='quill-editor sm:pb-0' style={{ height }}>
                 <div ref={editorRef} />
               </div>
             </FormControl>

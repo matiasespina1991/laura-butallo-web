@@ -38,6 +38,7 @@ import {
   IconChevronsDown,
   IconCreditCard,
   IconLogout,
+  IconSettings,
   IconUserCircle
 } from '@tabler/icons-react';
 import Link from 'next/link';
@@ -68,7 +69,7 @@ export default function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
         <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarMenu>
             {filteredItems.map((item) => {
               const Icon = item.icon ? Icons[item.icon] : Icons.logo;
@@ -171,17 +172,17 @@ export default function AppSidebar() {
                     <IconUserCircle className='mr-2 h-4 w-4' />
                     Profile
                   </DropdownMenuItem> */}
-                  {activeOrganization && (
+                  {/* {activeOrganization && (
                     <DropdownMenuItem
                       onClick={() => router.push('/dashboard/billing')}
                     >
                       <IconCreditCard className='mr-2 h-4 w-4' />
                       Billing
                     </DropdownMenuItem>
-                  )}
+                  )} */}
                   <DropdownMenuItem>
-                    <IconBell className='mr-2 h-4 w-4' />
-                    Notifications
+                    <IconSettings className='mr-2 h-4 w-4' />
+                    Configuración
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
