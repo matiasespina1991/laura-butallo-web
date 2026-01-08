@@ -303,7 +303,7 @@ export function FileUploader(props: FileUploaderProps) {
       >
         {({ getRootProps, getInputProps, isDragActive, open }) => {
           const handleMenuClick = (
-            event: React.PointerEvent<HTMLDivElement>
+            event: React.MouseEvent<HTMLDivElement>
           ) => {
             if (!showPickerMenu) return;
             event.preventDefault();
@@ -316,7 +316,7 @@ export function FileUploader(props: FileUploaderProps) {
               {...getRootProps(
                 showPickerMenu
                   ? {
-                      onPointerDown: handleMenuClick
+                      onClick: handleMenuClick
                     }
                   : undefined
               )}

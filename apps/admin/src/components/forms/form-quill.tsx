@@ -3,12 +3,7 @@
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import { FieldPath, FieldValues } from 'react-hook-form';
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   FormControl,
   FormDescription,
@@ -43,7 +38,7 @@ function FormQuill<
   description,
   required,
   placeholder,
-  height = 401,
+  height = 490,
   disabled,
   onRequestImage,
   className
@@ -78,7 +73,11 @@ function FormQuill<
     () => ({
       toolbar: {
         container: [
-          [{ header: [2, 3, 4, false] }],
+          [
+            {
+              header: [1, 2, 3, 4, 5, 6, false]
+            }
+          ],
           ['bold', 'italic', 'underline'],
           [{ list: 'ordered' }, { list: 'bullet' }],
           ['link', 'image'],
@@ -99,7 +98,6 @@ function FormQuill<
       'italic',
       'underline',
       'list',
-      'bullet',
       'link',
       'image'
     ],
@@ -121,74 +119,81 @@ function FormQuill<
         formatsRef.current = formats;
 
         return (
-        <FormItem className={className}>
-          {label && (
-            <FormLabel>
-              {label}
-              {required && <span className='text-red-500'>*</span>}
-            </FormLabel>
-          )}
-          <FormControl>
-            <div className='quill-editor' style={{ height }}>
-              <div ref={editorRef} />
-            </div>
-          </FormControl>
-          {description && <FormDescription>{description}</FormDescription>}
-          <FormMessage />
-          <style jsx global>{`
-            .quill-editor {
-              display: flex;
-              flex-direction: column;
-            }
-            .quill-editor .ql-toolbar {
-              border-radius: 0.5rem 0.5rem 0 0;
-            }
-            .quill-editor .ql-container {
-              flex: 1 1 auto;
-              border-radius: 0 0 0.5rem 0.5rem;
-            }
-            .quill-editor .ql-editor {
-              min-height: 100%;
-            }
-            .dark .quill-editor .ql-toolbar,
-            .dark .quill-editor .ql-container {
-              border-color: rgba(255, 255, 255, 0.15);
-            }
-            .dark .quill-editor .ql-toolbar .ql-stroke {
-              stroke: rgba(255, 255, 255, 0.8);
-            }
-            .dark .quill-editor .ql-toolbar .ql-fill {
-              fill: rgba(255, 255, 255, 0.8);
-            }
-            .dark .quill-editor .ql-toolbar .ql-picker {
-              color: rgba(255, 255, 255, 0.85);
-            }
-            .dark .quill-editor .ql-toolbar .ql-picker-options {
-              background: #1b1b1b;
-              border-color: rgba(255, 255, 255, 0.2);
-            }
-            .dark .quill-editor .ql-toolbar .ql-picker-label {
-              color: rgba(255, 255, 255, 0.85);
-            }
-            .dark .quill-editor .ql-editor.ql-blank::before {
-              color: rgba(255, 255, 255, 0.55);
-            }
-          `}</style>
-          <QuillController
-            editorRef={editorRef}
-            quillRef={quillRef}
-            lastHtmlRef={lastHtmlRef}
-            value={field.value ?? ''}
-            onChangeRef={onChangeRef}
-            onBlurRef={onBlurRef}
-            disabledRef={disabledRef}
-            disabled={Boolean(disabled)}
-            placeholderRef={placeholderRef}
-            modulesRef={modulesRef}
-            formatsRef={formatsRef}
-          />
-        </FormItem>
-      );
+          <FormItem className={className}>
+            {label && (
+              <FormLabel>
+                {label}
+                {required && <span className='text-red-500'>*</span>}
+              </FormLabel>
+            )}
+            <FormControl>
+              <div
+                className='quill-editor pb-[60px] sm:pb-0'
+                style={{ height }}
+              >
+                <div ref={editorRef} />
+              </div>
+            </FormControl>
+            {description && <FormDescription>{description}</FormDescription>}
+            <FormMessage />
+            <style jsx global>{`
+              .quill-editor {
+                display: flex;
+                flex-direction: column;
+              }
+
+              .quill-editor .ql-editor p {
+                font-size: 0.95rem;
+              }
+              .quill-editor .ql-toolbar {
+                border-radius: 0.5rem 0.5rem 0 0;
+              }
+              .quill-editor .ql-container {
+                flex: 1 1 auto;
+                border-radius: 0 0 0.5rem 0.5rem;
+              }
+              .quill-editor .ql-editor {
+                min-height: 100%;
+              }
+              .dark .quill-editor .ql-toolbar,
+              .dark .quill-editor .ql-container {
+                border-color: rgba(255, 255, 255, 0.15);
+              }
+              .dark .quill-editor .ql-toolbar .ql-stroke {
+                stroke: rgba(255, 255, 255, 0.8);
+              }
+              .dark .quill-editor .ql-toolbar .ql-fill {
+                fill: rgba(255, 255, 255, 0.8);
+              }
+              .dark .quill-editor .ql-toolbar .ql-picker {
+                color: rgba(255, 255, 255, 0.85);
+              }
+              .dark .quill-editor .ql-toolbar .ql-picker-options {
+                background: #1b1b1b;
+                border-color: rgba(255, 255, 255, 0.2);
+              }
+              .dark .quill-editor .ql-toolbar .ql-picker-label {
+                color: rgba(255, 255, 255, 0.85);
+              }
+              .dark .quill-editor .ql-editor.ql-blank::before {
+                color: rgba(255, 255, 255, 0.55);
+              }
+            `}</style>
+            <QuillController
+              editorRef={editorRef}
+              quillRef={quillRef}
+              lastHtmlRef={lastHtmlRef}
+              value={field.value ?? ''}
+              onChangeRef={onChangeRef}
+              onBlurRef={onBlurRef}
+              disabledRef={disabledRef}
+              disabled={Boolean(disabled)}
+              placeholderRef={placeholderRef}
+              modulesRef={modulesRef}
+              formatsRef={formatsRef}
+            />
+          </FormItem>
+        );
       }}
     />
   );
@@ -256,7 +261,7 @@ function QuillController({
       onChangeRef.current(normalized);
     };
 
-  const handleSelectionChange = (
+    const handleSelectionChange = (
       range: SelectionRange,
       oldRange: SelectionRange
     ) => {
@@ -278,7 +283,17 @@ function QuillController({
       }
       host.innerHTML = '';
     };
-  }, [editorRef, quillRef, lastHtmlRef, onChangeRef, onBlurRef, disabledRef, placeholderRef, modulesRef, formatsRef]);
+  }, [
+    editorRef,
+    quillRef,
+    lastHtmlRef,
+    onChangeRef,
+    onBlurRef,
+    disabledRef,
+    placeholderRef,
+    modulesRef,
+    formatsRef
+  ]);
 
   useEffect(() => {
     const quill = quillRef.current;

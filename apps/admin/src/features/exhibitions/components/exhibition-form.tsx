@@ -150,7 +150,7 @@ function MediaPreviewCard({
   );
 
   return (
-    <div className='border-border/60 bg-card flex min-w-0 items-center gap-3 rounded-lg border px-3 py-2 shadow-xs'>
+    <div className='border-border/60 bg-card flex max-w-[25rem] min-w-0 items-center gap-3 rounded-lg border px-3 py-2 shadow-xs'>
       <div className='bg-muted flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md'>
         {hasSource ? (
           <img
@@ -166,7 +166,7 @@ function MediaPreviewCard({
           </span>
         )}
       </div>
-      <div className='flex-1'>
+      <div className='grid flex-1'>
         <div className='text-sm font-medium'>
           {media.type === 'video' ? 'Video' : 'Imagen'}
         </div>
@@ -484,7 +484,7 @@ function MediaPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='flex max-h-[calc(100vh-2rem)] w-[min(96vw,980px)] flex-col overflow-hidden sm:max-w-[980px]'>
+      <DialogContent className='flex max-h-[calc(100vh-9rem)] w-[min(96vw,980px)] flex-col overflow-hidden sm:max-w-[980px]'>
         <DialogHeader className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
           <div className='space-y-1'>
             <DialogTitle>{title}</DialogTitle>
