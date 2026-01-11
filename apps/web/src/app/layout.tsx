@@ -69,14 +69,14 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-    other: [
-      { rel: 'icon', url: '/favicon-32x32.png', sizes: '32x32' },
-      { rel: 'icon', url: '/favicon-16x16.png', sizes: '16x16' },
-    ],
-  },
+  // icons: {
+  //   // icon: '/favicon.ico',
+  //   // apple: '/apple-touch-icon.png',
+  //   // other: [
+  //   //   { rel: 'icon', url: '/favicon-32x32.png', sizes: '32x32' },
+  //   //   { rel: 'icon', url: '/favicon-16x16.png', sizes: '16x16' },
+  //   // ],
+  // },
 };
 
 export default function RootLayout({
@@ -121,9 +121,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#ededed" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/site.webmanifest" />
+        {/* <link rel="icon" href="/favicon.ico" sizes="any" /> */}
+        {/* <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" /> */}
       </head>
 
       <body>

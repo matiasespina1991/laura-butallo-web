@@ -234,7 +234,6 @@ function ExhibitionMediaCarousel({
         width: '100%',
         maxWidth: '48rem',
         marginInline: 'auto',
-        paddingTop: '2rem',
       }}
     >
       <Box
@@ -243,7 +242,6 @@ function ExhibitionMediaCarousel({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: isMobileDevice ? '14rem' : '18rem',
         }}
       >
         {total > 1 && (
@@ -258,7 +256,7 @@ function ExhibitionMediaCarousel({
                 left: 0,
                 top: '50%',
                 backdropFilter: 'blur(2px)',
-                transform: 'translate(-8%, -50%)',
+                transform: 'translate(0%, -50%)',
                 width: '2.4rem',
                 height: '2.4rem',
                 borderRadius: '999px',
@@ -286,7 +284,7 @@ function ExhibitionMediaCarousel({
                 right: 0,
                 top: '50%',
                 backdropFilter: 'blur(2px)',
-                transform: 'translate(8%, -50%)',
+                transform: 'translate(0%, -50%)',
                 width: '2.4rem',
                 height: '2.4rem',
                 borderRadius: '999px',
@@ -315,10 +313,10 @@ function ExhibitionMediaCarousel({
             transition={{ duration: 0.25 }}
             style={{
               width: '100%',
-              height: '28rem',
               display: 'flex',
+              minHeight: '20rem',
               justifyContent: 'center',
-              alignItems: 'center',
+              alignItems: 'flex-start',
             }}
           >
             {activeItem.type === 'video' ? (
