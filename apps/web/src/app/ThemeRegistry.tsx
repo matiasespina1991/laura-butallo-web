@@ -10,7 +10,7 @@ import { PaletteMode } from '@mui/material';
 const getDesignTokens = (mode: PaletteMode) => ({
   typography: {
     fontSize: 13,
-    fontFamily: 'Helvetic a Neue, Arial, sans-serif',
+    fontFamily: 'Helvetica Neue, Arial, sans-serif',
   },
   components: {
     MuiToolbar: {
