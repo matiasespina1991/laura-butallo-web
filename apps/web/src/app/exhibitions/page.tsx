@@ -568,21 +568,14 @@ export default function Exhibitions() {
     <main className={`${styles.main} ${styles.exhibitionsPage}`}>
       <Box
         px={{ xs: '1.2rem', sm: '2rem' }}
-        py={{ xs: '0', sm: '2rem' }}
+        py={{ xs: '2rem', sm: '2rem' }}
         width="100%"
       >
         <Box
-          sx={{
-            height: {
-              xs: '1rem',
-              sm: '3rem',
-              md: '3rem',
-              lg: '3.5rem',
-              xl: '5rem',
-            },
-          }}
-        ></Box>
-        <Box className={styles.exhibition_page_container} width="100%">
+          className={styles.exhibition_page_container}
+          height="100%"
+          width="100%"
+        >
           <AnimatePresence mode="wait">
             <motion.div
               initial={{ opacity: 0 }}
@@ -630,6 +623,7 @@ export default function Exhibitions() {
                         <Box
                           onClick={() => toggleExhibition(index)}
                           sx={{
+                            height: 'auto',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -911,14 +905,16 @@ export default function Exhibitions() {
           </AnimatePresence>
         </Box>
       </Box>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-        style={{ width: '100%' }}
-      >
-        <Footer />
-      </motion.div>
+      {!isMobile && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          style={{ width: '100%' }}
+        >
+          <Footer />
+        </motion.div>
+      )}
     </main>
   );
 }
