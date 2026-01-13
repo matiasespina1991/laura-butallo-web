@@ -568,7 +568,7 @@ export default function Exhibitions() {
     <main className={`${styles.main} ${styles.exhibitionsPage}`}>
       <Box
         px={{ xs: '1.2rem', sm: '2rem' }}
-        py={{ xs: '1.7rem', sm: '2rem' }}
+        py={{ xs: '0', sm: '2rem' }}
         width="100%"
       >
         <Box
