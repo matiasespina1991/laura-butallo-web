@@ -234,6 +234,7 @@ function ExhibitionMediaCarousel({
         width: '100%',
         maxWidth: '48rem',
         marginInline: 'auto',
+        paddingBottom: '1rem',
       }}
     >
       <Box
@@ -314,7 +315,8 @@ function ExhibitionMediaCarousel({
             style={{
               width: '100%',
               display: 'flex',
-              minHeight: '20rem',
+              minHeight: isMobile ? '10rem' : '20rem',
+
               justifyContent: 'center',
               alignItems: 'flex-start',
             }}
@@ -568,7 +570,7 @@ export default function Exhibitions() {
     <main className={`${styles.main} ${styles.exhibitionsPage}`}>
       <Box
         px={{ xs: '1.2rem', sm: '2rem' }}
-        py={{ xs: '2rem', sm: '2rem' }}
+        py={{ xs: '2rem', sm: '6rem' }}
         width="100%"
       >
         <Box

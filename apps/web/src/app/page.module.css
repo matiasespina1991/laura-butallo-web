@@ -4,6 +4,8 @@
   align-items: center;
   min-height: calc(100vh - 3rem);
   justify-content: space-between;
+  margin-inline: auto;
+  max-width: 1200px;
 }
 
 .main.homePage,
