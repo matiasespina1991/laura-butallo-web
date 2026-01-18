@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import HomeOrganizer from '@/features/home-organizer/components/home-organizer';
+
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
