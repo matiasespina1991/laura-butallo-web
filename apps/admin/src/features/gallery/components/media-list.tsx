@@ -28,12 +28,13 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import AssignMediaDialog from './assign-media-dialog';
 import { cn } from '@/lib/utils';
+import { X } from 'lucide-react';
 
 interface Media {
   id: string;
@@ -84,10 +85,25 @@ function MediaItem({ media }: { media: Media }) {
     try {
       const flexValue = parseInt(value);
       await updateDoc(doc(db, 'media', media.id), { flex: flexValue });
-      toast.success('Flex updated');
+      toast.success('Flex actualizado');
     } catch (error) {
       console.error('Error updating flex:', error);
-      toast.error('Failed to update flex');
+      toast.error('Error al actualizar flex');
+    }
+  }
+
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation();
+    try {
+      await updateDoc(doc(db, 'media', media.id), {
+        deletedAt: Timestamp.now()
+      });
+      toast.success('Media eliminado');
+      // Trigger parent reload by calling onUpdate with empty array
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting media:', error);
+      toast.error('Error al eliminar media');
     }
   }
 
@@ -95,17 +111,29 @@ function MediaItem({ media }: { media: Media }) {
     <div
       ref={setNodeRef}
       style={style}
-      className='bg-muted/50 flex items-center gap-3 rounded-lg p-3'
+      className='bg-muted/50 group relative flex flex-col gap-2 rounded-lg p-3'
     >
       <button
-        {...attributes}
-        {...listeners}
-        className='cursor-grab active:cursor-grabbing'
+        onClick={handleDelete}
+        className='absolute right-1 top-1 z-10 rounded-full bg-background/80 p-1 opacity-0 transition-opacity hover:bg-background group-hover:opacity-100'
+        title='Eliminar media'
       >
-        <GripVertical className='text-muted-foreground h-5 w-5' />
+        <X className='h-3 w-3' />
       </button>
+      <div className='flex items-center gap-2'>
+        <button
+          {...attributes}
+          {...listeners}
+          className='cursor-grab active:cursor-grabbing'
+        >
+          <GripVertical className='text-muted-foreground h-4 w-4' />
+        </button>
+        <p className='text-xs font-medium'>
+          {media.type === 'image' ? 'Image' : 'Video'}
+        </p>
+      </div>
 
-      <div className='bg-muted relative h-16 w-16 flex-shrink-0 overflow-hidden rounded'>
+      <div className='bg-muted relative aspect-square w-full overflow-hidden rounded'>
         {!imageLoaded && thumbnailSrc && (
           <Skeleton className='absolute inset-0' />
         )}
@@ -123,18 +151,11 @@ function MediaItem({ media }: { media: Media }) {
         )}
       </div>
 
-      <div className='min-w-0 flex-1'>
-        <p className='truncate text-sm font-medium'>
-          {media.type === 'image' ? 'Image' : 'Video'}
-        </p>
-        <p className='text-muted-foreground truncate text-xs'>{media.id}</p>
-      </div>
-
       <Select
         value={media.flex?.toString() || '1'}
         onValueChange={handleFlexChange}
       >
-        <SelectTrigger className='w-[100px]'>
+        <SelectTrigger className='w-full'>
           <SelectValue placeholder='Flex' />
         </SelectTrigger>
         <SelectContent>
@@ -192,11 +213,17 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
     return (
       <div className='space-y-4 py-8 text-center'>
         <p className='text-muted-foreground text-sm'>
-          No media assigned to this mediaset yet.
+          No hay media asignado a este mediaset todavía.
         </p>
-        <Button variant='outline' onClick={() => setAssignDialogOpen(true)}>
+        <Button
+          variant='outline'
+          onClick={(e) => {
+            e.stopPropagation();
+            setAssignDialogOpen(true);
+          }}
+        >
           <Plus className='mr-2 h-4 w-4' />
-          Add Media
+          Agregar Media
         </Button>
         <AssignMediaDialog
           open={assignDialogOpen}
@@ -216,11 +243,11 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={media.map((m) => m.id)}
+          items={media.slice(0, 4).map((m) => m.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className='space-y-2'>
-            {media.map((m) => (
+          <div className='grid grid-cols-4 gap-3'>
+            {media.slice(0, 4).map((m) => (
               <MediaItem key={m.id} media={m} />
             ))}
           </div>
@@ -230,11 +257,14 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
       <Button
         variant='outline'
         size='sm'
-        onClick={() => setAssignDialogOpen(true)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setAssignDialogOpen(true);
+        }}
         className='w-full'
       >
         <Plus className='mr-2 h-4 w-4' />
-        Add More Media
+        Agregar Más Media
       </Button>
 
       <AssignMediaDialog

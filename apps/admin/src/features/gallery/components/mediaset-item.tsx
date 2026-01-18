@@ -96,15 +96,14 @@ export default function MediasetItem({
     }
   }
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Toggle accordion when clicking anywhere on the card
+  const toggleAccordion = () => {
     setAccordionValue(accordionValue === 'item-1' ? '' : 'item-1');
   };
 
   return (
     <>
       <div ref={setNodeRef} style={style}>
-        <Card className='cursor-pointer' onClick={handleCardClick}>
+        <Card>
           <Accordion
             type='single'
             collapsible
@@ -112,7 +111,10 @@ export default function MediasetItem({
             onValueChange={setAccordionValue}
           >
             <AccordionItem value='item-1' className='border-0'>
-              <CardHeader className='flex flex-row items-center gap-4 space-y-0'>
+              <CardHeader
+                className='flex cursor-pointer flex-row items-center gap-4 space-y-0'
+                onClick={toggleAccordion}
+              >
                 <button
                   {...attributes}
                   {...listeners}
@@ -154,7 +156,7 @@ export default function MediasetItem({
                   onClick={(e) => e.stopPropagation()}
                 />
               </CardHeader>
-              <AccordionContent>
+              <AccordionContent onClick={(e) => e.stopPropagation()}>
                 <CardContent>
                   <MediaList
                     mediasetId={mediaset.id}
