@@ -10,6 +10,14 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
+    title: 'Home Media Organizer',
+    url: '/dashboard/home-organizer',
+    icon: 'home',
+    shortcut: ['h', 'h'],
+    isActive: false,
+    items: []
+  },
+  {
     title: 'Exhibiciones',
     url: '/dashboard/exhibitions',
     icon: 'exhibitions',
@@ -34,18 +42,10 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Gallery',
+    title: 'Galería',
     url: '/dashboard/gallery',
     icon: 'media',
     shortcut: ['m', 'm'],
-    isActive: false,
-    items: []
-  },
-  {
-    title: 'Home Organizer',
-    url: '/dashboard/home-organizer',
-    icon: 'home',
-    shortcut: ['h', 'h'],
     isActive: false,
     items: []
   },
