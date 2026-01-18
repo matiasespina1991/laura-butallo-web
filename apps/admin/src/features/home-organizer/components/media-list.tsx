@@ -101,8 +101,10 @@ function MediaItem({
     e.stopPropagation();
     try {
       const currentMediaSetIds = media.mediaSetIds || [];
-      const updatedMediaSetIds = currentMediaSetIds.filter(id => id !== mediasetId);
-      
+      const updatedMediaSetIds = currentMediaSetIds.filter(
+        (id) => id !== mediasetId
+      );
+
       await updateDoc(doc(db, 'media', media.id), {
         mediaSetIds: updatedMediaSetIds
       });

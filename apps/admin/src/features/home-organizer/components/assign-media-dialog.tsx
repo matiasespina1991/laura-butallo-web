@@ -44,7 +44,7 @@ export default function AssignMediaDialog({
       sorted.forEach((media, index) => {
         const currentMediaSetIds = (media as any).mediaSetIds || [];
         const updatedMediaSetIds = [...currentMediaSetIds];
-        
+
         // Add mediasetId if not already present
         if (!updatedMediaSetIds.includes(mediasetId)) {
           updatedMediaSetIds.push(mediasetId);
