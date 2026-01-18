@@ -22,7 +22,8 @@ service cloud.firestore {
 
     // MediaSets collection
     match /mediasets/{setId} {
-      allow write: if request.auth == null && request.time == request.time;
+      allow read: if true;
+      allow create, update, delete: if isAuthorized();
     }
 
     // Exhibitions collection (admin UI)
@@ -34,7 +35,7 @@ service cloud.firestore {
     // Media collection (admin UI)
     match /media/{mediaId} {
       allow read: if true;
-      allow update: if isAuthorized();
+      allow create, update, delete: if isAuthorized();
     }
 
     // About Me (admin UI)

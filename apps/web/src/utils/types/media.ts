@@ -40,4 +40,6 @@ export interface Media {
   modifiedAt: Timestamp;
   deletedAt?: Timestamp | null;
   processed: boolean;
+  order?: number; // position within mediaset
+  flex?: number; // grid flex size (1-4)
 }

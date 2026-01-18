@@ -34,10 +34,18 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Galería',
+    title: 'Media',
     url: '/dashboard/media',
     icon: 'media',
-    shortcut: ['g', 'g'],
+    shortcut: ['m', 'm'],
+    isActive: false,
+    items: []
+  },
+  {
+    title: 'Home',
+    url: '/dashboard/gallery',
+    icon: 'home',
+    shortcut: ['h', 'h'],
     isActive: false,
     items: []
   },

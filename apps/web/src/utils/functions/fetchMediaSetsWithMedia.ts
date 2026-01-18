@@ -6,22 +6,32 @@ import { Media } from '@/utils/types/media';
 export async function fetchMediaSetsWithMedia(): Promise<
   { mediaset: MediaSet; media: Media[] }[]
 > {
-  // Traemos todos los mediasets
+  // Traemos todos los mediasets activos
   const mediasetsSnap = await getDocs(
-    query(collection(db, 'mediasets'), orderBy('publishedAt', 'desc'))
+    query(
+      collection(db, 'mediasets'),
+      where('deletedAt', '==', null),
+      orderBy('ordering', 'asc')
+    )
   );
   const result: { mediaset: MediaSet; media: Media[] }[] = [];
 
   const mediasets = mediasetsSnap.docs.map((doc) => doc.data() as MediaSet);
 
-  // Traer todos los media de una sola vez
+  // Traer todos los media procesados y no eliminados
   const mediaSnap = await getDocs(
-    query(collection(db, 'media'), orderBy('createdAt', 'asc'))
+    query(
+      collection(db, 'media'),
+      where('deletedAt', '==', null),
+      where('processed', '==', true)
+    )
   );
   const allMedia = mediaSnap.docs.map((doc) => doc.data() as Media);
 
   for (const ms of mediasets) {
-    const mediaOfSet = allMedia.filter((m) => m.mediaSetId === ms.id);
+    const mediaOfSet = allMedia
+      .filter((m) => m.mediaSetId === ms.id)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     result.push({ mediaset: ms, media: mediaOfSet });
   }
 
