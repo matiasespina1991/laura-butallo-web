@@ -20,60 +20,62 @@ export default function NotFound() {
   }, []);
 
   return (
-    <main className={`${styles.main} ${styles.notFound}`}>
-      <Box
-        px={{ xs: '1.2rem', sm: '2rem' }}
-        py={{ xs: '1.7rem', sm: '2rem' }}
-        width="100%"
-      >
+    <>
+      <main className={`${styles.main} ${styles.notFound}`}>
         <Box
-          sx={{
-            height: {
-              xs: '0rem',
-              sm: '4rem',
-              md: '5rem',
-              lg: '5rem',
-              xl: '6rem',
-            },
-          }}
-        />
-        <Box
-          className={styles.not_found_container}
-          sx={{
-            minHeight: '50vh',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
+          px={{ xs: '1.2rem', sm: '2rem' }}
+          py={{ xs: '1.7rem', sm: '2rem' }}
+          width="100%"
         >
-          <h1 style={{ fontSize: '3.6rem', fontWeight: 'bold', margin: 0 }}>
-            404
-          </h1>
-          <Box height="0.5rem" />
-          <p>The page you are looking for does not exist.</p>
-
-          <Box height="1.3rem" />
-          <Button
-            variant="outlined"
-            href="/"
+          <Box
             sx={{
-              padding: '0.5rem 1rem',
-              width: '11rem',
-              border: '2px solid rgb(var(--foreground-rgb))',
-              borderRadius: '0.5rem',
-              textTransform: 'none',
-              fontSize: '1rem',
-              color: 'rgb(var(--foreground-rgb))',
-              '&:hover': {
-                border: '2px solid rgb(var(--foreground-rgb))',
+              height: {
+                xs: '0rem',
+                sm: '4rem',
+                md: '5rem',
+                lg: '5rem',
+                xl: '6rem',
               },
             }}
+          />
+          <Box
+            className={styles.not_found_container}
+            sx={{
+              minHeight: '50vh',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
           >
-            Back to Home
-          </Button>
+            <h1 style={{ fontSize: '3.6rem', fontWeight: 'bold', margin: 0 }}>
+              404
+            </h1>
+            <Box height="0.5rem" />
+            <p>The page you are looking for does not exist.</p>
+
+            <Box height="1.3rem" />
+            <Button
+              variant="outlined"
+              href="/"
+              sx={{
+                padding: '0.5rem 1rem',
+                width: '11rem',
+                border: '2px solid rgb(var(--foreground-rgb))',
+                borderRadius: '0.5rem',
+                textTransform: 'none',
+                fontSize: '1rem',
+                color: 'rgb(var(--foreground-rgb))',
+                '&:hover': {
+                  border: '2px solid rgb(var(--foreground-rgb))',
+                },
+              }}
+            >
+              Back to Home
+            </Button>
+          </Box>
         </Box>
-      </Box>
+      </main>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -82,6 +84,6 @@ export default function NotFound() {
       >
         <Footer />
       </motion.div>
-    </main>
+    </>
   );
 }

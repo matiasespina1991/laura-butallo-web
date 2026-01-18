@@ -567,346 +567,411 @@ export default function Exhibitions() {
   };
 
   return (
-    <main className={`${styles.main} ${styles.exhibitionsPage}`}>
-      <Box
-        px={{ xs: '1.2rem', sm: '2rem' }}
-        py={{ xs: '2rem', sm: '6rem' }}
-        width="100%"
-      >
+    <>
+      <main className={`${styles.main} ${styles.exhibitionsPage}`}>
         <Box
-          className={styles.exhibition_page_container}
-          height="100%"
+          px={{ xs: '1.2rem', sm: '2rem' }}
+          py={{ xs: '2rem', sm: '6rem' }}
           width="100%"
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              exit={{ opacity: 0 }}
-            >
-              <Stack
-                px={{
-                  xs: '0.3rem',
-                  sm: '0',
-                }}
-                gap={1.5}
-              >
-                <Typography
-                  sx={{
-                    overflowWrap: 'break-word',
-                    fontSize: {
-                      xs: '1.8rem',
-                      sm: '2.5rem',
-                    },
-                  }}
-                  fontWeight="bold"
-                  variant="h3"
-                >
-                  EXHIBITIONS
-                </Typography>
-                <Box height={10}></Box>
-                {loading ? (
-                  <Typography sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}>
-                    Loading exhibitions...
-                  </Typography>
-                ) : exhibitions.length === 0 ? (
-                  <Typography
-                    sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}
-                    color="text.secondary"
-                  >
-                    Todavía no hay exhibiciones publicadas.
-                  </Typography>
-                ) : (
-                  exhibitions.map((exhibition, index) => {
-                    const isOpen = openIndex === index;
-                    return (
-                      <Box key={exhibition.id}>
-                        <Box
-                          onClick={() => toggleExhibition(index)}
-                          sx={{
-                            height: 'auto',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                        >
-                          <Typography
-                            sx={{
-                              overflowWrap: 'break-word',
-                              fontSize: {
-                                xs: '1.4rem',
-                                sm: '2.5rem',
-                              },
-                            }}
-                            fontWeight="bold"
-                            variant="h3"
-                          >
-                            <img
-                              src="/images/icons/arrows/arrow_contact_light.png"
-                              alt="Toggle exhibition description"
-                              style={{
-                                width: '0.72em',
-                                height: '0.72em',
-                                marginRight: '0.3em',
-                                filter: mode === 'dark' ? 'invert(1)' : 'none',
-                              }}
-                            />
-                            {exhibition.title}
-                          </Typography>
-                        </Box>
-                        <AnimatePresence initial={false}>
-                          {isOpen && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.3, ease: 'easeInOut' }}
-                            >
-                              <Box mt={1.5} pl={{ xs: 0, sm: '1.8rem' }}>
-                                {(() => {
-                                  const textContent = (
-                                    <>
-                                      {exhibition.meta && (
-                                        <Typography
-                                          variant="subtitle1"
-                                          sx={{
-                                            fontSize: '1.1rem',
-                                            fontStyle: 'italic',
-                                            fontWeight: 500,
-                                          }}
-                                        >
-                                          {exhibition.meta}
-                                        </Typography>
-                                      )}
-                                      {exhibition.paragraphs.map(
-                                        (paragraph, paragraphIndex) => (
-                                          <Typography
-                                            key={`${exhibition.id}-${paragraphIndex}`}
-                                            component="div"
-                                            sx={{
-                                              mt:
-                                                paragraphIndex === 0 ? 1.5 : 1,
-                                              fontSize: {
-                                                xs: '1rem',
-                                                sm: '1.1rem',
-                                              },
-                                              lineHeight: 1.6,
-                                              '& a': {
-                                                display: 'inline',
-                                                textDecoration: 'underline',
-                                                textUnderlineOffset: '2px',
-                                              },
-                                              '& img': {
-                                                display: 'block',
-                                                maxWidth: '640px',
-                                                maxHeight: '640px',
-                                                width: '100%',
-                                                height: 'auto',
-                                              },
-                                            }}
-                                            dangerouslySetInnerHTML={{
-                                              __html: paragraph,
-                                            }}
-                                          />
-                                        )
-                                      )}
-                                    </>
-                                  );
-
-                                  if (!exhibition.mediaItems?.length) {
-                                    return textContent;
-                                  }
-
-                                  return (
-                                    <Box
-                                      sx={{
-                                        display: 'grid',
-                                        gridTemplateColumns: {
-                                          xs: '1fr',
-                                          md: 'minmax(0, 1fr) minmax(0, 1fr)',
-                                        },
-                                        alignItems: 'start',
-                                        columnGap: {
-                                          xs: '0',
-                                          md: '1.5rem',
-                                        },
-                                        rowGap: {
-                                          xs: '1.5rem',
-                                          md: 0,
-                                        },
-                                        padding: isMobile ? '0rem' : '1rem',
-                                      }}
-                                    >
-                                      <Box sx={{ minWidth: 0 }}>
-                                        {textContent}
-                                      </Box>
-                                      <Box
-                                        sx={{
-                                          minWidth: 0,
-                                          width: '100%',
-                                        }}
-                                      >
-                                        <ExhibitionMediaCarousel
-                                          items={exhibition.mediaItems}
-                                          mode={mode}
-                                          onMediaClick={openLightbox}
-                                        />
-                                      </Box>
-                                    </Box>
-                                  );
-                                })()}
-                              </Box>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                        <Box height={10}></Box>
-                      </Box>
-                    );
-                  })
-                )}
-              </Stack>
-            </motion.div>
-          </AnimatePresence>
-          <AnimatePresence mode="wait">
-            {lightboxOpen && activeMedia && (
+          <Box
+            className={styles.exhibition_page_container}
+            height="100%"
+            width="100%"
+          >
+            <AnimatePresence mode="wait">
               <motion.div
-                onClick={closeLightbox}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                style={{
-                  touchAction: 'none',
-                  display: 'flex',
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  height: '100vh',
-                  width: '100vw',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  paddingBottom: isMobileQuery ? '5rem' : '0',
-                  zIndex: 900,
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  backdropFilter: 'blur(2px) saturate(0)',
-                  overscrollBehavior: 'none',
-                  pointerEvents: 'auto',
-                  WebkitTouchCallout: 'none',
-                  WebkitUserSelect: 'none',
-                }}
               >
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    zIndex: 900,
-                    background: 'transparent',
-                    pointerEvents: 'auto',
+                <Stack
+                  px={{
+                    xs: '0.3rem',
+                    sm: '0',
                   }}
-                />
-                <Box
-                  sx={{
-                    position: 'relative',
-                    cursor: 'pointer',
-                    zIndex: 900,
-                    display: 'grid',
-                    width: '100%',
-                    height: '100%',
-                    placeItems: 'center',
-                  }}
-                  onClick={closeLightbox}
+                  gap={1.5}
                 >
-                  <motion.div
-                    key={activeMedia.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                  <Typography
+                    sx={{
+                      overflowWrap: 'break-word',
+                      fontSize: {
+                        xs: '1.8rem',
+                        sm: '2.5rem',
+                      },
+                    }}
+                    fontWeight="bold"
+                    variant="h3"
+                  >
+                    EXHIBITIONS
+                  </Typography>
+                  <Box height={10}></Box>
+                  {loading ? (
+                    //Show skeleton loaders while loading
+                    <Box>
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <Box key={index} maxWidth={800} mb={4}>
+                          <Box
+                            sx={{
+                              height: '2rem',
+                              width: '60%',
+                              backgroundColor:
+                                mode === 'dark'
+                                  ? 'rgba(255, 255, 255, 0.1)'
+                                  : 'rgba(0, 0, 0, 0.1)',
+                              borderRadius: '4px',
+                              mb: 2,
+                            }}
+                          ></Box>
+                          <Box
+                            sx={{
+                              height: '1.5rem',
+                              width: '100%',
+                              backgroundColor:
+                                mode === 'dark'
+                                  ? 'rgba(255, 255, 255, 0.05)'
+                                  : 'rgba(0, 0, 0, 0.05)',
+                              borderRadius: '4px',
+                              mb: 1,
+                            }}
+                          ></Box>
+                          <Box
+                            sx={{
+                              height: '1.5rem',
+                              width: '100%',
+                              backgroundColor:
+                                mode === 'dark'
+                                  ? 'rgba(255, 255, 255, 0.05)'
+                                  : 'rgba(0, 0, 0, 0.05)',
+                              borderRadius: '4px',
+                              mb: 1,
+                            }}
+                          ></Box>
+                          <Box
+                            sx={{
+                              height: '1.5rem',
+                              width: '80%',
+                              backgroundColor:
+                                mode === 'dark'
+                                  ? 'rgba(255, 255, 255, 0.05)'
+                                  : 'rgba(0, 0, 0, 0.05)',
+                              borderRadius: '4px',
+                            }}
+                          ></Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : exhibitions.length === 0 ? (
+                    <Typography
+                      sx={{ fontSize: { xs: '1rem', sm: '1.1rem' } }}
+                      color="text.secondary"
+                    >
+                      Todavía no hay exhibiciones publicadas.
+                    </Typography>
+                  ) : (
+                    exhibitions.map((exhibition, index) => {
+                      const isOpen = openIndex === index;
+                      return (
+                        <Box key={exhibition.id}>
+                          <Box
+                            onClick={() => toggleExhibition(index)}
+                            sx={{
+                              height: 'auto',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                overflowWrap: 'break-word',
+                                fontSize: {
+                                  xs: '1.4rem',
+                                  sm: '2.5rem',
+                                },
+                              }}
+                              fontWeight="bold"
+                              variant="h3"
+                            >
+                              <img
+                                src="/images/icons/arrows/arrow_contact_light.png"
+                                alt="Toggle exhibition description"
+                                style={{
+                                  width: '0.72em',
+                                  height: '0.72em',
+                                  marginRight: '0.3em',
+                                  filter:
+                                    mode === 'dark' ? 'invert(1)' : 'none',
+                                }}
+                              />
+                              {exhibition.title}
+                            </Typography>
+                          </Box>
+                          <AnimatePresence initial={false}>
+                            {isOpen && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{
+                                  duration: 0.3,
+                                  ease: 'easeInOut',
+                                }}
+                              >
+                                <Box mt={1.5} pl={{ xs: 0, sm: '1.8rem' }}>
+                                  {(() => {
+                                    const textContent = (
+                                      <>
+                                        {exhibition.meta && (
+                                          <Typography
+                                            variant="subtitle1"
+                                            sx={{
+                                              fontSize: '1.1rem',
+                                              fontStyle: 'italic',
+                                              fontWeight: 500,
+                                            }}
+                                          >
+                                            {exhibition.meta}
+                                          </Typography>
+                                        )}
+                                        {exhibition.paragraphs.map(
+                                          (paragraph, paragraphIndex) => (
+                                            <Typography
+                                              key={`${exhibition.id}-${paragraphIndex}`}
+                                              component="div"
+                                              sx={{
+                                                mt:
+                                                  paragraphIndex === 0
+                                                    ? 1.5
+                                                    : 1,
+                                                fontSize: {
+                                                  xs: '1rem',
+                                                  sm: '1.1rem',
+                                                },
+                                                lineHeight: 1.6,
+                                                '& a': {
+                                                  display: 'inline',
+                                                  textDecoration: 'underline',
+                                                  textUnderlineOffset: '2px',
+                                                },
+                                                '& img': {
+                                                  display: 'block',
+                                                  maxWidth: '640px',
+                                                  maxHeight: '640px',
+                                                  width: '100%',
+                                                  height: 'auto',
+                                                },
+                                              }}
+                                              dangerouslySetInnerHTML={{
+                                                __html: paragraph,
+                                              }}
+                                            />
+                                          )
+                                        )}
+                                      </>
+                                    );
+
+                                    if (!exhibition.mediaItems?.length) {
+                                      return textContent;
+                                    }
+
+                                    return (
+                                      <Box
+                                        className="exhibition-content-grid"
+                                        sx={{
+                                          display: 'grid',
+                                          gridTemplateColumns: {
+                                            xs: '1fr',
+                                            md: 'minmax(0, 1fr) minmax(0, 1fr)',
+                                          },
+                                          alignItems: 'start',
+                                          columnGap: {
+                                            xs: '0',
+                                            md: '1.5rem',
+                                          },
+                                          rowGap: {
+                                            xs: '1.5rem',
+                                            md: 0,
+                                          },
+                                          padding: isMobile ? '0rem' : '1rem',
+                                          '@media (min-width: 2000px)': {
+                                            gridTemplateColumns: '1fr',
+                                            columnGap: '0',
+                                            rowGap: '2rem',
+                                          },
+                                        }}
+                                      >
+                                        <Box sx={{ minWidth: 0 }}>
+                                          {textContent}
+                                        </Box>
+                                        <Box
+                                          sx={{
+                                            minWidth: 0,
+                                            width: '100%',
+                                          }}
+                                        >
+                                          <ExhibitionMediaCarousel
+                                            items={exhibition.mediaItems}
+                                            mode={mode}
+                                            onMediaClick={openLightbox}
+                                          />
+                                        </Box>
+                                      </Box>
+                                    );
+                                  })()}
+                                </Box>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                          <Box height={10}></Box>
+                        </Box>
+                      );
+                    })
+                  )}
+                </Stack>
+              </motion.div>
+            </AnimatePresence>
+            <AnimatePresence mode="wait">
+              {lightboxOpen && activeMedia && (
+                <motion.div
+                  onClick={closeLightbox}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  style={{
+                    touchAction: 'none',
+                    display: 'flex',
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    height: '100vh',
+                    width: '100vw',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingBottom: isMobileQuery ? '5rem' : '0',
+                    zIndex: 900,
+                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                    backdropFilter: 'blur(2px) saturate(0)',
+                    overscrollBehavior: 'none',
+                    pointerEvents: 'auto',
+                    WebkitTouchCallout: 'none',
+                    WebkitUserSelect: 'none',
+                  }}
+                >
+                  <div
                     style={{
-                      gridArea: '1 / 1',
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 900,
+                      background: 'transparent',
+                      pointerEvents: 'auto',
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      cursor: 'pointer',
+                      zIndex: 900,
+                      display: 'grid',
                       width: '100%',
                       height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      pointerEvents: 'none',
+                      placeItems: 'center',
                     }}
+                    onClick={closeLightbox}
                   >
-                    <Box
-                      onClick={(e) => e.stopPropagation()}
-                      onMouseDown={(e) => {
-                        e.stopPropagation();
-                      }}
+                    <motion.div
+                      key={activeMedia.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6, ease: 'easeOut' }}
                       style={{
-                        display: 'block',
-                        userSelect: 'none',
-                        pointerEvents: 'auto',
-                        maxWidth: '99vw',
-                        maxHeight: '80vh',
-                        margin: '0 auto',
+                        gridArea: '1 / 1',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        pointerEvents: 'none',
                       }}
                     >
                       <Box
-                        sx={{
-                          borderRadius: '6px',
-                          overflow: 'hidden',
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        style={{
+                          display: 'block',
+                          userSelect: 'none',
+                          pointerEvents: 'auto',
+                          maxWidth: '99vw',
+                          maxHeight: '80vh',
+                          margin: '0 auto',
                         }}
                       >
-                        <IconButton
+                        <Box
                           sx={{
-                            position: 'absolute',
-                            top: '1rem',
-                            right: '1rem',
-                            color: 'white',
-                            zIndex: 9999,
-                            transition: 'opacity 0.3s',
-                            transform: 'scale(1.3)',
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            closeLightbox();
+                            borderRadius: '6px',
+                            overflow: 'hidden',
                           }}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            width="35px"
-                            height="35px"
+                          <IconButton
+                            sx={{
+                              position: 'absolute',
+                              top: '1rem',
+                              right: '1rem',
+                              color: 'white',
+                              zIndex: 9999,
+                              transition: 'opacity 0.3s',
+                              transform: 'scale(1.3)',
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              closeLightbox();
+                            }}
                           >
-                            <line
-                              x1="6"
-                              y1="6"
-                              x2="18"
-                              y2="18"
-                              stroke="currentColor"
-                              strokeWidth="0.6"
-                            />
-                            <line
-                              x1="18"
-                              y1="6"
-                              x2="6"
-                              y2="18"
-                              stroke="currentColor"
-                              strokeWidth="0.6"
-                            />
-                          </svg>
-                        </IconButton>
-                        <LightboxMediaContent
-                          media={activeMedia}
-                          isMobileQuery={isMobileQuery}
-                          isMobileDevice={isMobile}
-                        />
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              width="35px"
+                              height="35px"
+                            >
+                              <line
+                                x1="6"
+                                y1="6"
+                                x2="18"
+                                y2="18"
+                                stroke="currentColor"
+                                strokeWidth="0.6"
+                              />
+                              <line
+                                x1="18"
+                                y1="6"
+                                x2="6"
+                                y2="18"
+                                stroke="currentColor"
+                                strokeWidth="0.6"
+                              />
+                            </svg>
+                          </IconButton>
+                          <LightboxMediaContent
+                            media={activeMedia}
+                            isMobileQuery={isMobileQuery}
+                            isMobileDevice={isMobile}
+                          />
+                        </Box>
                       </Box>
-                    </Box>
-                  </motion.div>
-                </Box>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    </motion.div>
+                  </Box>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Box>
         </Box>
-      </Box>
+      </main>
       {!isMobile && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -917,6 +982,6 @@ export default function Exhibitions() {
           <Footer />
         </motion.div>
       )}
-    </main>
+    </>
   );
 }

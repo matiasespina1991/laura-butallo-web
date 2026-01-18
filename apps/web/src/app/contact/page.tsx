@@ -29,95 +29,97 @@ export default function Contact() {
   }, []);
 
   return (
-    <main className={`${styles.main} ${styles.contactPage}`}>
-      <Box
-        px={{ xs: '1.2rem', sm: '2rem' }}
-        py={{ xs: '1.7rem', sm: '2rem' }}
-        width="100%"
-      >
+    <>
+      <main className={`${styles.main} ${styles.contactPage}`}>
         <Box
-          sx={{
-            height: {
-              xs: '1rem',
-              sm: '3rem',
-              md: '3rem',
-              lg: '3.5rem',
-              xl: '5rem',
-            },
-          }}
-        ></Box>
-        <Box className={styles.contact_page_container} width="100%">
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              exit={{ opacity: 0 }}
-            >
-              <Stack
-                px={{
-                  xs: '0.3rem',
-                  sm: '0',
-                }}
-                gap={1.5}
+          px={{ xs: '1.2rem', sm: '2rem' }}
+          py={{ xs: '1.7rem', sm: '2rem' }}
+          width="100%"
+        >
+          <Box
+            sx={{
+              height: {
+                xs: '1rem',
+                sm: '3rem',
+                md: '3rem',
+                lg: '3.5rem',
+                xl: '5rem',
+              },
+            }}
+          ></Box>
+          <Box className={styles.contact_page_container} width="100%">
+            <AnimatePresence mode="wait">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                exit={{ opacity: 0 }}
               >
-                <Typography
-                  sx={{
-                    overflowWrap: 'break-word',
-                    fontSize: {
-                      xs: '1.8rem',
-                      sm: '2.5rem',
-                    },
+                <Stack
+                  px={{
+                    xs: '0.3rem',
+                    sm: '0',
                   }}
-                  fontWeight="bold"
-                  variant="h3"
+                  gap={1.5}
                 >
-                  CONTACT
-                </Typography>
-                <Box height={10}></Box>
-                {contactData.items.map((item) => {
-                  const isMail = item.url.startsWith('mailto:');
-                  const isHttp = item.url.startsWith('http');
-                  return (
-                    <div key={item.id}>
-                      <Link
-                        href={item.url}
-                        target={isHttp ? '_blank' : undefined}
-                        rel={isHttp ? 'noopener noreferrer' : undefined}
-                      >
-                        <Typography
-                          sx={{
-                            overflowWrap: 'break-word',
-                            fontSize: {
-                              xs: '1.4rem',
-                              sm: '2.5rem',
-                            },
-                          }}
-                          fontWeight="bold"
-                          variant="h3"
+                  <Typography
+                    sx={{
+                      overflowWrap: 'break-word',
+                      fontSize: {
+                        xs: '1.8rem',
+                        sm: '2.5rem',
+                      },
+                    }}
+                    fontWeight="bold"
+                    variant="h3"
+                  >
+                    CONTACT
+                  </Typography>
+                  <Box height={10}></Box>
+                  {contactData.items.map((item) => {
+                    const isMail = item.url.startsWith('mailto:');
+                    const isHttp = item.url.startsWith('http');
+                    return (
+                      <div key={item.id}>
+                        <Link
+                          href={item.url}
+                          target={isHttp ? '_blank' : undefined}
+                          rel={isHttp ? 'noopener noreferrer' : undefined}
                         >
-                          <img
-                            src="/images/icons/arrows/arrow_contact_light.png"
-                            alt={item.label}
-                            style={{
-                              width: '0.72em',
-                              height: '0.72em',
-                              marginRight: '0.3em',
-                              filter: mode === 'dark' ? 'invert(1)' : 'none',
+                          <Typography
+                            sx={{
+                              overflowWrap: 'break-word',
+                              fontSize: {
+                                xs: '1.4rem',
+                                sm: '2.5rem',
+                              },
                             }}
-                          />
-                          {item.label}
-                        </Typography>
-                      </Link>
-                      <Box height={10}></Box>
-                    </div>
-                  );
-                })}
-              </Stack>
-            </motion.div>
-          </AnimatePresence>
+                            fontWeight="bold"
+                            variant="h3"
+                          >
+                            <img
+                              src="/images/icons/arrows/arrow_contact_light.png"
+                              alt={item.label}
+                              style={{
+                                width: '0.72em',
+                                height: '0.72em',
+                                marginRight: '0.3em',
+                                filter: mode === 'dark' ? 'invert(1)' : 'none',
+                              }}
+                            />
+                            {item.label}
+                          </Typography>
+                        </Link>
+                        <Box height={10}></Box>
+                      </div>
+                    );
+                  })}
+                </Stack>
+              </motion.div>
+            </AnimatePresence>
+          </Box>
         </Box>
-      </Box>
+      </main>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -126,6 +128,6 @@ export default function Contact() {
       >
         <Footer />
       </motion.div>
-    </main>
+    </>
   );
 }

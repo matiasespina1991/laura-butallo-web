@@ -37,82 +37,84 @@ export default function AboutMe() {
   }, []);
 
   return (
-    <main className={styles.main}>
-      <Box
-        px={{ xs: '1.2rem', sm: '2rem' }}
-        py={{ xs: '1.7rem', sm: '2rem' }}
-        width="100%"
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            className={styles.about_me_container}
-            style={{ width: '100%' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            exit={{ opacity: 0 }}
-          >
-            <Box
-              sx={{
-                height: {
-                  xs: '1rem',
-                  sm: '3rem',
-                  md: '3rem',
-                  lg: '3.5rem',
-                  xl: '5rem',
-                },
-              }}
-            ></Box>
-            <Box width="100%">
-              <Typography
+    <>
+      <main className={styles.main}>
+        <Box
+          px={{ xs: '1.2rem', sm: '2rem' }}
+          py={{ xs: '1.7rem', sm: '2rem' }}
+          width="100%"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              className={styles.about_me_container}
+              style={{ width: '100%' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              exit={{ opacity: 0 }}
+            >
+              <Box
                 sx={{
-                  fontSize: {
-                    xs: '1.8rem',
-                    sm: '2.8rem',
+                  height: {
+                    xs: '1rem',
+                    sm: '3rem',
+                    md: '3rem',
+                    lg: '3.5rem',
+                    xl: '5rem',
                   },
                 }}
-                fontWeight="bold"
-                variant="h3"
-              >
-                {aboutMeData.title}
-              </Typography>
-              <Box height={15}></Box>
+              ></Box>
+              <Box width="100%">
+                <Typography
+                  sx={{
+                    fontSize: {
+                      xs: '1.8rem',
+                      sm: '2.8rem',
+                    },
+                  }}
+                  fontWeight="bold"
+                  variant="h3"
+                >
+                  {aboutMeData.title}
+                </Typography>
+                <Box height={15}></Box>
 
-              <Typography
-                maxWidth={{
-                  sm: '100%',
-                  md: '95%',
-                  lg: '95%',
-                  xl: '78%',
-                }}
-                sx={{
-                  fontSize: {
-                    xs: '1.3rem',
-                    sm: '1.5rem',
-                  },
-                  '& p': {
-                    margin: 0,
-                  },
-                  '& a': {
-                    textDecoration: 'underline',
-                    textUnderlineOffset: '2px',
-                  },
-                  '& img': {
-                    display: 'block',
-                    maxWidth: '640px',
-                    maxHeight: '640px',
-                    width: '100%',
-                    height: 'auto',
-                  },
-                }}
-                dangerouslySetInnerHTML={{ __html: aboutMeData.content }}
-              />
-            </Box>
+                <Typography
+                  maxWidth={{
+                    sm: '100%',
+                    md: '95%',
+                    lg: '95%',
+                    xl: '78%',
+                  }}
+                  sx={{
+                    fontSize: {
+                      xs: '1.3rem',
+                      sm: '1.5rem',
+                    },
+                    '& p': {
+                      margin: 0,
+                    },
+                    '& a': {
+                      textDecoration: 'underline',
+                      textUnderlineOffset: '2px',
+                    },
+                    '& img': {
+                      display: 'block',
+                      maxWidth: '640px',
+                      maxHeight: '640px',
+                      width: '100%',
+                      height: 'auto',
+                    },
+                  }}
+                  dangerouslySetInnerHTML={{ __html: aboutMeData.content }}
+                />
+              </Box>
 
-            <Box height={120}></Box>
-          </motion.div>
-        </AnimatePresence>
-      </Box>
+              <Box height={120}></Box>
+            </motion.div>
+          </AnimatePresence>
+        </Box>
+      </main>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -121,6 +123,6 @@ export default function AboutMe() {
       >
         <Footer />
       </motion.div>
-    </main>
+    </>
   );
 }

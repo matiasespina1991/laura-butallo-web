@@ -19,10 +19,11 @@ export function useFilteredNavItems(items: NavItem[]) {
     const allowedUrls = new Set([
       '/dashboard/overview',
       '/dashboard/exhibitions',
-      '/dashboard/media',
+      '/dashboard/gallery',
       '/dashboard/about-me',
       '/dashboard/contact',
-      '/dashboard/settings'
+      '/dashboard/settings',
+      '/dashboard/works-organizer'
     ]);
 
     const filterItems = (entries: NavItem[]): NavItem[] =>
