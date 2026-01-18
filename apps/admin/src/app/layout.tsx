@@ -16,8 +16,8 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'Laura Butallo Web Admin Dashboard',
+  description: 'Dashboard de administración para Laura Butallo Web'
 };
 
 export const viewport: Viewport = {

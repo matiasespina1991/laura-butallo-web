@@ -131,7 +131,7 @@ function MediaItem({
           <GripVertical className='text-muted-foreground h-4 w-4' />
         </button>
         <p className='text-xs font-medium'>
-          {media.type === 'image' ? 'Image' : 'Video'}
+          {media.type === 'image' ? 'Imagen' : 'Video'}
         </p>
       </div>
 
