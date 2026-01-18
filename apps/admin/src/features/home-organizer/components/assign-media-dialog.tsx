@@ -51,25 +51,17 @@ export default function AssignMediaDialog({
 
       await batch.commit();
 
-      toast.success(`${selectedMedia.length} media assigned`);
+      toast.success(`${selectedMedia.length} media asignados`);
       onSuccess();
     } catch (error) {
       console.error('Error assigning media:', error);
-      toast.error('Failed to assign media');
+      toast.error('Error al asignar media');
     }
   }
 
   const filterUnassigned = (media: MediaDoc) => {
     const isUnassigned =
       !(media as any).mediaSetId || (media as any).mediaSetId === null;
-    console.log(
-      '[AssignMediaDialog] Media',
-      media.id,
-      'mediaSetId:',
-      (media as any).mediaSetId,
-      'isUnassigned:',
-      isUnassigned
-    );
     return isUnassigned;
   };
 
@@ -77,8 +69,8 @@ export default function AssignMediaDialog({
     <MediaPickerDialog
       open={open}
       onOpenChange={onOpenChange}
-      title='Add Media to Mediaset'
-      description='Select media items to add to this mediaset'
+      title='Agregar Media al Mediaset'
+      description='Mostrando solo media sin asignar. Seleccioná los elementos que querés agregar.'
       selectionMode='multiple'
       filterPredicate={filterUnassigned}
       selectedIds={[]}

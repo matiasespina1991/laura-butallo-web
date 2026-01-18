@@ -19,7 +19,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { db } from '@/lib/firebase';
-import MediaGallery from '@/features/media/components/media-gallery';
+import MediaGallery from '@/features/gallery/components/media-gallery';
 import type { MediaDoc } from '@/lib/media-upload';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 

@@ -115,7 +115,7 @@ function MediaItem({ media }: { media: Media }) {
     >
       <button
         onClick={handleDelete}
-        className='absolute right-1 top-1 z-10 rounded-full bg-background/80 p-1 opacity-0 transition-opacity hover:bg-background group-hover:opacity-100'
+        className='absolute right-1 top-1 z-10 cursor-pointer rounded-full bg-background/80 p-1 opacity-0 transition-opacity hover:bg-background group-hover:opacity-100'
         title='Eliminar media'
       >
         <X className='h-3 w-3' />
@@ -151,20 +151,24 @@ function MediaItem({ media }: { media: Media }) {
         )}
       </div>
 
-      <Select
-        value={media.flex?.toString() || '1'}
-        onValueChange={handleFlexChange}
-      >
-        <SelectTrigger className='w-full'>
-          <SelectValue placeholder='Flex' />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value='1'>Flex 1</SelectItem>
-          <SelectItem value='2'>Flex 2</SelectItem>
-          <SelectItem value='3'>Flex 3</SelectItem>
-          <SelectItem value='4'>Flex 4</SelectItem>
-        </SelectContent>
-      </Select>
+      {/* <div className='flex items-center gap-2'>
+        <span className='text-muted-foreground text-xs'>Flex:</span>
+        <Select
+          key={media.flex}
+          value={media.flex?.toString() || '1'}
+          onValueChange={handleFlexChange}
+        >
+          <SelectTrigger className='w-full'>
+            <SelectValue placeholder='1' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='1'>1</SelectItem>
+            <SelectItem value='2'>2</SelectItem>
+            <SelectItem value='3'>3</SelectItem>
+            <SelectItem value='4'>4</SelectItem>
+          </SelectContent>
+        </Select>
+      </div> */}
     </div>
   );
 }
@@ -196,10 +200,10 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
         await Promise.all(updates);
 
         onUpdate(reordered.map((m, idx) => ({ ...m, order: idx })));
-        toast.success('Order updated');
+        toast.success('Orden actualizado');
       } catch (error) {
         console.error('Error updating order:', error);
-        toast.error('Failed to update order');
+        toast.error('Error al actualizar orden');
       }
     }
   }
@@ -211,20 +215,19 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
 
   if (media.length === 0) {
     return (
-      <div className='space-y-4 py-8 text-center'>
-        <p className='text-muted-foreground text-sm'>
-          No hay media asignado a este mediaset todavía.
-        </p>
-        <Button
-          variant='outline'
+      <div className='grid grid-cols-4 gap-3'>
+        <button
           onClick={(e) => {
             e.stopPropagation();
             setAssignDialogOpen(true);
           }}
+          className='border-muted-foreground/25 hover:border-muted-foreground/40 hover:bg-muted/20 flex h-full min-h-[200px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-3 transition-colors'
         >
-          <Plus className='mr-2 h-4 w-4' />
-          Agregar Media
-        </Button>
+          <Plus className='text-muted-foreground h-8 w-8' />
+          <span className='text-muted-foreground text-sm font-medium'>
+            Agregar Media
+          </span>
+        </button>
         <AssignMediaDialog
           open={assignDialogOpen}
           onOpenChange={setAssignDialogOpen}
@@ -250,22 +253,23 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
             {media.slice(0, 4).map((m) => (
               <MediaItem key={m.id} media={m} />
             ))}
+            {media.length < 4 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAssignDialogOpen(true);
+                }}
+                className='border-muted-foreground/25 hover:border-muted-foreground/40 hover:bg-muted/20 flex h-full min-h-[200px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-3 transition-colors'
+              >
+                <Plus className='text-muted-foreground h-8 w-8' />
+                <span className='text-muted-foreground text-sm font-medium'>
+                  Agregar Media
+                </span>
+              </button>
+            )}
           </div>
         </SortableContext>
       </DndContext>
-
-      <Button
-        variant='outline'
-        size='sm'
-        onClick={(e) => {
-          e.stopPropagation();
-          setAssignDialogOpen(true);
-        }}
-        className='w-full'
-      >
-        <Plus className='mr-2 h-4 w-4' />
-        Agregar Más Media
-      </Button>
 
       <AssignMediaDialog
         open={assignDialogOpen}

@@ -1,28 +1,9 @@
-'use client';
+import MediaPage from '@/features/gallery/components/media-page';
 
-import { useState } from 'react';
-import GalleryOrganizer from '@/features/gallery/components/gallery-organizer';
-import PageContainer from '@/components/layout/page-container';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+export const metadata = {
+  title: 'Dashboard: Galería'
+};
 
-export default function GalleryPage() {
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  return (
-    <PageContainer
-      scrollable={true}
-      className='w-full max-w-[55rem] justify-self-start'
-      pageTitle='Home Organizer'
-      pageDescription='Organiza los mediasets y sus ítems para la página de inicio'
-      pageHeaderAction={
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className='mr-2 h-4 w-4' />
-          New Mediaset
-        </Button>
-      }
-    >
-      <GalleryOrganizer dialogOpen={dialogOpen} setDialogOpen={setDialogOpen} />
-    </PageContainer>
-  );
+export default function Page() {
+  return <MediaPage />;
 }

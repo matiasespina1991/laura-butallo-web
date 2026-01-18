@@ -57,15 +57,13 @@ interface Props {
   index: number;
   media: Media[];
   onMediaUpdate: (media: Media[]) => void;
-  onDelete: () => void;
 }
 
 export default function MediasetItem({
   mediaset,
   index,
   media,
-  onMediaUpdate,
-  onDelete
+  onMediaUpdate
 }: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -85,11 +83,11 @@ export default function MediasetItem({
       await updateDoc(doc(db, 'mediasets', mediaset.id), {
         deletedAt: Timestamp.now()
       });
-      toast.success('Mediaset deleted');
-      onDelete();
+      toast.success('Mediaset eliminado');
+      // Los listeners en tiempo real se encargarán de actualizar los datos
     } catch (error) {
       console.error('Error deleting mediaset:', error);
-      toast.error('Failed to delete mediaset');
+      toast.error('Error al eliminar mediaset');
     } finally {
       setDeleting(false);
       setDeleteDialogOpen(false);
@@ -173,17 +171,15 @@ export default function MediasetItem({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Mediaset</AlertDialogTitle>
+            <AlertDialogTitle>Eliminar Mediaset</AlertDialogTitle>
             <AlertDialogDescription>
-              This will soft-delete the mediaset. The media items will remain
-              unassigned. This action can be undone by clearing the deletedAt
-              field in Firestore.
+              Esto eliminará el mediaset (soft-delete). Los items de media permanecerán sin asignar. Esta acción puede deshacerse limpiando el campo deletedAt en Firestore.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={deleting}>
-              {deleting ? 'Deleting...' : 'Delete'}
+              {deleting ? 'Eliminando...' : 'Eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

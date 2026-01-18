@@ -34,16 +34,16 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Media',
-    url: '/dashboard/media',
+    title: 'Gallery',
+    url: '/dashboard/gallery',
     icon: 'media',
     shortcut: ['m', 'm'],
     isActive: false,
     items: []
   },
   {
-    title: 'Home',
-    url: '/dashboard/gallery',
+    title: 'Home Organizer',
+    url: '/dashboard/home-organizer',
     icon: 'home',
     shortcut: ['h', 'h'],
     isActive: false,

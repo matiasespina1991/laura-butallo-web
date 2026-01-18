@@ -8,7 +8,8 @@ import {
   orderBy,
   query,
   where,
-  writeBatch
+  writeBatch,
+  onSnapshot
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
@@ -59,7 +60,7 @@ interface Props {
   setDialogOpen: (open: boolean) => void;
 }
 
-export default function GalleryOrganizer({ dialogOpen, setDialogOpen }: Props) {
+export default function HomeOrganizer({ dialogOpen, setDialogOpen }: Props) {
   const [mediasets, setMediasets] = useState<MediaSet[]>([]);
   const [allMedia, setAllMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,34 +74,54 @@ export default function GalleryOrganizer({ dialogOpen, setDialogOpen }: Props) {
   );
 
   useEffect(() => {
-    loadData();
+    setLoading(true);
+
+    // Real-time listener for mediasets
+    const mediasetsQuery = query(
+      collection(db, 'mediasets'),
+      orderBy('ordering', 'asc')
+    );
+    const unsubscribeMediasets = onSnapshot(
+      mediasetsQuery,
+      (snapshot) => {
+        const loadedMediasets = snapshot.docs
+          .map((d) => ({ ...d.data(), id: d.id }) as MediaSet)
+          .filter((ms) => !ms.deletedAt);
+        setMediasets(loadedMediasets);
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Error loading mediasets:', error);
+        toast.error('Error al cargar mediasets');
+        setLoading(false);
+      }
+    );
+
+    // Real-time listener for media
+    const mediaQuery = query(
+      collection(db, 'media'),
+      where('processed', '==', true)
+    );
+    const unsubscribeMedia = onSnapshot(
+      mediaQuery,
+      (snapshot) => {
+        const loadedMedia = snapshot.docs
+          .map((d) => ({ ...d.data(), id: d.id }) as Media)
+          .filter((m) => !m.deletedAt);
+        setAllMedia(loadedMedia);
+      },
+      (error) => {
+        console.error('Error loading media:', error);
+        toast.error('Error al cargar media');
+      }
+    );
+
+    // Cleanup function to unsubscribe from both listeners
+    return () => {
+      unsubscribeMediasets();
+      unsubscribeMedia();
+    };
   }, []);
-
-  async function loadData() {
-    try {
-      setLoading(true);
-      const [mediasetsSnap, mediaSnap] = await Promise.all([
-        getDocs(query(collection(db, 'mediasets'), orderBy('ordering', 'asc'))),
-        getDocs(query(collection(db, 'media'), where('processed', '==', true)))
-      ]);
-
-      const loadedMediasets = mediasetsSnap.docs
-        .map((d) => ({ ...d.data(), id: d.id }) as MediaSet)
-        .filter((ms) => !ms.deletedAt);
-
-      const loadedMedia = mediaSnap.docs
-        .map((d) => ({ ...d.data(), id: d.id }) as Media)
-        .filter((m) => !m.deletedAt);
-
-      setMediasets(loadedMediasets);
-      setAllMedia(loadedMedia);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast.error('Failed to load gallery data');
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function getMediaForSet(setId: string) {
     return allMedia
@@ -126,11 +147,11 @@ export default function GalleryOrganizer({ dialogOpen, setDialogOpen }: Props) {
         batch.update(doc(db, 'mediasets', ms.id), { ordering: idx });
       });
       await batch.commit();
-      toast.success('Mediasets reordered');
+      toast.success('Orden actualizado');
     } catch (error) {
       console.error('Error saving order:', error);
-      toast.error('Failed to save order');
-      loadData(); // Reload on error
+      toast.error('Error al guardar orden');
+      // Los listeners en tiempo real se encargarán de actualizar los datos
     } finally {
       setSaving(false);
     }
@@ -160,7 +181,7 @@ export default function GalleryOrganizer({ dialogOpen, setDialogOpen }: Props) {
       {mediasets.length === 0 ? (
         <Card className='p-8 text-center'>
           <p className='text-muted-foreground'>
-            No mediasets yet. Create one to get started.
+            No hay mediasets todavía. Creá uno para empezar.
           </p>
         </Card>
       ) : (
@@ -181,7 +202,6 @@ export default function GalleryOrganizer({ dialogOpen, setDialogOpen }: Props) {
                   index={index}
                   media={getMediaForSet(mediaset.id)}
                   onMediaUpdate={handleMediaUpdate}
-                  onDelete={loadData}
                 />
               ))}
             </div>
@@ -192,7 +212,6 @@ export default function GalleryOrganizer({ dialogOpen, setDialogOpen }: Props) {
       <NewMediasetDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onSuccess={loadData}
         currentMaxOrdering={
           mediasets.length > 0
             ? Math.max(...mediasets.map((ms) => ms.ordering))

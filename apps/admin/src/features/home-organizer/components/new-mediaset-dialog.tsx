@@ -17,14 +17,12 @@ import { toast } from 'sonner';
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
   currentMaxOrdering: number;
 }
 
 export default function NewMediasetDialog({
   open,
   onOpenChange,
-  onSuccess,
   currentMaxOrdering
 }: Props) {
   const [creating, setCreating] = useState(false);
@@ -40,12 +38,12 @@ export default function NewMediasetDialog({
         publishedAt: now,
         deletedAt: null
       });
-      toast.success('Mediaset created');
-      onSuccess();
+      toast.success('Mediaset creado');
       onOpenChange(false);
+      // Los listeners en tiempo real se encargarán de actualizar los datos
     } catch (error) {
       console.error('Error creating mediaset:', error);
-      toast.error('Failed to create mediaset');
+      toast.error('Error al crear mediaset');
     } finally {
       setCreating(false);
     }
@@ -55,10 +53,9 @@ export default function NewMediasetDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Mediaset</DialogTitle>
+          <DialogTitle>Crear Nuevo Mediaset</DialogTitle>
           <DialogDescription>
-            Create a new empty mediaset. You can add media items to it from the
-            Media page.
+            Creá un nuevo mediaset vacío. Podés agregarle items de media desde esta página.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -67,10 +64,10 @@ export default function NewMediasetDialog({
             onClick={() => onOpenChange(false)}
             disabled={creating}
           >
-            Cancel
+            Cancelar
           </Button>
           <Button onClick={handleCreate} disabled={creating}>
-            {creating ? 'Creating...' : 'Create'}
+            {creating ? 'Creando...' : 'Crear'}
           </Button>
         </DialogFooter>
       </DialogContent>
