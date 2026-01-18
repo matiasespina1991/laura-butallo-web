@@ -18,6 +18,7 @@ import { db } from '@/lib/firebase';
 import { IconMovie, IconPhoto } from '@tabler/icons-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { MediaDoc } from '@/lib/media-upload';
+import { toast } from 'sonner';
 
 export type { MediaDoc } from '@/lib/media-upload';
 
@@ -31,6 +32,7 @@ export type MediaPickerDialogProps = {
   selectedIds?: string[];
   allowedTypes?: Array<MediaDoc['type']>;
   filterPredicate?: (media: MediaDoc) => boolean;
+  maxSelection?: number;
   onConfirm: (items: MediaDoc[]) => void | Promise<void>;
   onOpenChange: (open: boolean) => void;
 };
@@ -193,6 +195,7 @@ export default function MediaPickerDialog({
   selectedIds = [],
   allowedTypes,
   filterPredicate,
+  maxSelection,
   onConfirm,
   onOpenChange
 }: MediaPickerDialogProps) {
@@ -283,9 +286,19 @@ export default function MediaPickerDialog({
       if (selectionMode === 'single') {
         return prev[0] === id ? [] : [id];
       }
-      return prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id];
+      // If deselecting, allow it
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      }
+      // If selecting and there's a maxSelection limit
+      if (maxSelection !== undefined && prev.length >= maxSelection) {
+        toast.error(
+          `Has alcanzado el límite de ${maxSelection} ${maxSelection === 1 ? 'media' : 'medias'} por mediaset`
+        );
+        return prev;
+      }
+      // Add to selection
+      return [...prev, id];
     });
   };
 
@@ -378,24 +391,36 @@ export default function MediaPickerDialog({
             </div>
           </div>
         )}
-        <DialogFooter>
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => onOpenChange(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type='button'
-            onClick={async () => {
-              await onConfirm(selectedItems);
-              onOpenChange(false);
-            }}
-            disabled={selection.length === 0}
-          >
-            Aceptar
-          </Button>
+        <DialogFooter className='flex-row items-center justify-between sm:justify-between'>
+          <div className='text-muted-foreground flex-1 text-left text-sm'>
+            {selectionMode === 'multiple' && selection.length > 0 && (
+              <span>
+                {selection.length}{' '}
+                {selection.length === 1
+                  ? 'archivo seleccionado'
+                  : 'archivos seleccionados'}
+              </span>
+            )}
+          </div>
+          <div className='flex gap-2'>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type='button'
+              onClick={async () => {
+                await onConfirm(selectedItems);
+                onOpenChange(false);
+              }}
+              disabled={selection.length === 0}
+            >
+              Aceptar
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

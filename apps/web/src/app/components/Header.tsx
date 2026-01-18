@@ -167,9 +167,8 @@ export default function Header() {
   };
 
   const worksCategoriesItems = [
-    { label: 'All', href: '/works' },
-    { label: 'Caves', href: '/works?category=caves' },
-    { label: 'Landscapes', href: '/works?category=landscapes' },
+    { label: 'Caves', href: '/works/caves' },
+    { label: 'Landscapes', href: '/works/landscapes' },
   ];
 
   // Early return (seguimos manteniéndolo), pero ahora TODOS los hooks se han declarado arriba
@@ -352,170 +351,182 @@ export default function Header() {
               </IconButton>
               {!isMobile ? null : <BurgerIcon />}
 
-              {isDevBranch && (
-                <Box position="relative" sx={{ display: 'inline-block' }}>
-                  <Button
-                    disableRipple
-                    ref={worksButtonRef}
-                    variant="text"
-                    sx={{
-                      textTransform: 'unset',
-                      whiteSpace: 'nowrap',
+              <Button
+                disableRipple
+                component={NextLink}
+                href="/"
+                prefetch
+                variant="text"
+                sx={{
+                  textTransform: 'unset',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                }}
+                color="inherit"
+              >
+                <span>Home</span>
+              </Button>
+
+              <Box position="relative" sx={{ display: 'inline-block' }}>
+                <Button
+                  disableRipple
+                  ref={worksButtonRef}
+                  variant="text"
+                  sx={{
+                    textTransform: 'unset',
+                    whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '6px 8px',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                  }}
+                  color="inherit"
+                  onMouseEnter={() => {
+                    if (hoverTimeoutRef.current) {
+                      clearTimeout(hoverTimeoutRef.current);
+                      hoverTimeoutRef.current = null;
+                    }
+                    updateDropdownRect();
+                    setWorksDropdownOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    if (hoverTimeoutRef.current) {
+                      clearTimeout(hoverTimeoutRef.current);
+                    }
+                    hoverTimeoutRef.current = setTimeout(() => {
+                      setWorksDropdownOpen(false);
+                    }, 150);
+                  }}
+                  onClick={() => {
+                    // si vamos a abrir, medir primero para tener coords correctas
+                    if (!worksDropdownOpen) {
+                      updateDropdownRect();
+                      // for a tiny delay to ensure state updated before painting (optional)
+                      setTimeout(() => setWorksDropdownOpen(true), 0);
+                    } else {
+                      setWorksDropdownOpen(false);
+                    }
+                  }}
+                >
+                  Works
+                  <span
+                    style={{
+                      fontSize: '0.59rem',
+                      transform: worksDropdownOpen
+                        ? 'rotate(180deg)'
+                        : 'rotate(0deg)',
+                      transition: 'transform 0.3s ease',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.35rem',
-                      padding: '6px 8px',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                      },
-                    }}
-                    color="inherit"
-                    onMouseEnter={() => {
-                      if (hoverTimeoutRef.current) {
-                        clearTimeout(hoverTimeoutRef.current);
-                        hoverTimeoutRef.current = null;
-                      }
-                      updateDropdownRect();
-                      setWorksDropdownOpen(true);
-                    }}
-                    onMouseLeave={() => {
-                      if (hoverTimeoutRef.current) {
-                        clearTimeout(hoverTimeoutRef.current);
-                      }
-                      hoverTimeoutRef.current = setTimeout(() => {
-                        setWorksDropdownOpen(false);
-                      }, 150);
-                    }}
-                    onClick={() => {
-                      // si vamos a abrir, medir primero para tener coords correctas
-                      if (!worksDropdownOpen) {
-                        updateDropdownRect();
-                        // for a tiny delay to ensure state updated before painting (optional)
-                        setTimeout(() => setWorksDropdownOpen(true), 0);
-                      } else {
-                        setWorksDropdownOpen(false);
-                      }
                     }}
                   >
-                    Works
-                    <span
-                      style={{
-                        fontSize: '0.59rem',
-                        transform: worksDropdownOpen
-                          ? 'rotate(180deg)'
-                          : 'rotate(0deg)',
-                        transition: 'transform 0.3s ease',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                      }}
-                    >
-                      ▼
-                    </span>
-                  </Button>
+                    ▼
+                  </span>
+                </Button>
 
-                  {/* Dropdown renderizado en portal */}
-                  {isMounted &&
-                    dropdownRect &&
-                    createPortal(
-                      <AnimatePresence>
-                        {worksDropdownOpen && (
-                          <motion.div
-                            ref={portalRef}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.18 }}
-                            onMouseEnter={() => {
-                              if (hoverTimeoutRef.current) {
-                                clearTimeout(hoverTimeoutRef.current);
-                                hoverTimeoutRef.current = null;
-                              }
-                              setWorksDropdownOpen(true);
-                            }}
-                            onMouseLeave={() => {
-                              if (hoverTimeoutRef.current) {
-                                clearTimeout(hoverTimeoutRef.current);
-                              }
-                              hoverTimeoutRef.current = setTimeout(() => {
-                                setWorksDropdownOpen(false);
-                              }, 150);
-                            }}
-                            style={{
-                              position: 'fixed',
-                              left: Math.max(8, dropdownRect.left) + 'px',
-                              top:
-                                dropdownRect.top +
-                                dropdownRect.height +
-                                4 +
-                                'px',
-                              backgroundColor:
-                                mode === 'dark' ? '#1a1a1ae6' : '#f0efefcb',
-                              backdropFilter: 'blur(10px)',
-                              borderRadius: '12px',
-                              minWidth: Math.max(160, dropdownRect.width),
-                              zIndex: 100,
-                              border:
-                                mode === 'dark'
-                                  ? '1px solid rgba(128, 128, 128, 0.3)'
-                                  : '1px solid rgba(0, 0, 0, 0.12)',
-                              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                {/* Dropdown renderizado en portal */}
+                {isMounted &&
+                  dropdownRect &&
+                  createPortal(
+                    <AnimatePresence>
+                      {worksDropdownOpen && (
+                        <motion.div
+                          ref={portalRef}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.18 }}
+                          onMouseEnter={() => {
+                            if (hoverTimeoutRef.current) {
+                              clearTimeout(hoverTimeoutRef.current);
+                              hoverTimeoutRef.current = null;
+                            }
+                            setWorksDropdownOpen(true);
+                          }}
+                          onMouseLeave={() => {
+                            if (hoverTimeoutRef.current) {
+                              clearTimeout(hoverTimeoutRef.current);
+                            }
+                            hoverTimeoutRef.current = setTimeout(() => {
+                              setWorksDropdownOpen(false);
+                            }, 150);
+                          }}
+                          style={{
+                            position: 'fixed',
+                            left: Math.max(8, dropdownRect.left) + 'px',
+                            top:
+                              dropdownRect.top + dropdownRect.height + 4 + 'px',
+                            backgroundColor:
+                              mode === 'dark' ? '#1a1a1ae6' : '#f0efefcb',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: '12px',
+                            minWidth: Math.max(160, dropdownRect.width),
+                            zIndex: 100,
+                            border:
+                              mode === 'dark'
+                                ? '1px solid rgba(128, 128, 128, 0.3)'
+                                : '1px solid rgba(0, 0, 0, 0.12)',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                            isolation: 'isolate',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
                               isolation: 'isolate',
-                              overflow: 'hidden',
                             }}
                           >
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                isolation: 'isolate',
-                              }}
-                            >
-                              {worksCategoriesItems.map((item, index) => (
-                                <Button
-                                  disableRipple
-                                  key={item.href}
-                                  component={NextLink}
-                                  href={item.href}
-                                  prefetch
-                                  variant="text"
-                                  color="inherit"
-                                  sx={{
-                                    color:
-                                      mode === 'dark' ? '#ffffff' : '#000000',
-                                    textTransform: 'unset',
-                                    justifyContent: 'flex-start',
-                                    px: '1.25rem',
-                                    py: '0.65rem',
-                                    fontSize: '0.9rem',
-                                    transition: 'background-color 0.18s ease',
-                                    isolation: 'isolate',
-                                    mixBlendMode: 'normal',
-                                    borderBottom:
-                                      index < worksCategoriesItems.length - 1
-                                        ? mode === 'dark'
-                                          ? '1px solid rgba(128, 128, 128, 0.2)'
-                                          : '1px solid rgba(0, 0, 0, 0.06)'
-                                        : 'none',
-                                    '&:hover': {
-                                      backgroundColor:
-                                        mode === 'dark'
-                                          ? 'rgba(255,255,255,0.1)'
-                                          : 'rgba(0,0,0,0.04)',
-                                    },
-                                  }}
-                                  onClick={() => setWorksDropdownOpen(false)}
-                                >
-                                  {item.label}
-                                </Button>
-                              ))}
-                            </Box>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>,
-                      document.body
-                    )}
-                </Box>
-              )}
+                            {worksCategoriesItems.map((item, index) => (
+                              <Button
+                                disableRipple
+                                key={item.href}
+                                component={NextLink}
+                                href={item.href}
+                                prefetch
+                                variant="text"
+                                color="inherit"
+                                sx={{
+                                  color:
+                                    mode === 'dark' ? '#ffffff' : '#000000',
+                                  textTransform: 'unset',
+                                  justifyContent: 'flex-start',
+                                  px: '1.25rem',
+                                  py: '0.65rem',
+                                  fontSize: '0.9rem',
+                                  transition: 'background-color 0.18s ease',
+                                  isolation: 'isolate',
+                                  mixBlendMode: 'normal',
+                                  borderBottom:
+                                    index < worksCategoriesItems.length - 1
+                                      ? mode === 'dark'
+                                        ? '1px solid rgba(128, 128, 128, 0.2)'
+                                        : '1px solid rgba(0, 0, 0, 0.06)'
+                                      : 'none',
+                                  '&:hover': {
+                                    backgroundColor:
+                                      mode === 'dark'
+                                        ? 'rgba(255,255,255,0.1)'
+                                        : 'rgba(0,0,0,0.04)',
+                                  },
+                                }}
+                                onClick={() => setWorksDropdownOpen(false)}
+                              >
+                                {item.label}
+                              </Button>
+                            ))}
+                          </Box>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>,
+                    document.body
+                  )}
+              </Box>
 
               <Button
                 disableRipple

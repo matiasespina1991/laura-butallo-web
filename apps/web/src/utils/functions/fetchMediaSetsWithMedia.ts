@@ -1,4 +1,12 @@
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  where,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
 import db from '@/utils/config/firebase';
 import { MediaSet } from '@/utils/types/mediaset';
 import { Media } from '@/utils/types/media';
@@ -6,29 +14,53 @@ import { Media } from '@/utils/types/media';
 export async function fetchMediaSetsWithMedia(): Promise<
   { mediaset: MediaSet; media: Media[] }[]
 > {
-  // Traemos todos los mediasets activos
+  // Traemos todos los mediasets de la categoría 'home'
   const mediasetsSnap = await getDocs(
-    query(collection(db, 'mediasets'), orderBy('ordering', 'asc'))
+    query(
+      collection(db, 'mediasets'),
+      where('category', '==', 'home'),
+      orderBy('ordering', 'asc')
+    )
   );
-  const result: { mediaset: MediaSet; media: Media[] }[] = [];
 
   const mediasets = mediasetsSnap.docs
     .map((doc) => ({ ...doc.data(), id: doc.id }) as MediaSet)
     .filter((ms) => !ms.deletedAt);
 
-  // Traer todos los media procesados y no eliminados
-  const mediaSnap = await getDocs(
-    query(collection(db, 'media'), where('processed', '==', true))
-  );
-  const allMedia = mediaSnap.docs
-    .map((doc) => ({ ...doc.data(), id: doc.id }) as Media)
-    .filter((m) => !m.deletedAt);
+  const result: { mediaset: MediaSet; media: Media[] }[] = [];
 
   for (const ms of mediasets) {
-    const mediaOfSet = allMedia
-      .filter((m) => m.mediaSetIds?.includes(ms.id))
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    result.push({ mediaset: ms, media: mediaOfSet });
+    // Get items subcollection for this mediaset
+    const itemsSnap = await getDocs(
+      query(
+        collection(db, 'mediasets', ms.id, 'items'),
+        orderBy('order', 'asc')
+      )
+    );
+
+    const media: Media[] = [];
+
+    // Fetch each media document referenced in items
+    for (const itemDoc of itemsSnap.docs) {
+      const itemData = itemDoc.data();
+      if (itemData.mediaId) {
+        const mediaDoc = await getDoc(doc(db, 'media', itemData.mediaId));
+        if (mediaDoc.exists()) {
+          const mediaData = mediaDoc.data() as Media;
+          if (mediaData.processed && !mediaData.deletedAt) {
+            media.push({
+              ...mediaData,
+              id: mediaDoc.id,
+              flex: itemData.flex ?? 1,
+            });
+          }
+        }
+      }
+    }
+
+    if (media.length > 0) {
+      result.push({ mediaset: ms, media });
+    }
   }
 
   return result;

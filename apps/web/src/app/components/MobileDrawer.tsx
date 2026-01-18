@@ -144,112 +144,111 @@ export default function MobileDrawer({
                 </motion.div>
 
                 {/* Works - EXPANDIBLE */}
-                {isDevBranch && (
-                  <>
-                    <Box sx={{ height: '1rem' }} />
-                    <motion.div
-                      initial={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
-                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                      transition={{
-                        duration: 0.4,
-                        delay: 0.1,
-                        ease: 'easeOut',
+
+                <>
+                  <Box sx={{ height: '1rem' }} />
+                  <motion.div
+                    initial={{ opacity: 0, y: -5, filter: 'blur(3px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    transition={{
+                      duration: 0.4,
+                      delay: 0.1,
+                      ease: 'easeOut',
+                    }}
+                  >
+                    <ListItemButton
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setWorksDrawerExpanded(!worksDrawerExpanded);
+                      }}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
                       }}
                     >
-                      <ListItemButton
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setWorksDrawerExpanded(!worksDrawerExpanded);
-                        }}
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <ListItemText
-                          primary={
-                            <Typography
-                              variant="h3"
-                              fontWeight="500"
-                              fontFamily="Helvetica Neue, sans-serif"
-                              fontSize={{
-                                xs: '36px',
-                                sm: '50px',
-                                md: '82px',
-                                lg: '82px',
-                                xl: '82px',
-                              }}
-                              pt={{ xs: '0.5rem', sm: '3rem' }}
-                              letterSpacing="-0.04em"
-                              component="div"
-                              noWrap
-                              sx={{
-                                flexGrow: 0,
-                                display: 'inline-flex',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              Works
-                            </Typography>
-                          }
-                        />
-                      </ListItemButton>
-                    </motion.div>
-
-                    {/* Submenu expandible */}
-                    <AnimatePresence>
-                      {worksDrawerExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.4, ease: 'easeOut' }}
-                        >
-                          <Box
+                      <ListItemText
+                        primary={
+                          <Typography
+                            variant="h3"
+                            fontWeight="500"
+                            fontFamily="Helvetica Neue, sans-serif"
+                            fontSize={{
+                              xs: '36px',
+                              sm: '50px',
+                              md: '82px',
+                              lg: '82px',
+                              xl: '82px',
+                            }}
+                            pt={{ xs: '0.5rem', sm: '3rem' }}
+                            letterSpacing="-0.04em"
+                            component="div"
+                            noWrap
                             sx={{
-                              pl: '2rem',
-                              display: 'flex',
-                              flexDirection: 'column',
+                              flexGrow: 0,
+                              display: 'inline-flex',
+                              whiteSpace: 'nowrap',
                             }}
                           >
-                            {worksCategoriesItems.map((item) => (
-                              <ListItemButton
-                                key={item.href}
-                                component={NextLink}
-                                href={item.href}
-                                prefetch
-                                onClick={handleClose}
-                              >
-                                <ListItemText
-                                  primary={
-                                    <Typography
-                                      variant="h4"
-                                      fontWeight="400"
-                                      fontFamily="Helvetica Neue, sans-serif"
-                                      fontSize={{
-                                        xs: '24px',
-                                        sm: '32px',
-                                        md: '48px',
-                                        lg: '48px',
-                                        xl: '48px',
-                                      }}
-                                      letterSpacing="-0.04em"
-                                      component="div"
-                                      sx={{ opacity: 0.8 }}
-                                    >
-                                      {item.label}
-                                    </Typography>
-                                  }
-                                />
-                              </ListItemButton>
-                            ))}
-                          </Box>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </>
-                )}
+                            Works
+                          </Typography>
+                        }
+                      />
+                    </ListItemButton>
+                  </motion.div>
+
+                  {/* Submenu expandible */}
+                  <AnimatePresence>
+                    {worksDrawerExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                      >
+                        <Box
+                          sx={{
+                            pl: '2rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
+                          {worksCategoriesItems.map((item) => (
+                            <ListItemButton
+                              key={item.href}
+                              component={NextLink}
+                              href={item.href}
+                              prefetch
+                              onClick={handleClose}
+                            >
+                              <ListItemText
+                                primary={
+                                  <Typography
+                                    variant="h4"
+                                    fontWeight="400"
+                                    fontFamily="Helvetica Neue, sans-serif"
+                                    fontSize={{
+                                      xs: '24px',
+                                      sm: '32px',
+                                      md: '48px',
+                                      lg: '48px',
+                                      xl: '48px',
+                                    }}
+                                    letterSpacing="-0.04em"
+                                    component="div"
+                                    sx={{ opacity: 0.8 }}
+                                  >
+                                    {item.label}
+                                  </Typography>
+                                }
+                              />
+                            </ListItemButton>
+                          ))}
+                        </Box>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
 
                 <Box sx={{ height: '1rem' }} />
 

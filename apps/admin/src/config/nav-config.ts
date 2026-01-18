@@ -18,6 +18,14 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
+    title: 'Works Organizer',
+    url: '/dashboard/works-organizer',
+    icon: 'media',
+    shortcut: ['w', 'w'],
+    isActive: false,
+    items: []
+  },
+  {
     title: 'Exhibiciones',
     url: '/dashboard/exhibitions',
     icon: 'exhibitions',
