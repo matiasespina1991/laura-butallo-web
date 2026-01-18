@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -25,7 +25,7 @@ export default function NewMediasetDialog({
   open,
   onOpenChange,
   onSuccess,
-  currentMaxOrdering,
+  currentMaxOrdering
 }: Props) {
   const [creating, setCreating] = useState(false);
 
@@ -38,7 +38,7 @@ export default function NewMediasetDialog({
         createdAt: now,
         modifiedAt: now,
         publishedAt: now,
-        deletedAt: null,
+        deletedAt: null
       });
       toast.success('Mediaset created');
       onSuccess();
@@ -63,7 +63,7 @@ export default function NewMediasetDialog({
         </DialogHeader>
         <DialogFooter>
           <Button
-            variant="outline"
+            variant='outline'
             onClick={() => onOpenChange(false)}
             disabled={creating}
           >

@@ -8,25 +8,21 @@ export async function fetchMediaSetsWithMedia(): Promise<
 > {
   // Traemos todos los mediasets activos
   const mediasetsSnap = await getDocs(
-    query(
-      collection(db, 'mediasets'),
-      where('deletedAt', '==', null),
-      orderBy('ordering', 'asc')
-    )
+    query(collection(db, 'mediasets'), orderBy('ordering', 'asc'))
   );
   const result: { mediaset: MediaSet; media: Media[] }[] = [];
 
-  const mediasets = mediasetsSnap.docs.map((doc) => doc.data() as MediaSet);
+  const mediasets = mediasetsSnap.docs
+    .map((doc) => ({ ...doc.data(), id: doc.id }) as MediaSet)
+    .filter((ms) => !ms.deletedAt);
 
   // Traer todos los media procesados y no eliminados
   const mediaSnap = await getDocs(
-    query(
-      collection(db, 'media'),
-      where('deletedAt', '==', null),
-      where('processed', '==', true)
-    )
+    query(collection(db, 'media'), where('processed', '==', true))
   );
-  const allMedia = mediaSnap.docs.map((doc) => doc.data() as Media);
+  const allMedia = mediaSnap.docs
+    .map((doc) => ({ ...doc.data(), id: doc.id }) as Media)
+    .filter((m) => !m.deletedAt);
 
   for (const ms of mediasets) {
     const mediaOfSet = allMedia

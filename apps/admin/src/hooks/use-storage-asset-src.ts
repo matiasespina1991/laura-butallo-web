@@ -85,6 +85,18 @@ export function useStorageAssetSrc(
     return promise;
   }, [storagePath, storageUrl]);
 
+  // If preferDirect is false and we don't have a signed URL, fetch it immediately
+  useEffect(() => {
+    if (
+      !preferDirect &&
+      storagePath &&
+      !cachedSigned &&
+      !resolvingRef.current
+    ) {
+      attemptSigned();
+    }
+  }, [preferDirect, storagePath, cachedSigned, attemptSigned]);
+
   const fallbackToStorage = useCallback(() => {
     setSrc(storageUrl);
     setMode(storageUrl ? 'storage' : 'none');

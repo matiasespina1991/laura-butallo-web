@@ -1,11 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, where, doc, writeBatch } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  doc,
+  writeBatch
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
-import MediaPickerDialog, { type MediaDoc } from '@/components/media-picker-dialog';
-
+import MediaPickerDialog, {
+  type MediaDoc
+} from '@/components/media-picker-dialog';
 
 interface Props {
   open: boolean;
@@ -18,14 +26,14 @@ export default function AssignMediaDialog({
   open,
   onOpenChange,
   mediasetId,
-  onSuccess,
+  onSuccess
 }: Props) {
   async function handleConfirm(selectedMedia: MediaDoc[]) {
     if (selectedMedia.length === 0) return;
 
     try {
       const batch = writeBatch(db);
-      
+
       // Sort by createdAt if available
       const sorted = [...selectedMedia].sort((a, b) => {
         const aTime = (a as any).createdAt?.toMillis?.() || 0;
@@ -42,7 +50,7 @@ export default function AssignMediaDialog({
       });
 
       await batch.commit();
-      
+
       toast.success(`${selectedMedia.length} media assigned`);
       onSuccess();
     } catch (error) {
@@ -52,8 +60,16 @@ export default function AssignMediaDialog({
   }
 
   const filterUnassigned = (media: MediaDoc) => {
-    const isUnassigned = !(media as any).mediaSetId || (media as any).mediaSetId === null;
-    console.log('[AssignMediaDialog] Media', media.id, 'mediaSetId:', (media as any).mediaSetId, 'isUnassigned:', isUnassigned);
+    const isUnassigned =
+      !(media as any).mediaSetId || (media as any).mediaSetId === null;
+    console.log(
+      '[AssignMediaDialog] Media',
+      media.id,
+      'mediaSetId:',
+      (media as any).mediaSetId,
+      'isUnassigned:',
+      isUnassigned
+    );
     return isUnassigned;
   };
 
@@ -61,9 +77,9 @@ export default function AssignMediaDialog({
     <MediaPickerDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Add Media to Mediaset"
-      description="Select media items to add to this mediaset"
-      selectionMode="multiple"
+      title='Add Media to Mediaset'
+      description='Select media items to add to this mediaset'
+      selectionMode='multiple'
       filterPredicate={filterUnassigned}
       selectedIds={[]}
       onConfirm={handleConfirm}

@@ -1,6 +1,5 @@
 'use client';
 
-import { Plus } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   collection,
@@ -55,12 +54,16 @@ interface MediaSet {
   deletedAt?: any;
 }
 
-export default function GalleryOrganizer() {
+interface Props {
+  dialogOpen: boolean;
+  setDialogOpen: (open: boolean) => void;
+}
+
+export default function GalleryOrganizer({ dialogOpen, setDialogOpen }: Props) {
   const [mediasets, setMediasets] = useState<MediaSet[]>([]);
   const [allMedia, setAllMedia] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -77,31 +80,17 @@ export default function GalleryOrganizer() {
     try {
       setLoading(true);
       const [mediasetsSnap, mediaSnap] = await Promise.all([
-        getDocs(
-          query(
-            collection(db, 'mediasets'),
-            orderBy('ordering', 'asc')
-          )
-        ),
-        getDocs(
-          query(
-            collection(db, 'media'),
-            where('processed', '==', true)
-          )
-        )
+        getDocs(query(collection(db, 'mediasets'), orderBy('ordering', 'asc'))),
+        getDocs(query(collection(db, 'media'), where('processed', '==', true)))
       ]);
 
       const loadedMediasets = mediasetsSnap.docs
         .map((d) => ({ ...d.data(), id: d.id }) as MediaSet)
         .filter((ms) => !ms.deletedAt);
-        
+
       const loadedMedia = mediaSnap.docs
         .map((d) => ({ ...d.data(), id: d.id }) as Media)
         .filter((m) => !m.deletedAt);
-
-      console.log('[GalleryOrganizer] Loaded mediasets:', loadedMediasets.length);
-      console.log('[GalleryOrganizer] Loaded media:', loadedMedia.length);
-      console.log('[GalleryOrganizer] Sample media:', loadedMedia[0]);
 
       setMediasets(loadedMediasets);
       setAllMedia(loadedMedia);
@@ -114,16 +103,9 @@ export default function GalleryOrganizer() {
   }
 
   function getMediaForSet(setId: string) {
-    const filtered = allMedia
+    return allMedia
       .filter((m) => m.mediaSetId === setId)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    
-    console.log(`[GalleryOrganizer] getMediaForSet(${setId}):`, filtered.length, 'items');
-    if (filtered.length === 0 && allMedia.length > 0) {
-      console.log(`[GalleryOrganizer] Sample mediaSetId from allMedia:`, allMedia[0].mediaSetId);
-    }
-    
-    return filtered;
   }
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -165,7 +147,7 @@ export default function GalleryOrganizer() {
 
   if (loading) {
     return (
-      <div className='space-y-4 p-4'>
+      <div className='space-y-4'>
         <Skeleton className='h-12 w-full' />
         <Skeleton className='h-64 w-full' />
         <Skeleton className='h-64 w-full' />
@@ -174,20 +156,7 @@ export default function GalleryOrganizer() {
   }
 
   return (
-    <div className='space-y-4 p-4'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-3xl font-bold'>Gallery Organization</h1>
-          <p className='text-muted-foreground'>
-            Organize mediasets and their items for the home page
-          </p>
-        </div>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className='mr-2 h-4 w-4' />
-          New Mediaset
-        </Button>
-      </div>
-
+    <div className='space-y-4'>
       {mediasets.length === 0 ? (
         <Card className='p-8 text-center'>
           <p className='text-muted-foreground'>

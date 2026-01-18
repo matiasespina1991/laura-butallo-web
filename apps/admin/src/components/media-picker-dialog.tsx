@@ -244,17 +244,26 @@ export default function MediaPickerDialog({
 
   console.log('[MediaPickerDialog] Total items loaded:', items.length);
   console.log('[MediaPickerDialog] allowedTypes:', allowedTypes);
-  
+
   let filteredItems = allowedTypes?.length
     ? items.filter((item) => allowedTypes.includes(item.type))
     : items;
 
-  console.log('[MediaPickerDialog] After allowedTypes filter:', filteredItems.length);
+  console.log(
+    '[MediaPickerDialog] After allowedTypes filter:',
+    filteredItems.length
+  );
 
   if (filterPredicate) {
-    console.log('[MediaPickerDialog] Before custom filter:', filteredItems.length);
+    console.log(
+      '[MediaPickerDialog] Before custom filter:',
+      filteredItems.length
+    );
     filteredItems = filteredItems.filter(filterPredicate);
-    console.log('[MediaPickerDialog] After custom filter:', filteredItems.length);
+    console.log(
+      '[MediaPickerDialog] After custom filter:',
+      filteredItems.length
+    );
   }
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));

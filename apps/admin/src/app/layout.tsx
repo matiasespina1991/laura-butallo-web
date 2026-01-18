@@ -55,6 +55,7 @@ export default async function RootLayout({
         />
       </head>
       <body
+        suppressHydrationWarning
         className={cn(
           'bg-background overflow-hidden overscroll-none font-sans antialiased',
           initialThemeValue ? `theme-${initialThemeValue}` : '',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -20,6 +20,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -32,6 +33,7 @@ import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import AssignMediaDialog from './assign-media-dialog';
+import { cn } from '@/lib/utils';
 
 interface Media {
   id: string;
@@ -51,6 +53,8 @@ interface Props {
 }
 
 function MediaItem({ media }: { media: Media }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: media.id });
 
@@ -61,10 +65,20 @@ function MediaItem({ media }: { media: Media }) {
 
   const thumbnailPath =
     media.type === 'image'
-      ? media.paths?.derivatives?.['640w']
-      : media.paths?.poster;
+      ? (media.paths?.derivatives?.webp_thumb?.storagePath ??
+        media.paths?.derivatives?.webp_small?.storagePath ??
+        media.paths?.original?.storagePath)
+      : media.paths?.poster?.storagePath;
 
-  const { src: thumbnailSrc } = useStorageAssetSrc(thumbnailPath);
+  const { src: thumbnailSrc } = useStorageAssetSrc(
+    thumbnailPath ? { storagePath: thumbnailPath } : null,
+    { preferDirect: false }
+  );
+
+  // Reset loaded state when src changes
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [thumbnailSrc]);
 
   async function handleFlexChange(value: string) {
     try {
@@ -78,7 +92,11 @@ function MediaItem({ media }: { media: Media }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} className='flex items-center gap-3 p-3 bg-muted/50 rounded-lg'>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className='bg-muted/50 flex items-center gap-3 rounded-lg p-3'
+    >
       <button
         {...attributes}
         {...listeners}
@@ -86,22 +104,30 @@ function MediaItem({ media }: { media: Media }) {
       >
         <GripVertical className='text-muted-foreground h-5 w-5' />
       </button>
-      
-      <div className='w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0'>
+
+      <div className='bg-muted relative h-16 w-16 flex-shrink-0 overflow-hidden rounded'>
+        {!imageLoaded && thumbnailSrc && (
+          <Skeleton className='absolute inset-0' />
+        )}
         {thumbnailSrc && (
           <img
             src={thumbnailSrc}
             alt=''
-            className='w-full h-full object-cover'
+            className={cn(
+              'h-full w-full object-cover transition-opacity duration-300',
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            )}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(false)}
           />
         )}
       </div>
 
-      <div className='flex-1 min-w-0'>
-        <p className='text-sm font-medium truncate'>
+      <div className='min-w-0 flex-1'>
+        <p className='truncate text-sm font-medium'>
           {media.type === 'image' ? 'Image' : 'Video'}
         </p>
-        <p className='text-xs text-muted-foreground truncate'>{media.id}</p>
+        <p className='text-muted-foreground truncate text-xs'>{media.id}</p>
       </div>
 
       <Select
@@ -147,7 +173,7 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
           updateDoc(doc(db, 'media', m.id), { order: idx })
         );
         await Promise.all(updates);
-        
+
         onUpdate(reordered.map((m, idx) => ({ ...m, order: idx })));
         toast.success('Order updated');
       } catch (error) {
@@ -164,7 +190,7 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
 
   if (media.length === 0) {
     return (
-      <div className='text-center py-8 space-y-4'>
+      <div className='space-y-4 py-8 text-center'>
         <p className='text-muted-foreground text-sm'>
           No media assigned to this mediaset yet.
         </p>
@@ -189,7 +215,10 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={media.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext
+          items={media.map((m) => m.id)}
+          strategy={verticalListSortingStrategy}
+        >
           <div className='space-y-2'>
             {media.map((m) => (
               <MediaItem key={m.id} media={m} />
