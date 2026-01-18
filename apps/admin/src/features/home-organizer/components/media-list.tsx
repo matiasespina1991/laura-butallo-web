@@ -14,7 +14,7 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy
+  rectSortingStrategy
 } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -53,9 +53,15 @@ interface Props {
   onUpdate: (media: Media[]) => void;
 }
 
-function MediaItem({ media }: { media: Media }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
+function MediaItem({
+  media,
+  imageLoadedState,
+  onImageLoad
+}: {
+  media: Media;
+  imageLoadedState: Record<string, boolean>;
+  onImageLoad: (mediaId: string, loaded: boolean) => void;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: media.id });
 
@@ -76,10 +82,7 @@ function MediaItem({ media }: { media: Media }) {
     { preferDirect: false }
   );
 
-  // Reset loaded state when src changes
-  useEffect(() => {
-    setImageLoaded(false);
-  }, [thumbnailSrc]);
+  const imageLoaded = imageLoadedState[media.id] || false;
 
   async function handleFlexChange(value: string) {
     try {
@@ -99,8 +102,7 @@ function MediaItem({ media }: { media: Media }) {
         deletedAt: Timestamp.now()
       });
       toast.success('Media eliminado');
-      // Trigger parent reload by calling onUpdate with empty array
-      window.location.reload();
+      // Los listeners en tiempo real se encargarán de actualizar los datos
     } catch (error) {
       console.error('Error deleting media:', error);
       toast.error('Error al eliminar media');
@@ -115,7 +117,7 @@ function MediaItem({ media }: { media: Media }) {
     >
       <button
         onClick={handleDelete}
-        className='absolute right-1 top-1 z-10 cursor-pointer rounded-full bg-background/80 p-1 opacity-0 transition-opacity hover:bg-background group-hover:opacity-100'
+        className='bg-background/80 hover:bg-background absolute top-1 right-1 z-10 cursor-pointer rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100'
         title='Eliminar media'
       >
         <X className='h-3 w-3' />
@@ -145,8 +147,8 @@ function MediaItem({ media }: { media: Media }) {
               'h-full w-full object-cover transition-opacity duration-300',
               imageLoaded ? 'opacity-100' : 'opacity-0'
             )}
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageLoaded(false)}
+            onLoad={() => onImageLoad(media.id, true)}
+            onError={() => onImageLoad(media.id, false)}
           />
         )}
       </div>
@@ -175,6 +177,10 @@ function MediaItem({ media }: { media: Media }) {
 
 export default function MediaList({ mediasetId, media, onUpdate }: Props) {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  // Track loaded state per media ID to persist across re-renders during drag
+  const [imageLoadedState, setImageLoadedState] = useState<
+    Record<string, boolean>
+  >({});
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -182,6 +188,10 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
       coordinateGetter: sortableKeyboardCoordinates
     })
   );
+
+  function handleImageLoad(mediaId: string, loaded: boolean) {
+    setImageLoadedState((prev) => ({ ...prev, [mediaId]: loaded }));
+  }
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -247,11 +257,16 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
       >
         <SortableContext
           items={media.slice(0, 4).map((m) => m.id)}
-          strategy={verticalListSortingStrategy}
+          strategy={rectSortingStrategy}
         >
           <div className='grid grid-cols-4 gap-3'>
             {media.slice(0, 4).map((m) => (
-              <MediaItem key={m.id} media={m} />
+              <MediaItem
+                key={m.id}
+                media={m}
+                imageLoadedState={imageLoadedState}
+                onImageLoad={handleImageLoad}
+              />
             ))}
             {media.length < 4 && (
               <button

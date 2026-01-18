@@ -55,7 +55,8 @@ export default function NewMediasetDialog({
         <DialogHeader>
           <DialogTitle>Crear Nuevo Mediaset</DialogTitle>
           <DialogDescription>
-            Creá un nuevo mediaset vacío. Podés agregarle items de media desde esta página.
+            Creá un nuevo mediaset vacío. Podés agregarle items de media desde
+            esta página.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

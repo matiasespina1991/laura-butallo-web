@@ -18,7 +18,7 @@ export default function HomePage() {
       pageHeaderAction={
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className='mr-2 h-4 w-4' />
-          Agregar Nuevo Mediaset
+          New Mediaset
         </Button>
       }
     >

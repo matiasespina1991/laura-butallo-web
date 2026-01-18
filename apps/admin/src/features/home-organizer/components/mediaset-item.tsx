@@ -100,8 +100,11 @@ export default function MediasetItem({
 
   return (
     <>
-      <div ref={setNodeRef} style={style}>
-        <Card>
+      <div className='flex items-center gap-3'>
+        <span className='text-muted-foreground text-lg font-medium'>
+          {index + 1}
+        </span>
+        <Card ref={setNodeRef} style={style} className='flex-1'>
           <Accordion
             type='single'
             collapsible
@@ -173,7 +176,9 @@ export default function MediasetItem({
           <AlertDialogHeader>
             <AlertDialogTitle>Eliminar Mediaset</AlertDialogTitle>
             <AlertDialogDescription>
-              Esto eliminará el mediaset (soft-delete). Los items de media permanecerán sin asignar. Esta acción puede deshacerse limpiando el campo deletedAt en Firestore.
+              Esto eliminará el mediaset (soft-delete). Los items de media
+              permanecerán sin asignar. Esta acción puede deshacerse limpiando
+              el campo deletedAt en Firestore.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
