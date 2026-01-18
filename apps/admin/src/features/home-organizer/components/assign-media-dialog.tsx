@@ -42,8 +42,16 @@ export default function AssignMediaDialog({
       });
 
       sorted.forEach((media, index) => {
+        const currentMediaSetIds = (media as any).mediaSetIds || [];
+        const updatedMediaSetIds = [...currentMediaSetIds];
+        
+        // Add mediasetId if not already present
+        if (!updatedMediaSetIds.includes(mediasetId)) {
+          updatedMediaSetIds.push(mediasetId);
+        }
+
         batch.update(doc(db, 'media', media.id), {
-          mediaSetId: mediasetId,
+          mediaSetIds: updatedMediaSetIds,
           order: index,
           flex: 1
         });
@@ -60,8 +68,8 @@ export default function AssignMediaDialog({
   }
 
   const filterUnassigned = (media: MediaDoc) => {
-    const isUnassigned =
-      !(media as any).mediaSetId || (media as any).mediaSetId === null;
+    const mediaSetIds = (media as any).mediaSetIds || [];
+    const isUnassigned = mediaSetIds.length === 0;
     return isUnassigned;
   };
 

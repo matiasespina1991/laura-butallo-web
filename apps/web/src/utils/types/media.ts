@@ -16,7 +16,7 @@ export interface AssetPaths {
 
 export interface Media {
   id: string;
-  mediaSetId: string | null;
+  mediaSetIds?: string[];
   uploadId: string;
   origin: {
     context: 'gallery' | 'exhibition';

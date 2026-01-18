@@ -26,7 +26,7 @@ export async function fetchMediaSetsWithMedia(): Promise<
 
   for (const ms of mediasets) {
     const mediaOfSet = allMedia
-      .filter((m) => m.mediaSetId === ms.id)
+      .filter((m) => m.mediaSetIds?.includes(ms.id))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     result.push({ mediaset: ms, media: mediaOfSet });
   }

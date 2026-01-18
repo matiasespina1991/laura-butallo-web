@@ -37,7 +37,7 @@ import { Card } from '@/components/ui/card';
 
 interface Media {
   id: string;
-  mediaSetId: string | null;
+  mediaSetIds?: string[];
   order?: number;
   flex?: number;
   type: 'image' | 'video';
@@ -125,7 +125,7 @@ export default function HomeOrganizer({ dialogOpen, setDialogOpen }: Props) {
 
   function getMediaForSet(setId: string) {
     return allMedia
-      .filter((m) => m.mediaSetId === setId)
+      .filter((m) => m.mediaSetIds?.includes(setId))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }
 

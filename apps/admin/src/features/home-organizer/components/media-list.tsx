@@ -38,7 +38,7 @@ import { X } from 'lucide-react';
 
 interface Media {
   id: string;
-  mediaSetId: string | null;
+  mediaSetIds?: string[];
   order?: number;
   flex?: number;
   type: 'image' | 'video';
@@ -55,10 +55,12 @@ interface Props {
 
 function MediaItem({
   media,
+  mediasetId,
   imageLoadedState,
   onImageLoad
 }: {
   media: Media;
+  mediasetId: string;
   imageLoadedState: Record<string, boolean>;
   onImageLoad: (mediaId: string, loaded: boolean) => void;
 }) {
@@ -98,14 +100,17 @@ function MediaItem({
   async function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
     try {
+      const currentMediaSetIds = media.mediaSetIds || [];
+      const updatedMediaSetIds = currentMediaSetIds.filter(id => id !== mediasetId);
+      
       await updateDoc(doc(db, 'media', media.id), {
-        deletedAt: Timestamp.now()
+        mediaSetIds: updatedMediaSetIds
       });
-      toast.success('Media eliminado');
+      toast.success('Media removido del mediaset');
       // Los listeners en tiempo real se encargarán de actualizar los datos
     } catch (error) {
-      console.error('Error deleting media:', error);
-      toast.error('Error al eliminar media');
+      console.error('Error removing media from mediaset:', error);
+      toast.error('Error al remover media');
     }
   }
 
@@ -118,7 +123,7 @@ function MediaItem({
       <button
         onClick={handleDelete}
         className='bg-background/80 hover:bg-background absolute top-1 right-1 z-10 cursor-pointer rounded-full p-1 opacity-0 transition-opacity group-hover:opacity-100'
-        title='Eliminar media'
+        title='Remover del mediaset'
       >
         <X className='h-3 w-3' />
       </button>
@@ -264,6 +269,7 @@ export default function MediaList({ mediasetId, media, onUpdate }: Props) {
               <MediaItem
                 key={m.id}
                 media={m}
+                mediasetId={mediasetId}
                 imageLoadedState={imageLoadedState}
                 onImageLoad={handleImageLoad}
               />

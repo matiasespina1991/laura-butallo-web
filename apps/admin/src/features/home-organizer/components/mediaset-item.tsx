@@ -38,7 +38,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface Media {
   id: string;
-  mediaSetId: string | null;
+  mediaSetIds?: string[];
   order?: number;
   flex?: number;
   type: 'image' | 'video';
