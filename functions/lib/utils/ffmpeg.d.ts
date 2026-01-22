@@ -1,7 +1,3 @@
-/**
- * Transcode a video inputPath to a single WebM outputPath with given resolution and quality settings.
- * VP9 + Opus codec as requested.
- */
 export declare function transcodeToWebM(inputPath: string, outputPath: string, height: number): Promise<void>;
 /**
  * Generate single thumbnail (poster)from video at time 1s

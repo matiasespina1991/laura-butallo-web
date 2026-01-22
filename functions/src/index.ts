@@ -6,8 +6,8 @@ admin.initializeApp();
 setGlobalOptions({ maxInstances: 10 });
 
 // Triggers
-export { onImageFinalize } from './triggers/onUploadImage.js';
-export { onVideoFinalize } from './triggers/onUploadVideo.js';
+export { onImageUpload } from './triggers/onImageUpload.js';
+export { onVideoUpload } from './triggers/onVideoUpload.js';
 
 // Callable functions
 export { generateDownloadUrl } from './callable/generateDownloadUrl.js';

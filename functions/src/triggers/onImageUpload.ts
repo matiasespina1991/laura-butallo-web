@@ -17,10 +17,10 @@ function getDb() {
   return admin.firestore();
 }
 
-export const onImageFinalize = onObjectFinalized(
+export const onImageUpload = onObjectFinalized(
   {
     region: 'europe-west3',
-    timeoutSeconds: 1200,
+    timeoutSeconds: 2000,
     memory: '2GiB',
     cpu: 1,
     maxInstances: 10,

@@ -18,11 +18,11 @@ function getDb() {
   return admin.firestore();
 }
 
-export const onVideoFinalize = onObjectFinalized(
+export const onVideoUpload = onObjectFinalized(
   {
     region: 'europe-west3',
     memory: '8GiB',
-    timeoutSeconds: 2800,
+    timeoutSeconds: 2000,
     cpu: 4,
     maxInstances: 10,
   },
@@ -46,8 +46,8 @@ export const onVideoFinalize = onObjectFinalized(
         originRoleRaw === 'feature' || originRoleRaw === 'attachment'
           ? originRoleRaw
           : originContext === 'exhibition'
-          ? 'attachment'
-          : 'gallery';
+            ? 'attachment'
+            : 'gallery';
       const originExhibitionId = metadata.exhibitionId ?? null;
 
       const db = getDb();
