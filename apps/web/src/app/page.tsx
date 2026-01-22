@@ -79,29 +79,45 @@ function ImageGridItem({
       initial={{ opacity: 0, scale: 0.985 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
       transition={{ delay: Math.min(0.3 + setIndex * 0.15, 1.2), duration: 0.6 }}
+      style={{ position: 'relative', width: '100%', height: '100%' }}
     >
-      <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
-        <NextImage
-          ref={imageRef}
-          draggable={false}
-          width={600}
-          height={600}
-          onLoad={() => setLoaded(true)}
-          onLoadingComplete={() => setLoaded(true)}
-          style={{
-            userSelect: 'none',
-            display: 'block',
+      {!loaded && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#2a2a2a',
             borderRadius: isMobileDevice ? '8px' : '10px',
+            animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            zIndex: 0,
           }}
-          src={lowImage.src || ''}
-          onError={handleImageError}
-          onClick={() => openLightbox(mediaArray, index, setIndex)}
-          alt={'Media'}
-          className={styles.photoSetImage}
-          priority={setIndex === 0 && index < 4}
-          loading={setIndex === 0 ? 'eager' : 'lazy'}
         />
-      </Box>
+      )}
+      <NextImage
+        ref={imageRef}
+        draggable={false}
+        width={600}
+        height={600}
+        onLoad={() => setLoaded(true)}
+        onLoadingComplete={() => setLoaded(true)}
+        style={{
+          userSelect: 'none',
+          display: 'block',
+          borderRadius: isMobileDevice ? '8px' : '10px',
+          position: 'relative',
+          zIndex: 1,
+        }}
+        src={lowImage.src || ''}
+        onError={handleImageError}
+        onClick={() => openLightbox(mediaArray, index, setIndex)}
+        alt={'Media'}
+        className={styles.photoSetImage}
+        priority={setIndex === 0 && index < 4}
+        loading={setIndex === 0 ? 'eager' : 'lazy'}
+      />
     </motion.div>
   );
 }
@@ -141,32 +157,48 @@ function VideoGridItem({
       initial={{ opacity: 0, scale: 0.985 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
       transition={{ delay: Math.min(0.3 + setIndex * 0.15, 1.2), duration: 0.6 }}
+      style={{ position: 'relative', width: '100%', height: '100%' }}
     >
-      <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
-        <video
-          width="100%"
-          height="100%"
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload={setIndex === 0 ? "auto" : "none"}
-          poster={posterSource.src || undefined}
-          src={videoSource.src || undefined}
-          onLoadedData={handleVideoLoaded}
-          onError={handleVideoError}
-          style={{
-            objectFit: 'cover',
+      {!loaded && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
             width: '100%',
             height: '100%',
-            display: 'block',
+            backgroundColor: '#2a2a2a',
             borderRadius: isMobileDevice ? '8px' : '10px',
+            animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            zIndex: 0,
           }}
-          onClick={() => openLightbox(mediaArray, index, setIndex)}
-        >
-          Your browser does not support video.
-        </video>
-      </Box>
+        />
+      )}
+      <video
+        width="100%"
+        height="100%"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload={setIndex === 0 ? "auto" : "none"}
+        poster={posterSource.src || undefined}
+        src={videoSource.src || undefined}
+        onLoadedData={handleVideoLoaded}
+        onError={handleVideoError}
+        style={{
+          objectFit: 'cover',
+          width: '100%',
+          height: '100%',
+          display: 'block',
+          borderRadius: isMobileDevice ? '8px' : '10px',
+          position: 'relative',
+          zIndex: 1,
+        }}
+        onClick={() => openLightbox(mediaArray, index, setIndex)}
+      >
+        Your browser does not support video.
+      </video>
     </motion.div>
   );
 }
@@ -251,6 +283,8 @@ export default function Home() {
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [lightboxImageIsDragging, setLightboxImageIsDragging] =
     useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
 
   const isMobileQuery = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
@@ -281,8 +315,12 @@ export default function Home() {
 
   useEffect(() => {
     async function loadMediaSets() {
+      setIsLoading(true);
       const fetched = await fetchMediaSetsWithMedia();
       setMediaSetsWithMedia(fetched);
+      setIsLoading(false);
+      // Simulate all images loaded after short delay
+      setTimeout(() => setAllImagesLoaded(true), 800);
     }
     loadMediaSets();
   }, []);
@@ -390,7 +428,94 @@ export default function Home() {
           pb={{ xs: '0rem', sm: '6rem' }}
           width="100%"
         >
+          {isLoading || !allImagesLoaded ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.5, delay: 0.5 }}
+            >
+              <Box display="flex" flexDirection="column" gap={isMobileQuery ? '14px' : '16px'}>
+                {/* Fila de 2 */}
+                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={isMobileQuery ? '14px' : '16px'}>
+                  <Box 
+                    sx={{ 
+                      aspectRatio: '1', 
+                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      borderRadius: isMobileQuery ? '8px' : '10px',
+                      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      '@keyframes pulse': {
+                        '0%, 100%': { opacity: 1 },
+                        '50%': { opacity: 0.5 },
+                      },
+                    }} 
+                  />
+                  <Box 
+                    sx={{ 
+                      aspectRatio: '1', 
+                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      borderRadius: isMobileQuery ? '8px' : '10px',
+                      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }} 
+                  />
+                </Box>
+                {/* Fila de 4 */}
+                <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={isMobileQuery ? '14px' : '16px'}>
+                  {[...Array(4)].map((_, i) => (
+                    <Box 
+                      key={i}
+                      sx={{ 
+                        aspectRatio: '1', 
+                        backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                        borderRadius: isMobileQuery ? '8px' : '10px',
+                        animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      }} 
+                    />
+                  ))}
+                </Box>
+                {/* Fila de 2 */}
+                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={isMobileQuery ? '14px' : '16px'}>
+                  <Box 
+                    sx={{ 
+                      aspectRatio: '1', 
+                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      borderRadius: isMobileQuery ? '8px' : '10px',
+                      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }} 
+                  />
+                  <Box 
+                    sx={{ 
+                      aspectRatio: '1', 
+                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      borderRadius: isMobileQuery ? '8px' : '10px',
+                      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }} 
+                  />
+                </Box>
+                {/* Fila de 3 */}
+                <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={isMobileQuery ? '14px' : '16px'}>
+                  {[...Array(3)].map((_, i) => (
+                    <Box 
+                      key={i}
+                      sx={{ 
+                        aspectRatio: '1', 
+                        backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                        borderRadius: isMobileQuery ? '8px' : '10px',
+                        animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      }} 
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </motion.div>
+          ) : null}
+
           {mediaSetsWithMedia.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: allImagesLoaded ? 1 : 0 }}
+              transition={{ duration: 1.2 }}
+            >
             <ScrollContainer draggable={false} className={styles.carousel}>
               {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
                 const columns =
@@ -438,6 +563,7 @@ export default function Home() {
                 );
               })}
             </ScrollContainer>
+            </motion.div>
           )}
 
           {/* Lightbox */}
