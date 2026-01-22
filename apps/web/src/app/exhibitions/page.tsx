@@ -796,11 +796,6 @@ export default function Exhibitions() {
                                             md: 0,
                                           },
                                           padding: isMobile ? '0rem' : '1rem',
-                                          '@media (min-width: 2000px)': {
-                                            gridTemplateColumns: '1fr',
-                                            columnGap: '0',
-                                            rowGap: '2rem',
-                                          },
                                         }}
                                       >
                                         <Box sx={{ minWidth: 0 }}>
