@@ -78,7 +78,7 @@ function ImageGridItem({
     <motion.div
       initial={{ opacity: 0, scale: 0.985 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
-      transition={{ delay: 0.9 + setIndex * 0.5, duration: 1.1 }}
+      transition={{ delay: Math.min(0.3 + setIndex * 0.15, 1.2), duration: 0.6 }}
     >
       <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
         <NextImage
@@ -98,7 +98,8 @@ function ImageGridItem({
           onClick={() => openLightbox(mediaArray, index, setIndex)}
           alt={'Media'}
           className={styles.photoSetImage}
-          priority={false}
+          priority={setIndex === 0 && index < 4}
+          loading={setIndex === 0 ? 'eager' : 'lazy'}
         />
       </Box>
     </motion.div>
@@ -139,7 +140,7 @@ function VideoGridItem({
     <motion.div
       initial={{ opacity: 0, scale: 0.985 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
-      transition={{ delay: 0.9 + setIndex * 0.5, duration: 1.1 }}
+      transition={{ delay: Math.min(0.3 + setIndex * 0.15, 1.2), duration: 0.6 }}
     >
       <Box sx={{ opacity: loaded ? 1 : 0 }} width="100%" height="100%">
         <video
@@ -149,7 +150,7 @@ function VideoGridItem({
           loop
           muted
           playsInline
-          preload="metadata"
+          preload={setIndex === 0 ? "auto" : "none"}
           poster={posterSource.src || undefined}
           src={videoSource.src || undefined}
           onLoadedData={handleVideoLoaded}
