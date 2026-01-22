@@ -24,6 +24,7 @@ export interface ContactItem {
 export interface AboutMeData {
   title: string;
   content: string;
+  imageId?: string | null;
   subcontent: AboutMeSubcontent;
 }
 

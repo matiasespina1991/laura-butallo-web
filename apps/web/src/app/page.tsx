@@ -78,7 +78,10 @@ function ImageGridItem({
     <motion.div
       initial={{ opacity: 0, scale: 0.985 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
-      transition={{ delay: Math.min(0.3 + setIndex * 0.15, 1.2), duration: 0.6 }}
+      transition={{
+        delay: Math.min(0.3 + setIndex * 0.15, 1.2),
+        duration: 0.6,
+      }}
       style={{ position: 'relative', width: '100%', height: '100%' }}
     >
       {!loaded && (
@@ -156,7 +159,10 @@ function VideoGridItem({
     <motion.div
       initial={{ opacity: 0, scale: 0.985 }}
       animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
-      transition={{ delay: Math.min(0.3 + setIndex * 0.15, 1.2), duration: 0.6 }}
+      transition={{
+        delay: Math.min(0.3 + setIndex * 0.15, 1.2),
+        duration: 0.6,
+      }}
       style={{ position: 'relative', width: '100%', height: '100%' }}
     >
       {!loaded && (
@@ -181,7 +187,7 @@ function VideoGridItem({
         loop
         muted
         playsInline
-        preload={setIndex === 0 ? "auto" : "none"}
+        preload={setIndex === 0 ? 'auto' : 'none'}
         poster={posterSource.src || undefined}
         src={videoSource.src || undefined}
         onLoadedData={handleVideoLoaded}
@@ -317,9 +323,9 @@ export default function Home() {
     async function loadMediaSets() {
       const cacheKey = 'home_mediaSets_cache';
       const cacheTimestampKey = 'home_mediaSets_cache_timestamp';
-      
+
       let cachedData: string | null = null;
-      
+
       // Try to load from cache first
       try {
         cachedData = localStorage.getItem(cacheKey);
@@ -461,74 +467,100 @@ export default function Home() {
               exit={{ opacity: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
             >
-              <Box display="flex" flexDirection="column" gap={isMobileQuery ? '14px' : '16px'}>
+              <Box
+                display="flex"
+                flexDirection="column"
+                gap={isMobileQuery ? '14px' : '16px'}
+              >
                 {/* Fila de 2 */}
-                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={isMobileQuery ? '14px' : '16px'}>
-                  <Box 
-                    sx={{ 
-                      aspectRatio: '1', 
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(2, 1fr)"
+                  gap={isMobileQuery ? '14px' : '16px'}
+                >
+                  <Box
+                    sx={{
+                      aspectRatio: '1',
                       backgroundColor: 'rgba(128, 128, 128, 0.1)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
-                      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      animation:
+                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                       '@keyframes pulse': {
                         '0%, 100%': { opacity: 1 },
                         '50%': { opacity: 0.5 },
                       },
-                    }} 
+                    }}
                   />
-                  <Box 
-                    sx={{ 
-                      aspectRatio: '1', 
+                  <Box
+                    sx={{
+                      aspectRatio: '1',
                       backgroundColor: 'rgba(128, 128, 128, 0.1)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
-                      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }} 
+                      animation:
+                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }}
                   />
                 </Box>
                 {/* Fila de 4 */}
-                <Box display="grid" gridTemplateColumns="repeat(4, 1fr)" gap={isMobileQuery ? '14px' : '16px'}>
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(4, 1fr)"
+                  gap={isMobileQuery ? '14px' : '16px'}
+                >
                   {[...Array(4)].map((_, i) => (
-                    <Box 
+                    <Box
                       key={i}
-                      sx={{ 
-                        aspectRatio: '1', 
+                      sx={{
+                        aspectRatio: '1',
                         backgroundColor: 'rgba(128, 128, 128, 0.1)',
                         borderRadius: isMobileQuery ? '8px' : '10px',
-                        animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                      }} 
+                        animation:
+                          'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      }}
                     />
                   ))}
                 </Box>
                 {/* Fila de 2 */}
-                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap={isMobileQuery ? '14px' : '16px'}>
-                  <Box 
-                    sx={{ 
-                      aspectRatio: '1', 
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(2, 1fr)"
+                  gap={isMobileQuery ? '14px' : '16px'}
+                >
+                  <Box
+                    sx={{
+                      aspectRatio: '1',
                       backgroundColor: 'rgba(128, 128, 128, 0.1)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
-                      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }} 
+                      animation:
+                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }}
                   />
-                  <Box 
-                    sx={{ 
-                      aspectRatio: '1', 
+                  <Box
+                    sx={{
+                      aspectRatio: '1',
                       backgroundColor: 'rgba(128, 128, 128, 0.1)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
-                      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }} 
+                      animation:
+                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }}
                   />
                 </Box>
                 {/* Fila de 3 */}
-                <Box display="grid" gridTemplateColumns="repeat(3, 1fr)" gap={isMobileQuery ? '14px' : '16px'}>
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(3, 1fr)"
+                  gap={isMobileQuery ? '14px' : '16px'}
+                >
                   {[...Array(3)].map((_, i) => (
-                    <Box 
+                    <Box
                       key={i}
-                      sx={{ 
-                        aspectRatio: '1', 
+                      sx={{
+                        aspectRatio: '1',
                         backgroundColor: 'rgba(128, 128, 128, 0.1)',
                         borderRadius: isMobileQuery ? '8px' : '10px',
-                        animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                      }} 
+                        animation:
+                          'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      }}
                     />
                   ))}
                 </Box>
@@ -542,53 +574,53 @@ export default function Home() {
               animate={{ opacity: allImagesLoaded ? 1 : 0 }}
               transition={{ duration: 1.2 }}
             >
-            <ScrollContainer draggable={false} className={styles.carousel}>
-              {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
-                const columns =
-                  isMobileQuery && setWithMedia.media.length === 4
-                    ? 2
-                    : getGridColumns(setWithMedia.media.length);
+              <ScrollContainer draggable={false} className={styles.carousel}>
+                {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
+                  const columns =
+                    isMobileQuery && setWithMedia.media.length === 4
+                      ? 2
+                      : getGridColumns(setWithMedia.media.length);
 
-                return (
-                  <motion.div
-                    key={setWithMedia.mediaset.id}
-                    className={styles.photoSetContainer}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{
-                      duration: 1,
-                      ease: 'easeInOut',
-                      delay: setIndex * 0.12,
-                    }}
-                  >
-                    {setWithMedia.media.length > 0 && (
-                      <Box>
-                        <Grid
-                          className="media-grid"
-                          sx={{
-                            display: 'grid',
-                            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                          }}
-                          gap={isMobileQuery ? '14px' : '16px'}
-                        >
-                          {setWithMedia.media.map((m, mediaIndex) => (
-                            <Box key={m.id} width="100%" height="100%">
-                              <MediaItem
-                                m={m}
-                                index={mediaIndex}
-                                setIndex={setIndex}
-                                openLightbox={openLightbox}
-                                mediaArray={setWithMedia.media}
-                              />
-                            </Box>
-                          ))}
-                        </Grid>
-                      </Box>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </ScrollContainer>
+                  return (
+                    <motion.div
+                      key={setWithMedia.mediaset.id}
+                      className={styles.photoSetContainer}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{
+                        duration: 1,
+                        ease: 'easeInOut',
+                        delay: setIndex * 0.12,
+                      }}
+                    >
+                      {setWithMedia.media.length > 0 && (
+                        <Box>
+                          <Grid
+                            className="media-grid"
+                            sx={{
+                              display: 'grid',
+                              gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                            }}
+                            gap={isMobileQuery ? '14px' : '16px'}
+                          >
+                            {setWithMedia.media.map((m, mediaIndex) => (
+                              <Box key={m.id} width="100%" height="100%">
+                                <MediaItem
+                                  m={m}
+                                  index={mediaIndex}
+                                  setIndex={setIndex}
+                                  openLightbox={openLightbox}
+                                  mediaArray={setWithMedia.media}
+                                />
+                              </Box>
+                            ))}
+                          </Grid>
+                        </Box>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </ScrollContainer>
             </motion.div>
           )}
 

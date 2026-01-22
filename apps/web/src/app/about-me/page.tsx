@@ -7,11 +7,29 @@ import { useEffect, useState } from 'react';
 import { getAboutMeData } from '@/utils/functions/getAboutMeData';
 import { AboutMeData } from '@/utils/types/types';
 import Footer from '../components/Footer';
+import { doc, getDoc } from 'firebase/firestore';
+
+import { useStorageAssetSrc } from '@/hooks/useStorageAssetSrc';
+import NextImage from 'next/image';
+import db from '@/utils/config/firebase';
+
+type MediaDoc = {
+  id: string;
+  type: 'image' | 'video';
+  paths?: {
+    original?: { storagePath?: string; downloadURL?: string };
+    derivatives?: Record<
+      string,
+      { storagePath?: string; downloadURL?: string }
+    >;
+  };
+};
 
 export default function AboutMe() {
   const [aboutMeData, setAboutMeData] = useState<AboutMeData>({
     title: '',
     content: '',
+    imageId: null,
     subcontent: {
       education: {
         title: '',
@@ -19,16 +37,41 @@ export default function AboutMe() {
       },
     },
   });
+  const [imageMedia, setImageMedia] = useState<MediaDoc | null>(null);
 
   const fetchAboutMeData = async () => {
     const data = await getAboutMeData();
 
     if (data) {
+      console.log('[About Me] Loaded data:', data);
       setAboutMeData({
         title: data.title,
         content: data.content,
+        imageId: data.imageId,
         subcontent: data.subcontent,
       });
+
+      // Load image if exists
+      if (data.imageId) {
+        console.log('[About Me] Loading image with ID:', data.imageId);
+        try {
+          const imageDocSnap = await getDoc(doc(db, 'media', data.imageId));
+          if (imageDocSnap.exists()) {
+            const mediaData = {
+              id: imageDocSnap.id,
+              ...imageDocSnap.data(),
+            } as MediaDoc;
+            console.log('[About Me] Image loaded:', mediaData);
+            setImageMedia(mediaData);
+          } else {
+            console.log('[About Me] Image document does not exist');
+          }
+        } catch (error) {
+          console.error('[About Me] Error loading image:', error);
+        }
+      } else {
+        console.log('[About Me] No imageId in data');
+      }
     }
   };
 
@@ -79,35 +122,48 @@ export default function AboutMe() {
                 </Typography>
                 <Box height={15}></Box>
 
-                <Typography
-                  maxWidth={{
-                    sm: '100%',
-                    md: '95%',
-                    lg: '95%',
-                    xl: '78%',
-                  }}
+                <Box
                   sx={{
-                    fontSize: {
-                      xs: '1.3rem',
-                      sm: '1.5rem',
-                    },
-                    '& p': {
-                      margin: 0,
-                    },
-                    '& a': {
-                      textDecoration: 'underline',
-                      textUnderlineOffset: '2px',
-                    },
-                    '& img': {
-                      display: 'block',
-                      maxWidth: '640px',
-                      maxHeight: '640px',
-                      width: '100%',
-                      height: 'auto',
-                    },
+                    display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    gap: { xs: '2rem', md: '3rem' },
+                    alignItems: { xs: 'flex-start', md: 'flex-start' },
                   }}
-                  dangerouslySetInnerHTML={{ __html: aboutMeData.content }}
-                />
+                >
+                  <Box sx={{ flex: 4 }}>
+                    <Typography
+                      maxWidth={{
+                        sm: '100%',
+                        md: '95%',
+                        lg: '95%',
+                        xl: '95%',
+                      }}
+                      sx={{
+                        fontSize: {
+                          xs: '1.3rem',
+                          sm: '1.5rem',
+                        },
+                        '& p': {
+                          margin: 0,
+                        },
+                        '& a': {
+                          textDecoration: 'underline',
+                          textUnderlineOffset: '2px',
+                        },
+                        '& img': {
+                          display: 'block',
+                          maxWidth: '640px',
+                          maxHeight: '640px',
+                          width: '100%',
+                          height: 'auto',
+                        },
+                      }}
+                      dangerouslySetInnerHTML={{ __html: aboutMeData.content }}
+                    />
+                  </Box>
+
+                  {imageMedia && <AboutMeImage media={imageMedia} />}
+                </Box>
               </Box>
 
               <Box height={120}></Box>
@@ -124,5 +180,66 @@ export default function AboutMe() {
         <Footer />
       </motion.div>
     </>
+  );
+}
+
+function AboutMeImage({ media }: { media: MediaDoc }) {
+  console.log('[AboutMeImage] Rendering with media:', media);
+
+  // Use the same logic as exhibition-form for selecting the best available derivative
+  const imageAsset =
+    media.paths?.derivatives?.webp_small ??
+    media.paths?.derivatives?.webp_medium ??
+    media.paths?.original ??
+    null;
+
+  console.log('[AboutMeImage] Selected asset:', imageAsset);
+
+  const imageSource = useStorageAssetSrc(
+    imageAsset?.storagePath
+      ? {
+          storagePath: imageAsset.storagePath,
+          downloadURL: imageAsset.downloadURL ?? null,
+        }
+      : null
+  );
+
+  console.log('[AboutMeImage] Image source:', imageSource);
+
+  if (!imageSource.src) {
+    console.log('[AboutMeImage] No image src, returning null');
+    return null;
+  }
+
+  return (
+    <Box
+      sx={{
+        flex: 2,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        paddingRight: { xs: 0, md: '2rem' },
+      }}
+    >
+      <Box
+        sx={{
+          position: 'relative',
+          width: { xs: '5rem', sm: '220px', md: '100%' },
+          height: { xs: '5rem', sm: '220px', md: 'auto' },
+          maxWidth: { xs: '5rem', sm: 'none', md: '300px' },
+          aspectRatio: { xs: 'auto', sm: '1', md: '1' },
+          borderRadius: '50%',
+          overflow: 'hidden',
+        }}
+      >
+        <NextImage
+          src={imageSource.src}
+          alt="About Me"
+          fill
+          style={{ objectFit: 'cover' }}
+          onError={imageSource.handleError}
+        />
+      </Box>
+    </Box>
   );
 }
