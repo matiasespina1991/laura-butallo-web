@@ -315,12 +315,38 @@ export default function Home() {
 
   useEffect(() => {
     async function loadMediaSets() {
-      setIsLoading(true);
+      const cacheKey = 'home_mediaSets_cache';
+      const cacheTimestampKey = 'home_mediaSets_cache_timestamp';
+      
+      let cachedData: string | null = null;
+      
+      // Try to load from cache first
+      try {
+        cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          setMediaSetsWithMedia(parsed);
+          setIsLoading(false);
+          setTimeout(() => setAllImagesLoaded(true), 800);
+        }
+      } catch (error) {
+        console.error('Error loading from cache:', error);
+      }
+
+      // Fetch fresh data from database
+      setIsLoading(cachedData ? false : true);
       const fetched = await fetchMediaSetsWithMedia();
       setMediaSetsWithMedia(fetched);
       setIsLoading(false);
-      // Simulate all images loaded after short delay
       setTimeout(() => setAllImagesLoaded(true), 800);
+
+      // Save to cache
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(fetched));
+        localStorage.setItem(cacheTimestampKey, Date.now().toString());
+      } catch (error) {
+        console.error('Error saving to cache:', error);
+      }
     }
     loadMediaSets();
   }, []);
