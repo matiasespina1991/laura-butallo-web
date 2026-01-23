@@ -15,7 +15,7 @@ export default function Footer() {
           backgroundColor: 'rgb(var(--background-rgb))',
           color: 'rgb(var(--foreground-rgb))',
           transition: 'background-color 0.3s ease, color 0.3s ease',
-          borderTop: '1px solid rgba(128, 127, 127, 0.16)',
+          borderTop: '1px solid rgba(128, 127, 127, 0.11)',
         }}
       >
         <Box
@@ -26,11 +26,11 @@ export default function Footer() {
             flexDirection: 'column',
           }}
         >
-          <Typography color="textSecondary" fontSize="0.70rem">
+          <Typography fontSize="0.70rem">
             Laura Butallo © {new Date().getFullYear()}
           </Typography>
 
-          <Typography color="textSecondary" fontSize="0.7rem">
+          <Typography fontSize="0.7rem">
             Website by{' '}
             <a href="mailto:matiasespina1991@gmail.com">
               <b>Cymatics Ideas</b>
