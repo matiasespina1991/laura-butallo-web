@@ -15,7 +15,7 @@ export default function Footer() {
           backgroundColor: 'rgb(var(--background-rgb))',
           color: 'rgb(var(--foreground-rgb))',
           transition: 'background-color 0.3s ease, color 0.3s ease',
-          borderTop: '1px solid rgba(128, 127, 127, 0.11)',
+          borderTop: '1px solid rgba(128, 127, 127, 0.10)',
         }}
       >
         <Box
