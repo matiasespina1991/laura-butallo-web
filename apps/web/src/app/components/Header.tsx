@@ -212,7 +212,7 @@ export default function Header() {
               variant="h3"
               fontWeight="bold"
               fontFamily="Helvetica Neue, sans-serif"
-              pl="0.3rem"
+              pl="0.25rem"
               color="white"
               letterSpacing="-0.04em"
               component="div"

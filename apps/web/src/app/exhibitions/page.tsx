@@ -570,7 +570,7 @@ export default function Exhibitions() {
     <>
       <main className={`${styles.main} ${styles.exhibitionsPage}`}>
         <Box
-          px={{ xs: '1.2rem', sm: '2rem' }}
+          px={{ xs: '1.1rem', sm: '2rem' }}
           py={{ xs: '2rem', sm: '6rem' }}
           width="100%"
         >

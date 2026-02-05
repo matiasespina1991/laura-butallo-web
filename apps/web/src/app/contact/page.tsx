@@ -32,7 +32,7 @@ export default function Contact() {
     <>
       <main className={`${styles.main} ${styles.contactPage}`}>
         <Box
-          px={{ xs: '1.2rem', sm: '2rem' }}
+          px={{ xs: '1.1rem', sm: '2rem' }}
           py={{ xs: '1.7rem', sm: '2rem' }}
           width="100%"
         >

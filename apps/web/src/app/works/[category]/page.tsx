@@ -680,7 +680,7 @@ export default function WorksCategoryPage({
           }}
         />
         <Box
-          px={{ xs: '1.2rem', sm: '2rem' }}
+          px={{ xs: '1.1rem', sm: '2rem' }}
           pb={{ xs: '0rem', sm: '1.5rem' }}
           minHeight={'60vh'}
           width="100%"
