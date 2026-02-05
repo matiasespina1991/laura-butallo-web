@@ -680,6 +680,27 @@ export default function WorksCategoryPage({
           }}
         />
         <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            paddingInline: '2rem',
+          }}
+        >
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+            style={{
+              fontSize: '0.95rem',
+              fontWeight: 300,
+              textAlign: 'center',
+              marginBottom: '0.7rem',
+            }}
+          >
+            WORKS {'﹥'} {params.category.replace(/-/g, ' ').toUpperCase()}
+          </motion.h1>
+        </Box>
+        <Box
           px={{ xs: '1.1rem', sm: '2rem' }}
           pb={{ xs: '0rem', sm: '1.5rem' }}
           minHeight={'60vh'}

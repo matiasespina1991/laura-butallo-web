@@ -140,8 +140,8 @@ export default function AboutMe() {
                       }}
                       sx={{
                         fontSize: {
-                          xs: '1.3rem',
-                          sm: '1.5rem',
+                          xs: '1.1rem',
+                          sm: '1.1rem',
                         },
                         '& p': {
                           margin: 0,
