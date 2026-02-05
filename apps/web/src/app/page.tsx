@@ -66,7 +66,7 @@ function ImageGridItem({
   const imageRef = useRef<HTMLImageElement | null>(null);
   const hasNotifiedRef = useRef(false);
   const canReveal = isVisible && loaded;
-  const fadeDelay = isInitialLoad ? '1s' : '0s';
+  const fadeDelay = isInitialLoad ? '2s' : '0s';
 
   useEffect(() => {
     setLoaded(false);
@@ -141,7 +141,7 @@ function ImageGridItem({
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: '#2a2a2a',
+            backgroundColor: 'rgba(128, 128, 128, 0.06)',
             borderRadius: isMobileDevice ? '8px' : '10px',
             animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             zIndex: 0,
@@ -162,7 +162,7 @@ function ImageGridItem({
             position: 'relative',
             zIndex: 1,
             opacity: canReveal ? 1 : 0,
-            transition: `opacity 0.35s ease ${fadeDelay}`,
+            transition: `opacity 1s ease ${fadeDelay}`,
           }}
           src={lowImage.src}
           onError={handleImageError}
@@ -195,7 +195,7 @@ function VideoGridItem({
   const hasNotifiedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canReveal = isVisible && loaded;
-  const fadeDelay = isInitialLoad ? '1s' : '0s';
+  const fadeDelay = isInitialLoad ? '2s' : '0s';
 
   useEffect(() => {
     setLoaded(false);
@@ -268,7 +268,7 @@ function VideoGridItem({
             left: 0,
             width: '100%',
             height: '100%',
-            backgroundColor: '#2a2a2a',
+            backgroundColor: 'rgba(128, 128, 128, 0.06)',
             borderRadius: isMobileDevice ? '8px' : '10px',
             animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
             zIndex: 0,
@@ -297,7 +297,7 @@ function VideoGridItem({
           position: 'relative',
           zIndex: 1,
           opacity: canReveal ? 1 : 0,
-          transition: `opacity 0.35s ease ${fadeDelay}`,
+          transition: `opacity 1s ease ${fadeDelay}`,
         }}
         onClick={() => openLightbox(mediaArray, index, setIndex)}
       >
@@ -393,7 +393,10 @@ export default function Home() {
   const [maxVisibleBySet, setMaxVisibleBySet] = useState<
     Record<string, number>
   >({});
+  const [firstSetReady, setFirstSetReady] = useState(false);
   const [sequenceVersion, setSequenceVersion] = useState(0);
+  const firstSetId = mediaSetsWithMedia[0]?.mediaset.id;
+  const firstSetTotal = mediaSetsWithMedia[0]?.media.length ?? 0;
 
   const isMobileQuery = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
@@ -477,9 +480,20 @@ export default function Home() {
     );
     if (!allImagesLoaded) {
       loadedFlagsRef.current = {};
+      setFirstSetReady(false);
       setSequenceVersion((prev) => prev + 1);
     }
   }, [mediaSetsWithMedia, allImagesLoaded]);
+
+  useEffect(() => {
+    if (!firstSetId) {
+      setFirstSetReady(false);
+      return;
+    }
+    if (firstSetTotal === 0) {
+      setFirstSetReady(true);
+    }
+  }, [firstSetId, firstSetTotal]);
 
   const handleMediaLoaded = useCallback(
     (setId: string, index: number, total: number) => {
@@ -511,8 +525,14 @@ export default function Home() {
         if (prev[setId] === nextVisible) return prev;
         return { ...prev, [setId]: nextVisible };
       });
+
+      if (firstSetId && setId === firstSetId) {
+        const allLoaded =
+          flags.length === firstSetTotal && flags.every(Boolean);
+        if (allLoaded) setFirstSetReady(true);
+      }
     },
-    []
+    [firstSetId, firstSetTotal]
   );
 
   const handlePreviousMedia = useCallback(() => {
@@ -734,6 +754,7 @@ export default function Home() {
             >
               <ScrollContainer draggable={false} className={styles.carousel}>
                 {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
+                  if (setIndex > 0 && !firstSetReady) return null;
                   const columns =
                     isMobileQuery && setWithMedia.media.length === 4
                       ? 2
