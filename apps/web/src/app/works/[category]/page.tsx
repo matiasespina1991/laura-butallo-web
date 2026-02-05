@@ -31,6 +31,7 @@ type MediaWithHandlers = {
   isVisible: boolean;
   sequenceVersion: number;
   isInitialLoad: boolean;
+  showPostSkeleton: boolean;
   openLightbox: (
     mediaArray: Media[],
     mediaIndex: number,
@@ -56,6 +57,7 @@ function ImageGridItem({
   isVisible,
   sequenceVersion,
   isInitialLoad,
+  showPostSkeleton,
   openLightbox,
   mediaArray,
 }: MediaWithHandlers) {
@@ -122,7 +124,7 @@ function ImageGridItem({
       animate={{ opacity: 1, scale: 1 }}
       transition={{
         delay: Math.min(0.3 + setIndex * 0.15, 1.2),
-        duration: 0.6,
+        duration: 1.0,
       }}
       style={{
         position: 'relative',
@@ -146,6 +148,22 @@ function ImageGridItem({
           }}
         />
       )}
+      {showPostSkeleton ? (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(128, 128, 128, 0.06)',
+            borderRadius: isMobileDevice ? '8px' : '10px',
+            animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        />
+      ) : null}
       {lowImage.src ? (
         <NextImage
           ref={imageRef}
@@ -185,6 +203,7 @@ function VideoGridItem({
   isVisible,
   sequenceVersion,
   isInitialLoad,
+  showPostSkeleton,
   openLightbox,
   mediaArray,
 }: MediaWithHandlers) {
@@ -249,7 +268,7 @@ function VideoGridItem({
       animate={{ opacity: 1, scale: 1 }}
       transition={{
         delay: Math.min(0.3 + setIndex * 0.15, 1.2),
-        duration: 0.6,
+        duration: 1.0,
       }}
       style={{
         position: 'relative',
@@ -273,6 +292,22 @@ function VideoGridItem({
           }}
         />
       )}
+      {showPostSkeleton ? (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(128, 128, 128, 0.06)',
+            borderRadius: isMobileDevice ? '8px' : '10px',
+            animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            zIndex: 2,
+            pointerEvents: 'none',
+          }}
+        />
+      ) : null}
       <video
         ref={videoRef}
         width="100%"
@@ -396,6 +431,7 @@ export default function WorksCategoryPage({
     Record<string, number>
   >({});
   const [firstSetReady, setFirstSetReady] = useState(false);
+  const [postSkeletonVisible, setPostSkeletonVisible] = useState(false);
   const [sequenceVersion, setSequenceVersion] = useState(0);
   const firstSetId = mediaSetsWithMedia[0]?.mediaset.id;
   const firstSetTotal = mediaSetsWithMedia[0]?.media.length ?? 0;
@@ -496,6 +532,18 @@ export default function WorksCategoryPage({
       setFirstSetReady(true);
     }
   }, [firstSetId, firstSetTotal]);
+
+  useEffect(() => {
+    if (!allImagesLoaded) {
+      setPostSkeletonVisible(false);
+      return;
+    }
+    setPostSkeletonVisible(true);
+    const timeout = window.setTimeout(() => {
+      setPostSkeletonVisible(false);
+    }, 3000);
+    return () => window.clearTimeout(timeout);
+  }, [allImagesLoaded]);
 
   const handleMediaLoaded = useCallback(
     (setId: string, index: number, total: number) => {
@@ -797,6 +845,7 @@ export default function WorksCategoryPage({
                                     isVisible={mediaIndex <= visibleLimit}
                                     sequenceVersion={sequenceVersion}
                                     isInitialLoad={!allImagesLoaded}
+                                    showPostSkeleton={postSkeletonVisible}
                                     openLightbox={openLightbox}
                                     mediaArray={setWithMedia.media}
                                   />
