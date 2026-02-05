@@ -696,18 +696,18 @@ export default function Home() {
               <Box
                 display="flex"
                 flexDirection="column"
-                gap={isMobileQuery ? '14px' : '16px'}
+                gap={isMobileQuery ? '13px' : '16px'}
               >
                 {/* Fila de 2 */}
                 <Box
                   display="grid"
                   gridTemplateColumns="repeat(2, 1fr)"
-                  gap={isMobileQuery ? '14px' : '16px'}
+                  gap={isMobileQuery ? '13px' : '16px'}
                 >
                   <Box
                     sx={{
                       aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
+                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
                       animation:
                         'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -731,7 +731,7 @@ export default function Home() {
                 <Box
                   display="grid"
                   gridTemplateColumns="repeat(4, 1fr)"
-                  gap={isMobileQuery ? '14px' : '16px'}
+                  gap={isMobileQuery ? '13px' : '16px'}
                 >
                   {[...Array(4)].map((_, i) => (
                     <Box
@@ -750,7 +750,7 @@ export default function Home() {
                 <Box
                   display="grid"
                   gridTemplateColumns="repeat(2, 1fr)"
-                  gap={isMobileQuery ? '14px' : '16px'}
+                  gap={isMobileQuery ? '13px' : '16px'}
                 >
                   <Box
                     sx={{
@@ -775,7 +775,95 @@ export default function Home() {
                 <Box
                   display="grid"
                   gridTemplateColumns="repeat(3, 1fr)"
-                  gap={isMobileQuery ? '14px' : '16px'}
+                  gap={isMobileQuery ? '13px' : '16px'}
+                >
+                  {[...Array(3)].map((_, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        aspectRatio: '1',
+                        backgroundColor: 'rgba(128, 128, 128, 0.06)',
+                        borderRadius: isMobileQuery ? '8px' : '10px',
+                        animation:
+                          'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      }}
+                    />
+                  ))}
+                </Box>
+                {/* Fila de 2 (duplicada) */}
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(2, 1fr)"
+                  gap={isMobileQuery ? '13px' : '16px'}
+                >
+                  <Box
+                    sx={{
+                      aspectRatio: '1',
+                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      borderRadius: isMobileQuery ? '8px' : '10px',
+                      animation:
+                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      aspectRatio: '1',
+                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
+                      borderRadius: isMobileQuery ? '8px' : '10px',
+                      animation:
+                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }}
+                  />
+                </Box>
+                {/* Fila de 4 (duplicada) */}
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(4, 1fr)"
+                  gap={isMobileQuery ? '13px' : '16px'}
+                >
+                  {[...Array(4)].map((_, i) => (
+                    <Box
+                      key={i}
+                      sx={{
+                        aspectRatio: '1',
+                        backgroundColor: 'rgba(128, 128, 128, 0.06)',
+                        borderRadius: isMobileQuery ? '8px' : '10px',
+                        animation:
+                          'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      }}
+                    />
+                  ))}
+                </Box>
+                {/* Fila de 2 (duplicada) */}
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(2, 1fr)"
+                  gap={isMobileQuery ? '13px' : '16px'}
+                >
+                  <Box
+                    sx={{
+                      aspectRatio: '1',
+                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
+                      borderRadius: isMobileQuery ? '8px' : '10px',
+                      animation:
+                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      aspectRatio: '1',
+                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
+                      borderRadius: isMobileQuery ? '8px' : '10px',
+                      animation:
+                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }}
+                  />
+                </Box>
+                {/* Fila de 3 (duplicada) */}
+                <Box
+                  display="grid"
+                  gridTemplateColumns="repeat(3, 1fr)"
+                  gap={isMobileQuery ? '13px' : '16px'}
                 >
                   {[...Array(3)].map((_, i) => (
                     <Box
@@ -830,7 +918,7 @@ export default function Home() {
                               display: 'grid',
                               gridTemplateColumns: `repeat(${columns}, 1fr)`,
                             }}
-                            gap={isMobileQuery ? '14px' : '16px'}
+                            gap={isMobileQuery ? '13px' : '16px'}
                           >
                             {setWithMedia.media.map((m, mediaIndex) => {
                               if (mediaIndex > visibleLimit) return null;

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 const variants = {
   hidden: { opacity: 0.2, x: 0, y: 0 },
@@ -12,6 +12,10 @@ const variants = {
 
 export default function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, [pathname]);
 
   return (
     <motion.div

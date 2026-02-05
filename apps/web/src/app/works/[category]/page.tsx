@@ -695,100 +695,37 @@ export default function WorksCategoryPage({
               <Box
                 display="flex"
                 flexDirection="column"
-                gap={isMobileQuery ? '14px' : '16px'}
+                gap={isMobileQuery ? '13px' : '16px'}
               >
-                {/* Fila de 2 */}
-                <Box
-                  display="grid"
-                  gridTemplateColumns="repeat(2, 1fr)"
-                  gap={isMobileQuery ? '14px' : '16px'}
-                >
+                {[...Array(4)].map((_, rowIndex) => (
                   <Box
-                    sx={{
-                      aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
-                      borderRadius: isMobileQuery ? '8px' : '10px',
-                      animation:
-                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                      '@keyframes pulse': {
-                        '0%, 100%': { opacity: 1 },
-                        '50%': { opacity: 0.5 },
-                      },
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
-                      borderRadius: isMobileQuery ? '8px' : '10px',
-                      animation:
-                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }}
-                  />
-                </Box>
-                {/* Fila de 4 */}
-                <Box
-                  display="grid"
-                  gridTemplateColumns="repeat(4, 1fr)"
-                  gap={isMobileQuery ? '14px' : '16px'}
-                >
-                  {[...Array(4)].map((_, i) => (
-                    <Box
-                      key={i}
-                      sx={{
-                        aspectRatio: '1',
-                        backgroundColor: 'rgba(128, 128, 128, 0.06)',
-                        borderRadius: isMobileQuery ? '8px' : '10px',
-                        animation:
-                          'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                      }}
-                    />
-                  ))}
-                </Box>
-                {/* Fila de 2 */}
-                <Box
-                  display="grid"
-                  gridTemplateColumns="repeat(2, 1fr)"
-                  gap={isMobileQuery ? '14px' : '16px'}
-                >
-                  <Box
-                    sx={{
-                      aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
-                      borderRadius: isMobileQuery ? '8px' : '10px',
-                      animation:
-                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
-                      borderRadius: isMobileQuery ? '8px' : '10px',
-                      animation:
-                        'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }}
-                  />
-                </Box>
-                {/* Fila de 3 */}
-                <Box
-                  display="grid"
-                  gridTemplateColumns="repeat(3, 1fr)"
-                  gap={isMobileQuery ? '14px' : '16px'}
-                >
-                  {[...Array(3)].map((_, i) => (
-                    <Box
-                      key={i}
-                      sx={{
-                        aspectRatio: '1',
-                        backgroundColor: 'rgba(128, 128, 128, 0.06)',
-                        borderRadius: isMobileQuery ? '8px' : '10px',
-                        animation:
-                          'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                      }}
-                    />
-                  ))}
-                </Box>
+                    key={rowIndex}
+                    display="grid"
+                    gridTemplateColumns="repeat(3, 1fr)"
+                    gap={isMobileQuery ? '13px' : '16px'}
+                  >
+                    {[...Array(3)].map((_, i) => (
+                      <Box
+                        key={i}
+                        sx={{
+                          aspectRatio: '1',
+                          backgroundColor: 'rgba(128, 128, 128, 0.06)',
+                          borderRadius: isMobileQuery ? '8px' : '10px',
+                          animation:
+                            'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                          ...(rowIndex === 0 && i === 0
+                            ? {
+                                '@keyframes pulse': {
+                                  '0%, 100%': { opacity: 1 },
+                                  '50%': { opacity: 0.5 },
+                                },
+                              }
+                            : null),
+                        }}
+                      />
+                    ))}
+                  </Box>
+                ))}
               </Box>
             </motion.div>
           ) : null}
@@ -829,7 +766,7 @@ export default function WorksCategoryPage({
                               display: 'grid',
                               gridTemplateColumns: `repeat(${columns}, 1fr)`,
                             }}
-                            gap={isMobileQuery ? '14px' : '16px'}
+                            gap={isMobileQuery ? '13px' : '16px'}
                           >
                             {setWithMedia.media.map((m, mediaIndex) => {
                               if (mediaIndex > visibleLimit) return null;
