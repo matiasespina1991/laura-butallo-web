@@ -64,6 +64,7 @@ function ImageGridItem({
   const imageRef = useRef<HTMLImageElement | null>(null);
   const hasNotifiedRef = useRef(false);
   const canReveal = isVisible && loaded;
+  const fadeDelay = isInitialLoad ? '1s' : '0s';
 
   useEffect(() => {
     setLoaded(false);
@@ -92,7 +93,7 @@ function ImageGridItem({
     if (img && img.complete) {
       notifyLoaded();
     }
-  }, [lowImage.src, notifyLoaded]);
+  }, [lowImage.src, sequenceVersion, notifyLoaded]);
 
   useEffect(() => {
     if (!lowImage.src) {
@@ -105,12 +106,6 @@ function ImageGridItem({
     if (loaded) return;
     const timeout = window.setTimeout(() => {
       if (hasNotifiedRef.current) return;
-      console.log('[works] image load timeout fallback', {
-        setId,
-        index,
-        total,
-        src: lowImage.src || null,
-      });
       notifyLoaded();
     }, 3500);
     return () => window.clearTimeout(timeout);
@@ -118,21 +113,13 @@ function ImageGridItem({
 
   const handleImageError = () => {
     lowImage.handleError();
-    console.log('[works] image error', {
-      setId,
-      index,
-      total,
-      src: lowImage.src || null,
-    });
     notifyLoaded();
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.985 }}
-      animate={
-        canReveal ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }
-      }
+      initial={{ opacity: 1, scale: 0.985 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{
         delay: Math.min(0.3 + setIndex * 0.15, 1.2),
         duration: 0.6,
@@ -159,39 +146,31 @@ function ImageGridItem({
           }}
         />
       )}
-      <NextImage
-        ref={imageRef}
-        draggable={false}
-        width={600}
-        height={600}
-        onLoad={() => {
-          console.log('[works] image loaded', {
-            setId,
-            index,
-            total,
-            src: lowImage.src || null,
-          });
-          setLoaded(true);
-          if (!hasNotifiedRef.current) {
-            hasNotifiedRef.current = true;
-            onMediaLoaded(setId, index, total);
-          }
-        }}
-        style={{
-          userSelect: 'none',
-          display: 'block',
-          borderRadius: isMobileDevice ? '8px' : '10px',
-          position: 'relative',
-          zIndex: 1,
-        }}
-        src={lowImage.src || ''}
-        onError={handleImageError}
-        onClick={() => openLightbox(mediaArray, index, setIndex)}
-        alt={'Media'}
-        className={styles.photoSetImage}
-        priority={setIndex === 0 && index < 4}
-        loading={setIndex === 0 ? 'eager' : 'lazy'}
-      />
+      {lowImage.src ? (
+        <NextImage
+          ref={imageRef}
+          draggable={false}
+          width={600}
+          height={600}
+          onLoad={notifyLoaded}
+          style={{
+            userSelect: 'none',
+            display: 'block',
+            borderRadius: isMobileDevice ? '8px' : '10px',
+            position: 'relative',
+            zIndex: 1,
+            opacity: canReveal ? 1 : 0,
+            transition: `opacity 0.35s ease ${fadeDelay}`,
+          }}
+          src={lowImage.src}
+          onError={handleImageError}
+          onClick={() => openLightbox(mediaArray, index, setIndex)}
+          alt={'Media'}
+          className={styles.photoSetImage}
+          priority={setIndex === 0 && index < 4}
+          loading={setIndex === 0 ? 'eager' : 'lazy'}
+        />
+      ) : null}
     </motion.div>
   );
 }
@@ -212,7 +191,9 @@ function VideoGridItem({
   const [loaded, setLoaded] = useState(false);
   const isMobileDevice = isMobile;
   const hasNotifiedRef = useRef(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const canReveal = isVisible && loaded;
+  const fadeDelay = isInitialLoad ? '1s' : '0s';
 
   useEffect(() => {
     setLoaded(false);
@@ -230,28 +211,16 @@ function VideoGridItem({
   const videoSource = useStorageAssetSrc(sources.low);
   const posterSource = useStorageAssetSrc(sources.poster);
 
-  const handleVideoLoaded = () => {
-    console.log('[works] video loaded', {
-      setId,
-      index,
-      total,
-      src: videoSource.src || null,
-    });
+  const handleVideoLoaded = useCallback(() => {
     if (hasNotifiedRef.current) return;
     hasNotifiedRef.current = true;
     setLoaded(true);
     onMediaLoaded(setId, index, total);
-  };
+  }, [index, onMediaLoaded, setId, total]);
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     console.error('[MediaItem] video error', m.id, e);
     videoSource.handleError();
-    console.log('[works] video error', {
-      setId,
-      index,
-      total,
-      src: videoSource.src || null,
-    });
     if (hasNotifiedRef.current) return;
     hasNotifiedRef.current = true;
     setLoaded(true);
@@ -267,12 +236,17 @@ function VideoGridItem({
     }
   }, [videoSource.src, onMediaLoaded, setId, index, total]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && video.readyState >= 2) {
+      handleVideoLoaded();
+    }
+  }, [sequenceVersion, videoSource.src, handleVideoLoaded]);
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.985 }}
-      animate={
-        canReveal ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }
-      }
+      initial={{ opacity: 1, scale: 0.985 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{
         delay: Math.min(0.3 + setIndex * 0.15, 1.2),
         duration: 0.6,
@@ -300,6 +274,7 @@ function VideoGridItem({
         />
       )}
       <video
+        ref={videoRef}
         width="100%"
         height="100%"
         autoPlay
@@ -319,6 +294,8 @@ function VideoGridItem({
           borderRadius: isMobileDevice ? '8px' : '10px',
           position: 'relative',
           zIndex: 1,
+          opacity: canReveal ? 1 : 0,
+          transition: `opacity 0.35s ease ${fadeDelay}`,
         }}
         onClick={() => openLightbox(mediaArray, index, setIndex)}
       >
@@ -661,7 +638,7 @@ export default function WorksCategoryPage({
                   <Box
                     sx={{
                       aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
                       animation:
                         'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -674,7 +651,7 @@ export default function WorksCategoryPage({
                   <Box
                     sx={{
                       aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
                       animation:
                         'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -692,7 +669,7 @@ export default function WorksCategoryPage({
                       key={i}
                       sx={{
                         aspectRatio: '1',
-                        backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                        backgroundColor: 'rgba(128, 128, 128, 0.06)',
                         borderRadius: isMobileQuery ? '8px' : '10px',
                         animation:
                           'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -709,7 +686,7 @@ export default function WorksCategoryPage({
                   <Box
                     sx={{
                       aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
                       animation:
                         'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -718,7 +695,7 @@ export default function WorksCategoryPage({
                   <Box
                     sx={{
                       aspectRatio: '1',
-                      backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                      backgroundColor: 'rgba(128, 128, 128, 0.06)',
                       borderRadius: isMobileQuery ? '8px' : '10px',
                       animation:
                         'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -736,7 +713,7 @@ export default function WorksCategoryPage({
                       key={i}
                       sx={{
                         aspectRatio: '1',
-                        backgroundColor: 'rgba(128, 128, 128, 0.1)',
+                        backgroundColor: 'rgba(128, 128, 128, 0.06)',
                         borderRadius: isMobileQuery ? '8px' : '10px',
                         animation:
                           'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
