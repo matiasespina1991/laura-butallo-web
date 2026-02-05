@@ -32,6 +32,7 @@ type MediaWithHandlers = {
   onMediaLoaded: (setId: string, index: number, total: number) => void;
   isVisible: boolean;
   sequenceVersion: number;
+  isInitialLoad: boolean;
   openLightbox: (
     mediaArray: Media[],
     mediaIndex: number,
@@ -56,6 +57,7 @@ function ImageGridItem({
   onMediaLoaded,
   isVisible,
   sequenceVersion,
+  isInitialLoad,
   openLightbox,
   mediaArray,
 }: MediaWithHandlers) {
@@ -100,8 +102,30 @@ function ImageGridItem({
     }
   }, [lowImage.src, notifyLoaded]);
 
+  useEffect(() => {
+    if (!isInitialLoad) return;
+    if (loaded) return;
+    const timeout = window.setTimeout(() => {
+      if (hasNotifiedRef.current) return;
+      console.log('[home] image load timeout fallback', {
+        setId,
+        index,
+        total,
+        src: lowImage.src || null,
+      });
+      notifyLoaded();
+    }, 3500);
+    return () => window.clearTimeout(timeout);
+  }, [isInitialLoad, loaded, notifyLoaded, setId, index, total, lowImage.src]);
+
   const handleImageError = () => {
     lowImage.handleError();
+    console.log('[home] image error', {
+      setId,
+      index,
+      total,
+      src: lowImage.src || null,
+    });
     notifyLoaded();
   };
 
@@ -143,6 +167,12 @@ function ImageGridItem({
         width={600}
         height={600}
         onLoad={() => {
+          console.log('[home] image loaded', {
+            setId,
+            index,
+            total,
+            src: lowImage.src || null,
+          });
           setLoaded(true);
           if (!hasNotifiedRef.current) {
             hasNotifiedRef.current = true;
@@ -177,6 +207,7 @@ function VideoGridItem({
   onMediaLoaded,
   isVisible,
   sequenceVersion,
+  isInitialLoad,
   openLightbox,
   mediaArray,
 }: MediaWithHandlers) {
@@ -202,6 +233,12 @@ function VideoGridItem({
   const posterSource = useStorageAssetSrc(sources.poster);
 
   const handleVideoLoaded = () => {
+    console.log('[home] video loaded', {
+      setId,
+      index,
+      total,
+      src: videoSource.src || null,
+    });
     if (hasNotifiedRef.current) return;
     hasNotifiedRef.current = true;
     setLoaded(true);
@@ -211,6 +248,12 @@ function VideoGridItem({
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     console.error('[MediaItem] video error', m.id, e);
     videoSource.handleError();
+    console.log('[home] video error', {
+      setId,
+      index,
+      total,
+      src: videoSource.src || null,
+    });
     if (hasNotifiedRef.current) return;
     hasNotifiedRef.current = true;
     setLoaded(true);
@@ -444,17 +487,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setMaxVisibleBySet(
-      (prev) =>
-        Object.fromEntries(
-          mediaSetsWithMedia.map((setWithMedia) => {
-            const setId = setWithMedia.mediaset.id;
-            const total = setWithMedia.media.length;
-            const prevLimit = prev[setId] ?? 0;
-            const maxIndex = Math.max(total - 1, 0);
-            return [setId, Math.min(prevLimit, maxIndex)];
-          })
-        )
+    setMaxVisibleBySet((prev) =>
+      Object.fromEntries(
+        mediaSetsWithMedia.map((setWithMedia) => {
+          const setId = setWithMedia.mediaset.id;
+          const total = setWithMedia.media.length;
+          const prevLimit = prev[setId] ?? 0;
+          const maxIndex = Math.max(total - 1, 0);
+          return [setId, Math.min(prevLimit, maxIndex)];
+        })
+      )
     );
     if (!allImagesLoaded) {
       loadedFlagsRef.current = {};
@@ -757,6 +799,7 @@ export default function Home() {
                                     onMediaLoaded={handleMediaLoaded}
                                     isVisible={mediaIndex <= visibleLimit}
                                     sequenceVersion={sequenceVersion}
+                                    isInitialLoad={!allImagesLoaded}
                                     openLightbox={openLightbox}
                                     mediaArray={setWithMedia.media}
                                   />
@@ -967,15 +1010,15 @@ export default function Home() {
               )}
           </AnimatePresence>
         </Box>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          style={{ width: '100%' }}
+        >
+          <Footer />
+        </motion.div>
       </main>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-        style={{ width: '100%' }}
-      >
-        <Footer />
-      </motion.div>
     </>
   );
 }

@@ -170,15 +170,15 @@ export default function AboutMe() {
             </motion.div>
           </AnimatePresence>
         </Box>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          style={{ width: '100%' }}
+        >
+          <Footer />
+        </motion.div>
       </main>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-        style={{ width: '100%' }}
-      >
-        <Footer />
-      </motion.div>
     </>
   );
 }
@@ -206,15 +206,17 @@ function AboutMeImage({ media }: { media: MediaDoc }) {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'flex-start',
+        width: '100%',
+        paddingTop: { xs: '2rem', md: 0 },
         paddingRight: { xs: 0, md: '2rem' },
       }}
     >
       <Box
         sx={{
           position: 'relative',
-          width: { xs: '5rem', sm: '220px', md: '100%' },
-          height: { xs: '5rem', sm: '220px', md: 'auto' },
-          maxWidth: { xs: '5rem', sm: 'none', md: '300px' },
+          width: { xs: '11rem', sm: '220px', md: '100%' },
+          height: { xs: '11rem', sm: '220px', md: 'auto' },
+          maxWidth: { xs: '11rem', sm: 'none', md: '300px' },
           aspectRatio: { xs: 'auto', sm: '1', md: '1' },
           borderRadius: '50%',
           overflow: 'hidden',

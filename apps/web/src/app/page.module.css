@@ -11,10 +11,13 @@
   max-width: 2200px;
 }
 
+.main.main.notFound {
+  max-width: none;
+}
+
 .main.homePage,
 .main.worksPage {
   margin-inline: auto;
-  margin-bottom: 4rem;
 }
 
 .main.homePage,

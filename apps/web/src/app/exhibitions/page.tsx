@@ -966,8 +966,7 @@ export default function Exhibitions() {
             </AnimatePresence>
           </Box>
         </Box>
-      </main>
-      {!isMobile && (
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -976,7 +975,7 @@ export default function Exhibitions() {
         >
           <Footer />
         </motion.div>
-      )}
+      </main>
     </>
   );
 }

@@ -119,15 +119,15 @@ export default function Contact() {
             </AnimatePresence>
           </Box>
         </Box>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          style={{ width: '100%' }}
+        >
+          <Footer />
+        </motion.div>
       </main>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.5 }}
-        style={{ width: '100%' }}
-      >
-        <Footer />
-      </motion.div>
     </>
   );
 }
