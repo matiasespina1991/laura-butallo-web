@@ -27,6 +27,11 @@ type MediaWithHandlers = {
   m: Media;
   index: number;
   setIndex: number;
+  setId: string;
+  total: number;
+  onMediaLoaded: (setId: string, index: number, total: number) => void;
+  isVisible: boolean;
+  sequenceVersion: number;
   openLightbox: (
     mediaArray: Media[],
     mediaIndex: number,
@@ -46,12 +51,24 @@ function ImageGridItem({
   m,
   index,
   setIndex,
+  setId,
+  total,
+  onMediaLoaded,
+  isVisible,
+  sequenceVersion,
   openLightbox,
   mediaArray,
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
   const isMobileDevice = isMobile;
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const hasNotifiedRef = useRef(false);
+  const canReveal = isVisible && loaded;
+
+  useEffect(() => {
+    setLoaded(false);
+    hasNotifiedRef.current = false;
+  }, [sequenceVersion]);
 
   useEffect(() => {
     setLoaded(false);
@@ -63,28 +80,49 @@ function ImageGridItem({
   );
   const lowImage = useStorageAssetSrc(sources.low ?? sources.original);
 
+  const notifyLoaded = useCallback(() => {
+    if (hasNotifiedRef.current) return;
+    hasNotifiedRef.current = true;
+    setLoaded(true);
+    onMediaLoaded(setId, index, total);
+  }, [index, onMediaLoaded, setId, total]);
+
   useEffect(() => {
     const img = imageRef.current;
     if (img && img.complete) {
-      setLoaded(true);
+      notifyLoaded();
     }
-  }, [lowImage.src]);
+  }, [lowImage.src, notifyLoaded]);
+
+  useEffect(() => {
+    if (!lowImage.src) {
+      notifyLoaded();
+    }
+  }, [lowImage.src, notifyLoaded]);
 
   const handleImageError = () => {
     lowImage.handleError();
+    notifyLoaded();
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.985 }}
-      animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
+      animate={
+        canReveal ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }
+      }
       transition={{
         delay: Math.min(0.3 + setIndex * 0.15, 1.2),
         duration: 0.6,
       }}
-      style={{ position: 'relative', width: '100%', height: '100%' }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        pointerEvents: isVisible ? 'auto' : 'none',
+      }}
     >
-      {!loaded && (
+      {!canReveal && (
         <Box
           sx={{
             position: 'absolute',
@@ -104,8 +142,13 @@ function ImageGridItem({
         draggable={false}
         width={600}
         height={600}
-        onLoad={() => setLoaded(true)}
-        onLoadingComplete={() => setLoaded(true)}
+        onLoad={() => {
+          setLoaded(true);
+          if (!hasNotifiedRef.current) {
+            hasNotifiedRef.current = true;
+            onMediaLoaded(setId, index, total);
+          }
+        }}
         style={{
           userSelect: 'none',
           display: 'block',
@@ -129,11 +172,23 @@ function VideoGridItem({
   m,
   index,
   setIndex,
+  setId,
+  total,
+  onMediaLoaded,
+  isVisible,
+  sequenceVersion,
   openLightbox,
   mediaArray,
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
   const isMobileDevice = isMobile;
+  const hasNotifiedRef = useRef(false);
+  const canReveal = isVisible && loaded;
+
+  useEffect(() => {
+    setLoaded(false);
+    hasNotifiedRef.current = false;
+  }, [sequenceVersion]);
 
   useEffect(() => {
     setLoaded(false);
@@ -147,25 +202,48 @@ function VideoGridItem({
   const posterSource = useStorageAssetSrc(sources.poster);
 
   const handleVideoLoaded = () => {
+    if (hasNotifiedRef.current) return;
+    hasNotifiedRef.current = true;
     setLoaded(true);
+    onMediaLoaded(setId, index, total);
   };
 
   const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     console.error('[MediaItem] video error', m.id, e);
     videoSource.handleError();
+    if (hasNotifiedRef.current) return;
+    hasNotifiedRef.current = true;
+    setLoaded(true);
+    onMediaLoaded(setId, index, total);
   };
+
+  useEffect(() => {
+    if (!videoSource.src) {
+      if (hasNotifiedRef.current) return;
+      hasNotifiedRef.current = true;
+      setLoaded(true);
+      onMediaLoaded(setId, index, total);
+    }
+  }, [videoSource.src, onMediaLoaded, setId, index, total]);
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.985 }}
-      animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }}
+      animate={
+        canReveal ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.995 }
+      }
       transition={{
         delay: Math.min(0.3 + setIndex * 0.15, 1.2),
         duration: 0.6,
       }}
-      style={{ position: 'relative', width: '100%', height: '100%' }}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        pointerEvents: isVisible ? 'auto' : 'none',
+      }}
     >
-      {!loaded && (
+      {!canReveal && (
         <Box
           sx={{
             position: 'absolute',
@@ -291,6 +369,11 @@ export default function Home() {
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
+  const loadedFlagsRef = useRef<Record<string, boolean[]>>({});
+  const [maxVisibleBySet, setMaxVisibleBySet] = useState<
+    Record<string, number>
+  >({});
+  const [sequenceVersion, setSequenceVersion] = useState(0);
 
   const isMobileQuery = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
@@ -341,6 +424,9 @@ export default function Home() {
 
       // Fetch fresh data from database
       setIsLoading(cachedData ? false : true);
+      if (!cachedData) {
+        setAllImagesLoaded(false);
+      }
       const fetched = await fetchMediaSetsWithMedia();
       setMediaSetsWithMedia(fetched);
       setIsLoading(false);
@@ -356,6 +442,59 @@ export default function Home() {
     }
     loadMediaSets();
   }, []);
+
+  useEffect(() => {
+    setMaxVisibleBySet(
+      (prev) =>
+        Object.fromEntries(
+          mediaSetsWithMedia.map((setWithMedia) => {
+            const setId = setWithMedia.mediaset.id;
+            const total = setWithMedia.media.length;
+            const prevLimit = prev[setId] ?? 0;
+            const maxIndex = Math.max(total - 1, 0);
+            return [setId, Math.min(prevLimit, maxIndex)];
+          })
+        )
+    );
+    if (!allImagesLoaded) {
+      loadedFlagsRef.current = {};
+      setSequenceVersion((prev) => prev + 1);
+    }
+  }, [mediaSetsWithMedia, allImagesLoaded]);
+
+  const handleMediaLoaded = useCallback(
+    (setId: string, index: number, total: number) => {
+      const existing = loadedFlagsRef.current[setId];
+      const flags = existing
+        ? [...existing]
+        : Array.from({ length: total }, () => false);
+      if (flags.length !== total) {
+        flags.length = total;
+        for (let i = 0; i < total; i += 1) {
+          if (typeof flags[i] !== 'boolean') flags[i] = false;
+        }
+      }
+      if (flags[index]) return;
+      flags[index] = true;
+      loadedFlagsRef.current[setId] = flags;
+
+      let contiguous = -1;
+      for (let i = 0; i < flags.length; i += 1) {
+        if (flags[i]) {
+          contiguous = i;
+        } else {
+          break;
+        }
+      }
+
+      const nextVisible = Math.min(contiguous + 1, total - 1);
+      setMaxVisibleBySet((prev) => {
+        if (prev[setId] === nextVisible) return prev;
+        return { ...prev, [setId]: nextVisible };
+      });
+    },
+    []
+  );
 
   const handlePreviousMedia = useCallback(() => {
     if (activeMediaIndex !== null && activeMediaSetIndex !== null) {
@@ -580,6 +719,8 @@ export default function Home() {
                     isMobileQuery && setWithMedia.media.length === 4
                       ? 2
                       : getGridColumns(setWithMedia.media.length);
+                  const setId = setWithMedia.mediaset.id;
+                  const visibleLimit = maxVisibleBySet[setId] ?? 0;
 
                   return (
                     <motion.div
@@ -603,17 +744,25 @@ export default function Home() {
                             }}
                             gap={isMobileQuery ? '14px' : '16px'}
                           >
-                            {setWithMedia.media.map((m, mediaIndex) => (
-                              <Box key={m.id} width="100%" height="100%">
-                                <MediaItem
-                                  m={m}
-                                  index={mediaIndex}
-                                  setIndex={setIndex}
-                                  openLightbox={openLightbox}
-                                  mediaArray={setWithMedia.media}
-                                />
-                              </Box>
-                            ))}
+                            {setWithMedia.media.map((m, mediaIndex) => {
+                              if (mediaIndex > visibleLimit) return null;
+                              return (
+                                <Box key={m.id} width="100%" height="100%">
+                                  <MediaItem
+                                    m={m}
+                                    index={mediaIndex}
+                                    setIndex={setIndex}
+                                    setId={setId}
+                                    total={setWithMedia.media.length}
+                                    onMediaLoaded={handleMediaLoaded}
+                                    isVisible={mediaIndex <= visibleLimit}
+                                    sequenceVersion={sequenceVersion}
+                                    openLightbox={openLightbox}
+                                    mediaArray={setWithMedia.media}
+                                  />
+                                </Box>
+                              );
+                            })}
                           </Grid>
                         </Box>
                       )}
