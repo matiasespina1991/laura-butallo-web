@@ -41,6 +41,39 @@ function getPreviewPath(media: MediaDoc) {
   );
 }
 
+function getProcessingLabel(stage?: string) {
+  switch (stage) {
+    case 'created':
+      return 'Preparando';
+    case 'download_start':
+      return 'Descargando';
+    case 'downloaded':
+      return 'Descargado';
+    case 'metadata':
+      return 'Leyendo metadata';
+    case 'poster_generated':
+      return 'Generando poster';
+    case 'poster_uploaded':
+      return 'Subiendo poster';
+    case 'variants_ready':
+      return 'Creando variantes';
+    case 'transcode_360':
+      return 'Transcodificando 360p';
+    case 'transcode_720':
+      return 'Transcodificando 720p';
+    case 'transcode_1080':
+      return 'Transcodificando 1080p';
+    case 'derivatives_ready':
+      return 'Derivados listos';
+    case 'original_deleted':
+      return 'Limpiando';
+    case 'done':
+      return 'Listo';
+    default:
+      return 'Procesando';
+  }
+}
+
 type MediaCardProps = {
   media: MediaDoc;
   isSelected?: boolean;
@@ -68,6 +101,12 @@ function MediaCard({
   const titleRef = useRef<HTMLSpanElement | null>(null);
   const draftTitleRef = useRef(media.title ?? '');
   const savingRef = useRef(false);
+  const progressValue = Math.min(
+    100,
+    Math.max(0, media.processing?.progress ?? 0)
+  );
+  const hasProcessing = typeof media.processing?.progress === 'number';
+  const processingLabel = getProcessingLabel(media.processing?.stage);
 
   useEffect(() => {
     if (!isEditing) {
@@ -209,6 +248,19 @@ function MediaCard({
             )}
             {media.processed ? 'Sin vista previa' : <p>Procesando…</p>}
             {media.processed ? '' : 'Este proceso puede tardar varios minutos.'}
+            {!media.processed && hasProcessing ? (
+              <div className='mt-3 w-[70%]'>
+                <div className='bg-muted-foreground/20 h-1.5 w-full rounded-full'>
+                  <div
+                    className='bg-foreground/60 h-1.5 rounded-full transition-all'
+                    style={{ width: `${progressValue}%` }}
+                  />
+                </div>
+                <div className='mt-1 text-[10px] tracking-wide uppercase'>
+                  {processingLabel} · {progressValue}%
+                </div>
+              </div>
+            ) : null}
           </div>
         ) : null}
         <span

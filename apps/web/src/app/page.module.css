@@ -6,7 +6,8 @@
   max-width: 1400px;
 }
 
-.main.exhibitionsPage {
+.main.exhibitionsPage,
+.main.aboutMePage {
   max-width: 2200px;
 }
 

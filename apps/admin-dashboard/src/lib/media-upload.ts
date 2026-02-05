@@ -36,6 +36,11 @@ export type MediaDoc = {
     role?: MediaOriginRole;
   };
   processed: boolean;
+  processing?: {
+    stage?: string;
+    progress?: number;
+    updatedAt?: unknown;
+  };
   paths?: {
     original?: { storagePath?: string | null; downloadURL?: string | null };
     derivatives?: Record<

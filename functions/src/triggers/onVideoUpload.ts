@@ -31,6 +31,12 @@ export const onVideoUpload = onObjectFinalized(
     if (!object) return;
 
     try {
+      console.log('[onVideoUpload] event received', {
+        name: object.name,
+        contentType: object.contentType,
+        size: object.size,
+        metadata: object.metadata ?? {},
+      });
       const contentType = object.contentType ?? '';
       if (!contentType.startsWith('video/')) return;
 
@@ -54,6 +60,29 @@ export const onVideoUpload = onObjectFinalized(
       const resolvedUploadId = typeof uploadId === 'string' ? uploadId : '';
       const mediaId = resolvedUploadId || db.collection('media').doc().id;
       const now = admin.firestore.Timestamp.now();
+      const updateProcessing = async (stage: string, progress: number) => {
+        await db
+          .collection('media')
+          .doc(mediaId)
+          .set(
+            {
+              processing: {
+                stage,
+                progress,
+                updatedAt: admin.firestore.Timestamp.now(),
+              },
+            },
+            { merge: true }
+          );
+      };
+      console.log('[onVideoUpload] resolved ids', {
+        mediaId,
+        uploadId: resolvedUploadId,
+        storagePath,
+        originContext,
+        originRole,
+        originExhibitionId,
+      });
 
       // Create initial doc with processed: false
       const initialDoc: Media = {
@@ -83,11 +112,20 @@ export const onVideoUpload = onObjectFinalized(
         createdAt: now,
         modifiedAt: now,
         processed: false,
+        processing: {
+          stage: 'created',
+          progress: 15,
+          updatedAt: now,
+        },
       };
 
       await createAssetDoc(initialDoc);
+      console.log('[onVideoUpload] created initial doc', { mediaId });
+      await updateProcessing('download_start', 20);
 
       const localPath = await downloadToTmp(storagePath);
+      console.log('[onVideoUpload] downloaded to tmp', { mediaId, localPath });
+      await updateProcessing('downloaded', 25);
       const tmpBase = '/tmp';
       const bucket = admin.storage().bucket();
 
@@ -103,10 +141,19 @@ export const onVideoUpload = onObjectFinalized(
       const duration = format.duration
         ? Math.round(format.duration)
         : undefined;
+      console.log('[onVideoUpload] probed metadata', {
+        mediaId,
+        duration,
+        width: meta.streams?.[0]?.width ?? null,
+        height: meta.streams?.[0]?.height ?? null,
+      });
+      await updateProcessing('metadata', 30);
 
       // Generate poster
       const posterLocal = `${tmpBase}/${Date.now()}-poster.webp`;
       await generatePoster(localPath, posterLocal);
+      console.log('[onVideoUpload] poster generated', { mediaId, posterLocal });
+      await updateProcessing('poster_generated', 40);
       const posterStoragePath = `temp-assets/${mediaId}/poster.webp`;
       await uploadFromLocal(posterLocal, posterStoragePath, 'image/webp');
       const [posterDownloadURL] = await bucket
@@ -115,6 +162,11 @@ export const onVideoUpload = onObjectFinalized(
           action: 'read',
           expires: '03-01-2500',
         });
+      console.log('[onVideoUpload] poster uploaded', {
+        mediaId,
+        posterStoragePath,
+      });
+      await updateProcessing('poster_uploaded', 50);
       await safeUnlink(posterLocal);
 
       // Transcode resolutions
@@ -135,14 +187,28 @@ export const onVideoUpload = onObjectFinalized(
           storagePath: remotePath,
           downloadURL,
         };
+        console.log('[onVideoUpload] derivative ready', {
+          mediaId,
+          variant: r.name,
+          remotePath,
+        });
+        if (r.name === '360') await updateProcessing('transcode_360', 60);
+        if (r.name === '720') await updateProcessing('transcode_720', 70);
+        if (r.name === '1080') await updateProcessing('transcode_1080', 80);
         await safeUnlink(outLocal);
       }
+      await updateProcessing('derivatives_ready', 85);
 
       // Delete original uploaded file (keeping storagePath for record)
       await bucket
         .file(storagePath)
         .delete()
         .catch(() => {});
+      console.log('[onVideoUpload] deleted original upload', {
+        mediaId,
+        storagePath,
+      });
+      await updateProcessing('original_deleted', 90);
 
       // Update document with derivatives, poster, and processed: true
       await db
@@ -162,8 +228,11 @@ export const onVideoUpload = onObjectFinalized(
           modifiedAt: admin.firestore.Timestamp.now(),
           processed: true,
         } as any);
+      console.log('[onVideoUpload] media doc updated', { mediaId });
+      await updateProcessing('done', 100);
 
       await safeUnlink(localPath);
+      console.log('[onVideoUpload] completed', { mediaId });
     } catch (err) {
       console.error('onVideoFinalize error:', err);
       throw err;

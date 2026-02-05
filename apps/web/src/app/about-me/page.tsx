@@ -81,7 +81,7 @@ export default function AboutMe() {
 
   return (
     <>
-      <main className={styles.main}>
+      <main className={`${styles.main} ${styles.aboutMePage}`}>
         <Box
           px={{ xs: '1.2rem', sm: '2rem' }}
           py={{ xs: '1.7rem', sm: '2rem' }}
@@ -184,16 +184,11 @@ export default function AboutMe() {
 }
 
 function AboutMeImage({ media }: { media: MediaDoc }) {
-  console.log('[AboutMeImage] Rendering with media:', media);
-
-  // Use the same logic as exhibition-form for selecting the best available derivative
   const imageAsset =
     media.paths?.derivatives?.webp_small ??
     media.paths?.derivatives?.webp_medium ??
     media.paths?.original ??
     null;
-
-  console.log('[AboutMeImage] Selected asset:', imageAsset);
 
   const imageSource = useStorageAssetSrc(
     imageAsset?.storagePath
@@ -203,13 +198,6 @@ function AboutMeImage({ media }: { media: MediaDoc }) {
         }
       : null
   );
-
-  console.log('[AboutMeImage] Image source:', imageSource);
-
-  if (!imageSource.src) {
-    console.log('[AboutMeImage] No image src, returning null');
-    return null;
-  }
 
   return (
     <Box

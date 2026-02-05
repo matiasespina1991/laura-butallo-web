@@ -10,6 +10,11 @@ export interface AssetPaths {
     };
     poster?: AssetFile;
 }
+export interface MediaProcessing {
+    stage: string;
+    progress: number;
+    updatedAt?: FirebaseFirestore.Timestamp;
+}
 export interface Media {
     id: string;
     mediaSetId: string | null;
@@ -36,4 +41,5 @@ export interface Media {
     modifiedAt: FirebaseFirestore.Timestamp;
     deletedAt?: FirebaseFirestore.Timestamp | null;
     processed: boolean;
+    processing?: MediaProcessing;
 }

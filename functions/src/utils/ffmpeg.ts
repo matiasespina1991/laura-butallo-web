@@ -1,7 +1,6 @@
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import ffmpeg from 'fluent-ffmpeg';
-import path from 'path';
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 ffmpeg.setFfprobePath(ffprobeInstaller.path);
@@ -11,25 +10,11 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
  * VP9 + Opus codec as requested.
  */
 function buildVideoFilter(height: number) {
-  // Tone-map HDR sources to SDR Rec.709 to avoid brightness shifts.
-  return [
-    'zscale=transfer=linear:npl=100',
-    'tonemap=hable:desat=0',
-    'zscale=transfer=bt709:primaries=bt709:matrix=bt709',
-    `scale=-2:${height}:flags=lanczos`,
-    'format=yuv420p'
-  ].join(',');
+  return [`scale=-2:${height}:flags=lanczos`, 'format=yuv420p'].join(',');
 }
 
 function buildPosterFilter() {
-  // Match video tone-mapping for consistent posters.
-  return [
-    'zscale=transfer=linear:npl=100',
-    'tonemap=hable:desat=0',
-    'zscale=transfer=bt709:primaries=bt709:matrix=bt709',
-    'scale=1280:-2:flags=lanczos',
-    'format=yuv420p'
-  ].join(',');
+  return ['scale=1280:-2:flags=lanczos', 'format=yuv420p'].join(',');
 }
 
 export function transcodeToWebM(
@@ -48,7 +33,7 @@ export function transcodeToWebM(
         '-pix_fmt yuv420p',
         '-colorspace bt709',
         '-color_primaries bt709',
-        '-color_trc bt709'
+        '-color_trc bt709',
       ])
       .on('end', () => resolve())
       .on('error', (err) => reject(err))
@@ -66,15 +51,16 @@ export function generatePoster(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     ffmpeg(inputPath)
-      .outputOptions([`-vf ${buildPosterFilter()}`])
-      .screenshots({
-        timestamps: ['1'],
-        filename: path.basename(outputPath),
-        folder: path.dirname(outputPath),
-        size: '1280x?',
-      })
+      .outputOptions([
+        '-ss 1',
+        '-vframes 1',
+        `-vf ${buildPosterFilter()}`,
+        '-c:v libwebp',
+        '-quality 80',
+      ])
       .on('end', () => resolve())
-      .on('error', (err) => reject(err));
+      .on('error', (err) => reject(err))
+      .save(outputPath);
   });
 }
 

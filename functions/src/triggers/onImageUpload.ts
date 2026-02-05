@@ -30,6 +30,12 @@ export const onImageUpload = onObjectFinalized(
     if (!object) return;
 
     try {
+      console.log('[onImageUpload] event received', {
+        name: object.name,
+        contentType: object.contentType,
+        size: object.size,
+        metadata: object.metadata ?? {},
+      });
       const contentType = object.contentType ?? '';
       if (!contentType.startsWith('image/')) return;
 
@@ -54,6 +60,29 @@ export const onImageUpload = onObjectFinalized(
       const mediaId = resolvedUploadId || db.collection('media').doc().id;
 
       const now = admin.firestore.Timestamp.now();
+      const updateProcessing = async (stage: string, progress: number) => {
+        await db
+          .collection('media')
+          .doc(mediaId)
+          .set(
+            {
+              processing: {
+                stage,
+                progress,
+                updatedAt: admin.firestore.Timestamp.now(),
+              },
+            },
+            { merge: true }
+          );
+      };
+      console.log('[onImageUpload] resolved ids', {
+        mediaId,
+        uploadId: resolvedUploadId,
+        storagePath,
+        originContext,
+        originRole,
+        originExhibitionId,
+      });
 
       // Create initial document so frontend can show processing state.
       // original.downloadURL is intentionally null so frontend can display progress.
@@ -82,17 +111,31 @@ export const onImageUpload = onObjectFinalized(
         createdAt: now,
         modifiedAt: now,
         processed: false,
+        processing: {
+          stage: 'created',
+          progress: 20,
+          updatedAt: now,
+        },
       };
 
       // Persist the initial doc immediately.
       await createAssetDoc(initialDoc);
+      console.log('[onImageUpload] created initial doc', { mediaId });
+      await updateProcessing('download_start', 30);
 
       // Download original to tmp for processing
       const localPath = await downloadToTmp(storagePath);
+      console.log('[onImageUpload] downloaded to tmp', { mediaId, localPath });
+      await updateProcessing('downloaded', 35);
 
       try {
         // Generate WebP variants
         const variants = await createWebpVariants(localPath);
+        console.log('[onImageUpload] variants created', {
+          mediaId,
+          keys: Object.keys(variants),
+        });
+        await updateProcessing('variants_ready', 55);
 
         const bucket = admin.storage().bucket();
         const derivativePaths: {
@@ -110,8 +153,14 @@ export const onImageUpload = onObjectFinalized(
           });
 
           derivativePaths[key] = { storagePath: dest, downloadURL: url };
+          console.log('[onImageUpload] derivative uploaded', {
+            mediaId,
+            key,
+            dest,
+          });
           await safeUnlink(info.path);
         }
+        await updateProcessing('derivatives_ready', 75);
 
         // Optionally delete the original uploaded file from storage
         // keep the storagePath in the doc so you have a record of the input
@@ -119,6 +168,11 @@ export const onImageUpload = onObjectFinalized(
           .file(storagePath)
           .delete()
           .catch(() => {});
+        console.log('[onImageUpload] deleted original upload', {
+          mediaId,
+          storagePath,
+        });
+        await updateProcessing('original_deleted', 85);
 
         const updatePayload: Partial<Media> = {
           paths: {
@@ -135,9 +189,12 @@ export const onImageUpload = onObjectFinalized(
           .collection('media')
           .doc(mediaId)
           .set(updatePayload, { merge: true });
+        console.log('[onImageUpload] media doc updated', { mediaId });
+        await updateProcessing('done', 100);
       } finally {
         // Always try to unlink the downloaded original local file
         await safeUnlink(localPath).catch(() => {});
+        console.log('[onImageUpload] completed', { mediaId });
       }
     } catch (err) {
       console.error('onImageFinalize error:', err);
