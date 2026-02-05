@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import styles from '../page.module.css';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ThemeContext } from '../ThemeRegistry';
 import Footer from '../components/Footer';
 import ZoomableImage from '../components/ZoomeableImage';
@@ -451,6 +451,16 @@ export default function Exhibitions() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeMedia, setActiveMedia] = useState<Media | null>(null);
+  const exhibitionRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  const getRemInPx = () => {
+    if (typeof window === 'undefined') return 16;
+    const rootFontSize = window
+      .getComputedStyle(document.documentElement)
+      .fontSize;
+    const parsed = Number.parseFloat(rootFontSize);
+    return Number.isFinite(parsed) ? parsed : 16;
+  };
 
   const isMobileQuery = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
@@ -551,6 +561,26 @@ export default function Exhibitions() {
       setOpenIndex(null);
     }
   }, [exhibitions.length, openIndex]);
+
+  useEffect(() => {
+    if (openIndex === null) return;
+    const target = exhibitionRefs.current[openIndex];
+    if (!target) return;
+    const remOffset = getRemInPx() * 4;
+    const timer = window.setTimeout(() => {
+      const body = document.body;
+      const html = document.documentElement;
+      const currentScroll = body.scrollTop || html.scrollTop || window.scrollY;
+      const top =
+        target.getBoundingClientRect().top + currentScroll - remOffset;
+      if (body.scrollHeight > body.clientHeight) {
+        body.scrollTo({ top, behavior: 'smooth' });
+      } else {
+        html.scrollTo({ top, behavior: 'smooth' });
+      }
+    }, 60);
+    return () => window.clearTimeout(timer);
+  }, [openIndex, exhibitions.length]);
 
   const toggleExhibition = (index: number) => {
     setOpenIndex((prev) => (prev === index ? null : index));
@@ -673,7 +703,12 @@ export default function Exhibitions() {
                     exhibitions.map((exhibition, index) => {
                       const isOpen = openIndex === index;
                       return (
-                        <Box key={exhibition.id}>
+                        <Box
+                          key={exhibition.id}
+                          ref={(node: HTMLDivElement | null) => {
+                            exhibitionRefs.current[index] = node;
+                          }}
+                        >
                           <Box
                             onClick={() => toggleExhibition(index)}
                             sx={{

@@ -174,7 +174,26 @@ export const onVideoUpload = onObjectFinalized(
         [key: string]: { storagePath: string; downloadURL: string | null };
       } = {};
 
-      for (const r of resolutions) {
+      const runWithConcurrency = async <T>(
+        items: T[],
+        limit: number,
+        worker: (item: T) => Promise<void>
+      ) => {
+        const queue = [...items];
+        const runners = Array.from(
+          { length: Math.min(limit, items.length) },
+          async () => {
+            while (queue.length) {
+              const next = queue.shift();
+              if (!next) return;
+              await worker(next);
+            }
+          }
+        );
+        await Promise.all(runners);
+      };
+
+      await runWithConcurrency(resolutions, 2, async (r) => {
         const outLocal = `${tmpBase}/${Date.now()}-${r.name}.webm`;
         await transcodeToWebM(localPath, outLocal, r.height);
         const remotePath = `temp-assets/${mediaId}/video_${r.name}.webm`;
@@ -196,7 +215,7 @@ export const onVideoUpload = onObjectFinalized(
         if (r.name === '720') await updateProcessing('transcode_720', 70);
         if (r.name === '1080') await updateProcessing('transcode_1080', 80);
         await safeUnlink(outLocal);
-      }
+      });
       await updateProcessing('derivatives_ready', 85);
 
       // Delete original uploaded file (keeping storagePath for record)
