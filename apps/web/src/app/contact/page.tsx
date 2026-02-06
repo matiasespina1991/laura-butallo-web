@@ -123,7 +123,7 @@ export default function Contact() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          style={{ width: '100%' }}
+          style={{ width: '100%', marginTop: 'auto' }}
         >
           <Footer />
         </motion.div>

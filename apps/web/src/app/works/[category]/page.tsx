@@ -38,6 +38,7 @@ type MediaWithHandlers = {
     setIndex: number
   ) => void;
   mediaArray: Media[];
+  setSize: number;
 };
 
 function MediaItem(props: MediaWithHandlers) {
@@ -60,6 +61,7 @@ function ImageGridItem({
   showPostSkeleton,
   openLightbox,
   mediaArray,
+  setSize,
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
   const isMobileDevice = isMobile;
@@ -120,6 +122,7 @@ function ImageGridItem({
 
   return (
     <motion.div
+      className={styles.mediaHover}
       initial={{ opacity: 1, scale: 0.985 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{
@@ -189,6 +192,34 @@ function ImageGridItem({
           loading={setIndex === 0 ? 'eager' : 'lazy'}
         />
       ) : null}
+      {/* SEE MORE LINK */}
+      {/* <a
+        className={styles.seeMore}
+        href="https://zora.co"
+        target="_blank"
+        rel="noreferrer noopener"
+        onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+        style={{
+          fontSize: setSize === 1 ? '4rem' : setSize === 2 ? '3rem' : '2rem',
+        }}
+      >
+        see in zora
+        <img
+          src="/images/logos/zora/zora_logo.svg"
+          alt=""
+          aria-hidden="true"
+          style={{
+            width: setSize === 1 ? '2.5rem' : setSize === 2 ? '2rem' : '1.5rem',
+          }}
+        />
+        <img
+          src="/images/icons/arrows/arrow_contact_light.png"
+          alt=""
+          aria-hidden="true"
+          className={styles.seeMoreIcon}
+        />
+      </a> */}
     </motion.div>
   );
 }
@@ -206,6 +237,7 @@ function VideoGridItem({
   showPostSkeleton,
   openLightbox,
   mediaArray,
+  setSize,
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
   const isMobileDevice = isMobile;
@@ -264,6 +296,7 @@ function VideoGridItem({
 
   return (
     <motion.div
+      className={styles.mediaHover}
       initial={{ opacity: 1, scale: 0.985 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{
@@ -336,6 +369,34 @@ function VideoGridItem({
       >
         Your browser does not support video.
       </video>
+      {/* SEE MORE LINK */}
+      {/* <a
+        className={styles.seeMore}
+        href="https://zora.co"
+        target="_blank"
+        rel="noreferrer noopener"
+        onClick={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+        style={{
+          fontSize: setSize === 1 ? '4rem' : setSize === 2 ? '3rem' : '2rem',
+        }}
+      >
+        see in zora
+        <img
+          src="/images/logos/zora/zora_logo.svg"
+          alt=""
+          aria-hidden="true"
+          style={{
+            width: setSize === 1 ? '2.5rem' : setSize === 2 ? '2rem' : '1.5rem',
+          }}
+        />
+        <img
+          src="/images/icons/arrows/arrow_contact_light.png"
+          alt=""
+          aria-hidden="true"
+          className={styles.seeMoreIcon}
+        />
+      </a> */}
     </motion.div>
   );
 }
@@ -372,7 +433,7 @@ function LightboxImageContent({
       highSrc={highImage.src || undefined}
       alt="Fullscreen Image"
       zoomScale={2.5}
-      maxHeight={isMobileQuery ? '80vh' : '70vh'}
+      maxHeight={'87vh'}
       onLowSrcError={lowImage.handleError}
       onHighSrcError={highImage.handleError}
     />
@@ -399,7 +460,7 @@ function LightboxVideoContent({
       highSrc={highVideo.src || undefined}
       poster={posterSource.src || undefined}
       zoomScale={isMobileDevice ? 2 : 3}
-      maxHeight={isMobileQuery ? '80vh' : '70vh'}
+      maxHeight={'87vh'}
       autoPlay={true}
       muted={true}
       loop={true}
@@ -683,7 +744,7 @@ export default function WorksCategoryPage({
           sx={{
             width: '100%',
             display: 'flex',
-            paddingInline: '2rem',
+            paddingInline: isMobile ? '1.4rem' : '2rem',
           }}
         >
           <motion.h1
@@ -697,7 +758,8 @@ export default function WorksCategoryPage({
               marginBottom: '0.7rem',
             }}
           >
-            WORKS {'﹥'} {params.category.replace(/-/g, ' ').toUpperCase()}
+            WORKS {isMobile ? '•' : '﹥'}{' '}
+            {params.category.replace(/-/g, ' ').toUpperCase()}
           </motion.h1>
         </Box>
         <Box
@@ -799,6 +861,7 @@ export default function WorksCategoryPage({
                                     setIndex={setIndex}
                                     setId={setId}
                                     total={setWithMedia.media.length}
+                                    setSize={setWithMedia.media.length}
                                     onMediaLoaded={handleMediaLoaded}
                                     isVisible={mediaIndex <= visibleLimit}
                                     sequenceVersion={sequenceVersion}
@@ -1017,7 +1080,7 @@ export default function WorksCategoryPage({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          style={{ width: '100%' }}
+          style={{ width: '100%', marginTop: 'auto' }}
         >
           <Footer />
         </motion.div>

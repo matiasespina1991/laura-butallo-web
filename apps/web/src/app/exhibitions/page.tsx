@@ -407,7 +407,7 @@ function LightboxImageContent({
       highSrc={highImage.src || undefined}
       alt="Fullscreen Image"
       zoomScale={2.5}
-      maxHeight={isMobileQuery ? '80vh' : '70vh'}
+      maxHeight={'87vh'}
       onLowSrcError={lowImage.handleError}
       onHighSrcError={highImage.handleError}
     />
@@ -434,7 +434,7 @@ function LightboxVideoContent({
       highSrc={highVideo.src || undefined}
       poster={posterSource.src || undefined}
       zoomScale={isMobileDevice ? 2 : 3}
-      maxHeight={isMobileQuery ? '80vh' : '70vh'}
+      maxHeight={'87vh'}
       autoPlay={true}
       muted={true}
       loop={true}
@@ -971,7 +971,7 @@ export default function Exhibitions() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          style={{ width: '100%' }}
+          style={{ width: '100%', marginTop: 'auto' }}
         >
           <Footer />
         </motion.div>

@@ -90,6 +90,52 @@
   height: 32rem;
 }
 
+.mediaHover {
+  position: relative;
+}
+
+.seeMore {
+  position: absolute;
+  bottom: 8px;
+  left: 13px;
+  z-index: 3;
+  opacity: 0;
+  transition:
+    opacity 1s ease,
+    color 0.4s ease;
+  color: #ffffff;
+  font-size: 2rem;
+  letter-spacing: 0.01em;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+}
+
+.seeMoreIcon {
+  width: 0.7em;
+  height: 0.7em;
+  filter: invert(1);
+  display: block;
+  transform: rotate(-90deg);
+  transition: filter 0.4s ease;
+}
+
+.mediaHover:hover .seeMore {
+  opacity: 1;
+}
+
+.seeMore:hover,
+.seeMore:focus-visible {
+  color: #000000;
+}
+
+.seeMore:hover .seeMoreIcon,
+.seeMore:focus-visible .seeMoreIcon {
+  filter: invert(0);
+}
+
 .backButton {
   transition: 0.3s;
 }
