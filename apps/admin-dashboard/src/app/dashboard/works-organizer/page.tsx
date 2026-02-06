@@ -10,9 +10,12 @@ export default function WorksOrganizerPage() {
       scrollable={false}
       className='w-full max-w-[55rem] justify-self-start'
       pageTitle='Organizador de Obras'
-      pageDescription='Organiza las filas de cada categoría (Home, Caves, Landscapes)'
+      pageDescription='Organiza las filas de cada categoría'
     >
-      <Tabs defaultValue='home' className='flex h-[calc(100dvh-170px)] min-h-0 w-full flex-col'>
+      <Tabs
+        defaultValue='home'
+        className='flex h-[calc(100dvh-170px)] min-h-0 w-full flex-col'
+      >
         <TabsList className='bg-background border-border sticky top-0 z-20 grid w-full grid-cols-3 border'>
           <TabsTrigger
             value='home'
@@ -34,15 +37,24 @@ export default function WorksOrganizerPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value='home' className='mt-6 min-h-0 flex-1 overflow-hidden'>
+        <TabsContent
+          value='home'
+          className='mt-6 min-h-0 flex-1 overflow-hidden'
+        >
           <CategoryOrganizer category='home' />
         </TabsContent>
 
-        <TabsContent value='caves' className='mt-6 min-h-0 flex-1 overflow-hidden'>
+        <TabsContent
+          value='caves'
+          className='mt-6 min-h-0 flex-1 overflow-hidden'
+        >
           <CategoryOrganizer category='caves' />
         </TabsContent>
 
-        <TabsContent value='landscapes' className='mt-6 min-h-0 flex-1 overflow-hidden'>
+        <TabsContent
+          value='landscapes'
+          className='mt-6 min-h-0 flex-1 overflow-hidden'
+        >
           <CategoryOrganizer category='landscapes' />
         </TabsContent>
       </Tabs>
