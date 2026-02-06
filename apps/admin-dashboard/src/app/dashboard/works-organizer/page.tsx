@@ -8,7 +8,7 @@ export default function WorksOrganizerPage() {
   return (
     <PageContainer
       scrollable={false}
-      className='w-full max-w-[55rem] justify-self-start'
+      className='w-full max-w-[57rem] justify-self-start'
       pageTitle='Organizador de Obras'
       pageDescription='Organiza las filas de cada categoría'
     >
