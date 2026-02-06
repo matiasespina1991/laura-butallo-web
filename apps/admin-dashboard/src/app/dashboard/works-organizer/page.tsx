@@ -7,33 +7,42 @@ import CategoryOrganizer from '@/features/works-organizer/components/category-or
 export default function WorksOrganizerPage() {
   return (
     <PageContainer
-      scrollable={true}
+      scrollable={false}
       className='w-full max-w-[55rem] justify-self-start'
-      pageTitle='Works Organizer'
-      pageDescription='Organiza los mediasets de cada categoría (Home, Caves, Landscapes)'
+      pageTitle='Organizador de Obras'
+      pageDescription='Organiza las filas de cada categoría (Home, Caves, Landscapes)'
     >
-      <Tabs defaultValue='home' className='w-full'>
-        <TabsList className='grid w-full grid-cols-3'>
-          <TabsTrigger value='home' className='cursor-pointer'>
+      <Tabs defaultValue='home' className='flex h-[calc(100dvh-170px)] min-h-0 w-full flex-col'>
+        <TabsList className='bg-background border-border sticky top-0 z-20 grid w-full grid-cols-3 border'>
+          <TabsTrigger
+            value='home'
+            className='data-[state=active]:bg-muted/80 data-[state=active]:border-border cursor-pointer'
+          >
             Home
           </TabsTrigger>
-          <TabsTrigger value='caves' className='cursor-pointer'>
+          <TabsTrigger
+            value='caves'
+            className='data-[state=active]:bg-muted/80 data-[state=active]:border-border cursor-pointer'
+          >
             Caves
           </TabsTrigger>
-          <TabsTrigger value='landscapes' className='cursor-pointer'>
+          <TabsTrigger
+            value='landscapes'
+            className='data-[state=active]:bg-muted/80 data-[state=active]:border-border cursor-pointer'
+          >
             Landscapes
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value='home' className='mt-6'>
+        <TabsContent value='home' className='mt-6 min-h-0 flex-1 overflow-hidden'>
           <CategoryOrganizer category='home' />
         </TabsContent>
 
-        <TabsContent value='caves' className='mt-6'>
+        <TabsContent value='caves' className='mt-6 min-h-0 flex-1 overflow-hidden'>
           <CategoryOrganizer category='caves' />
         </TabsContent>
 
-        <TabsContent value='landscapes' className='mt-6'>
+        <TabsContent value='landscapes' className='mt-6 min-h-0 flex-1 overflow-hidden'>
           <CategoryOrganizer category='landscapes' />
         </TabsContent>
       </Tabs>

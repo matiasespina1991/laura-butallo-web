@@ -1,52 +1,53 @@
 'use client';
 
 import { useState } from 'react';
+import { ArrowDownToLine, ArrowUpToLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 
 interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   category: 'home' | 'caves' | 'landscapes';
+  currentMinOrdering: number;
   currentMaxOrdering: number;
+  onCreated?: (position: 'start' | 'end') => void;
 }
 
 export default function NewMediasetDialog({
-  open,
-  onOpenChange,
   category,
-  currentMaxOrdering
+  currentMinOrdering,
+  currentMaxOrdering,
+  onCreated
 }: Props) {
-  const [title, setTitle] = useState('');
   const [creating, setCreating] = useState(false);
 
-  async function handleCreate() {
+  async function handleCreate(position: 'start' | 'end') {
     try {
       setCreating(true);
+      const hasItems = currentMaxOrdering >= currentMinOrdering;
+      const ordering = hasItems
+        ? position === 'start'
+          ? currentMinOrdering - 1
+          : currentMaxOrdering + 1
+        : 0;
       await addDoc(collection(db, 'mediasets'), {
         category,
-        title: title || null,
-        ordering: currentMaxOrdering + 1,
+        title: null,
+        ordering,
         createdAt: Timestamp.now(),
         modifiedAt: Timestamp.now(),
         publishedAt: null,
         deletedAt: null
       });
-      toast.success('Mediaset creado');
-      setTitle('');
-      onOpenChange(false);
+      toast.success('Fila creada');
+      onCreated?.(position);
     } catch (error) {
       console.error('Error creating mediaset:', error);
       toast.error('Error al crear mediaset');
@@ -56,34 +57,30 @@ export default function NewMediasetDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Crear Nuevo Mediaset</DialogTitle>
-          <DialogDescription>
-            Categoría: {category.charAt(0).toUpperCase() + category.slice(1)}
-          </DialogDescription>
-        </DialogHeader>
-        <div className='grid gap-4 py-4'>
-          <div className='grid gap-2'>
-            <Label htmlFor='title'>Título (opcional)</Label>
-            <Input
-              id='title'
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder='Nombre del mediaset...'
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant='outline' onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={handleCreate} disabled={creating}>
-            {creating ? 'Creando...' : 'Crear'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button disabled={creating}>
+          {creating ? 'Creando...' : 'Agregar nueva Fila'}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align='start' className='min-w-56'>
+        <DropdownMenuItem
+          disabled={creating}
+          onClick={() => handleCreate('start')}
+          className='flex items-center gap-2'
+        >
+          <ArrowUpToLine className='h-4 w-4' />
+          Agregar al principio
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={creating}
+          onClick={() => handleCreate('end')}
+          className='flex items-center gap-2'
+        >
+          <ArrowDownToLine className='h-4 w-4' />
+          Agregar al final
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

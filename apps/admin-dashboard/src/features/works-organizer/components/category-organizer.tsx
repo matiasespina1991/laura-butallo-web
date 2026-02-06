@@ -15,7 +15,7 @@ import {
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import MediasetItem from './mediaset-item-v2';
 import NewMediasetDialog from './new-mediaset-dialog-v2';
 import {
@@ -33,7 +33,6 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import type { MediaSet, MediaSetItem, Media } from '@/types/mediaset';
 
@@ -49,7 +48,19 @@ export default function CategoryOrganizer({ category }: Props) {
   const [mediaById, setMediaById] = useState<Record<string, Media>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const listContainerRef = useRef<HTMLDivElement | null>(null);
+
+  function handleMediasetCreated(position: 'start' | 'end') {
+    window.setTimeout(() => {
+      const node = listContainerRef.current;
+      if (!node) return;
+      if (position === 'start') {
+        node.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' });
+    }, 200);
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -111,7 +122,9 @@ export default function CategoryOrganizer({ category }: Props) {
           // Load media for these items
           const mediaPromises = items.map(async (item) => {
             try {
-              console.log(`[CategoryOrganizer] Loading media: ${item.mediaId} for item: ${item.id}`);
+              console.log(
+                `[CategoryOrganizer] Loading media: ${item.mediaId} for item: ${item.id}`
+              );
               const mediaDocRef = doc(db, 'media', item.mediaId);
               const mediaDocSnap = await getDoc(mediaDocRef);
               if (mediaDocSnap.exists()) {
@@ -122,10 +135,15 @@ export default function CategoryOrganizer({ category }: Props) {
                 console.log(`[CategoryOrganizer] Media found:`, media.id);
                 setMediaById((prev) => ({ ...prev, [item.mediaId]: media }));
               } else {
-                console.error(`[CategoryOrganizer] Media document does not exist: ${item.mediaId}`);
+                console.error(
+                  `[CategoryOrganizer] Media document does not exist: ${item.mediaId}`
+                );
               }
             } catch (error) {
-              console.error(`[CategoryOrganizer] Error loading media ${item.mediaId}:`, error);
+              console.error(
+                `[CategoryOrganizer] Error loading media ${item.mediaId}:`,
+                error
+              );
             }
           });
 
@@ -174,85 +192,82 @@ export default function CategoryOrganizer({ category }: Props) {
     }
   }
 
-  if (loading) {
-    return (
-      <div className='space-y-4'>
-        <Skeleton className='ml-auto h-10 w-[200px]' />
-        <div className='flex items-center gap-3'>
-          <Skeleton className='h-6 w-4' />
-          <Skeleton className='h-[88px] flex-1' />
-        </div>
-        <div className='flex items-center gap-3'>
-          <Skeleton className='h-6 w-4' />
-          <Skeleton className='h-[88px] flex-1' />
-        </div>
-        <div className='flex items-center gap-3'>
-          <Skeleton className='h-6 w-4' />
-          <Skeleton className='h-[88px] flex-1' />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className='space-y-4'>
-      <div className='flex justify-end'>
-        <Button onClick={() => setDialogOpen(true)}>
-          Agregar Nuevo Mediaset
-        </Button>
+    <div className='flex h-full min-h-0 flex-col gap-4'>
+      <div className='bg-background sticky top-0 z-10 flex justify-end pb-2'>
+        <NewMediasetDialog
+          category={category}
+          currentMinOrdering={
+            mediasets.length > 0
+              ? Math.min(...mediasets.map((ms) => ms.ordering))
+              : 0
+          }
+          currentMaxOrdering={
+            mediasets.length > 0
+              ? Math.max(...mediasets.map((ms) => ms.ordering))
+              : -1
+          }
+          onCreated={handleMediasetCreated}
+        />
       </div>
 
-      {mediasets.length === 0 ? (
-        <Card className='p-8 text-center'>
-          <p className='text-muted-foreground'>
-            No hay mediasets todavía. Creá uno para empezar.
-          </p>
-        </Card>
-      ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={mediasets.map((ms) => ms.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className='space-y-4'>
-              {mediasets.map((mediaset, index) => {
-                const items = itemsByMediaset[mediaset.id] || [];
-                const mediaList = items
-                  .map((item) => ({
-                    ...mediaById[item.mediaId],
-                    ...item
-                  }))
-                  .filter((m) => m.id);
-
-                return (
-                  <MediasetItem
-                    key={mediaset.id}
-                    mediaset={mediaset}
-                    index={index}
-                    items={items}
-                    mediaList={mediaList as any}
-                  />
-                );
-              })}
+      <div ref={listContainerRef} className='min-h-0 flex-1 overflow-y-auto pr-1'>
+        {loading ? (
+          <div className='space-y-4'>
+            <div className='flex items-center gap-3'>
+              <Skeleton className='h-6 w-4' />
+              <Skeleton className='h-[88px] flex-1' />
             </div>
-          </SortableContext>
-        </DndContext>
-      )}
+            <div className='flex items-center gap-3'>
+              <Skeleton className='h-6 w-4' />
+              <Skeleton className='h-[88px] flex-1' />
+            </div>
+            <div className='flex items-center gap-3'>
+              <Skeleton className='h-6 w-4' />
+              <Skeleton className='h-[88px] flex-1' />
+            </div>
+          </div>
+        ) : mediasets.length === 0 ? (
+          <Card className='p-8 text-center'>
+            <p className='text-muted-foreground'>
+              No hay mediasets todavía. Crea uno para empezar.
+            </p>
+          </Card>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={mediasets.map((ms) => ms.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className='space-y-4'>
+                {mediasets.map((mediaset, index) => {
+                  const items = itemsByMediaset[mediaset.id] || [];
+                  const mediaList = items
+                    .map((item) => ({
+                      ...mediaById[item.mediaId],
+                      ...item
+                    }))
+                    .filter((m) => m.id);
 
-      <NewMediasetDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        category={category}
-        currentMaxOrdering={
-          mediasets.length > 0
-            ? Math.max(...mediasets.map((ms) => ms.ordering))
-            : -1
-        }
-      />
+                  return (
+                    <MediasetItem
+                      key={mediaset.id}
+                      mediaset={mediaset}
+                      index={index}
+                      items={items}
+                      mediaList={mediaList as any}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
+        )}
+      </div>
     </div>
   );
 }

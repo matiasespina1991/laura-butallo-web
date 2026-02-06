@@ -12,7 +12,9 @@ type BreadcrumbItem = {
 };
 
 const routeMapping: Record<string, BreadcrumbItem[]> = {
-  '/dashboard': [{ title: 'Dashboard', link: '/dashboard' }]
+  '/dashboard': [
+    { title: 'Organizador de Obras', link: '/dashboard/works-organizer' }
+  ]
   // Add more custom mappings as needed
 };
 
@@ -73,7 +75,10 @@ export function useBreadcrumbs() {
     // If no exact match, fall back to generating breadcrumbs from the path
     const segments = pathname.split('/').filter(Boolean);
     return segments.map((segment, index) => {
-      const path = `/${segments.slice(0, index + 1).join('/')}`;
+      const path = `/${segments
+        .slice(0, index + 1)
+
+        .join('/')}`;
       const mappedTitle = navTitleMap.get(path);
       const isExhibitionDetail =
         exhibitionId && path === `/dashboard/exhibitions/${exhibitionId}`;

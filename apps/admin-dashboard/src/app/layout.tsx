@@ -17,7 +17,7 @@ const META_THEME_COLORS = {
 
 export const metadata: Metadata = {
   title: 'Laura Butallo Web Admin Dashboard',
-  description: 'Dashboard de administración para Laura Butallo Web'
+  description: 'Panel de administración para Laura Butallo Web'
 };
 
 export const viewport: Viewport = {

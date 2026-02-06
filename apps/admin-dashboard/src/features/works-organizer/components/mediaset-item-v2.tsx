@@ -62,10 +62,10 @@ export default function MediasetItem({
       await updateDoc(doc(db, 'mediasets', mediaset.id), {
         deletedAt: Timestamp.now()
       });
-      toast.success('Mediaset eliminado');
+      toast.success('Fila eliminada');
     } catch (error) {
       console.error('Error deleting mediaset:', error);
-      toast.error('Error al eliminar mediaset');
+      toast.error('Error al eliminar fila');
     } finally {
       setDeleting(false);
       setDeleteDialogOpen(false);
@@ -159,11 +159,11 @@ export default function MediasetItem({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar Mediaset</AlertDialogTitle>
+            <AlertDialogTitle>Eliminar Fila</AlertDialogTitle>
             <AlertDialogDescription>
-              Esto eliminara el mediaset (soft-delete). Los items permaneceran
-              en la base de datos. Esta accion puede deshacerse limpiando el
-              campo deletedAt en Firestore.
+              Esto eliminara la fila (soft-delete). Los items permaneceran en la
+              base de datos. Esta accion puede deshacerse limpiando el campo
+              deletedAt en Firestore.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

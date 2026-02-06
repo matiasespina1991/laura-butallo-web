@@ -3,7 +3,7 @@ import { ThemeSelector } from '@/components/theme-selector';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const metadata = {
-  title: 'Dashboard: Configuración'
+  title: 'Panel: Configuración'
 };
 
 export default function Page() {

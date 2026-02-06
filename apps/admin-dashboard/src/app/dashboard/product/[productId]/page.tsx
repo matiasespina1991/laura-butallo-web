@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import ProductViewPage from '@/features/products/components/product-view-page';
 
 export const metadata = {
-  title: 'Dashboard : Product View'
+  title: 'Panel : Product View'
 };
 
 type PageProps = { params: Promise<{ productId: string }> };

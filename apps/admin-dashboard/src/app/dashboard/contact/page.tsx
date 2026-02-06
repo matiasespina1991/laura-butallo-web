@@ -2,7 +2,7 @@ import PageContainer from '@/components/layout/page-container';
 import ContactForm from '@/features/contact/components/contact-form';
 
 export const metadata = {
-  title: 'Dashboard: Contacto'
+  title: 'Panel : Contacto'
 };
 
 export default function Page() {

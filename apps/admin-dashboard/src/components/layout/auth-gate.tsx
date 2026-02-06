@@ -15,7 +15,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
     if (isAuthRoute && user) {
-      router.replace('/dashboard/overview');
+      router.replace('/dashboard/works-organizer');
       return;
     }
     if (!isAuthRoute && !user) {

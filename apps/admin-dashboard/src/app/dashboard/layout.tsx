@@ -1,6 +1,7 @@
 import KBar from '@/components/kbar';
 import AppSidebar from '@/components/layout/app-sidebar';
 import Header from '@/components/layout/header';
+import RouteFade from '@/components/layout/route-fade';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
@@ -25,7 +26,7 @@ export default async function DashboardLayout({
         <SidebarInset>
           <Header />
           {/* page main content */}
-          {children}
+          <RouteFade>{children}</RouteFade>
           {/* page main content ends */}
         </SidebarInset>
       </SidebarProvider>

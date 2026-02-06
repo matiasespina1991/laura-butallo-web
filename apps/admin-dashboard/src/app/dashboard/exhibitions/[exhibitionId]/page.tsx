@@ -2,7 +2,7 @@ import PageContainer from '@/components/layout/page-container';
 import ExhibitionForm from '@/features/exhibitions/components/exhibition-form';
 
 export const metadata = {
-  title: 'Dashboard: Editar exhibición'
+  title: 'Panel : Editar exhibición'
 };
 
 export default async function Page({

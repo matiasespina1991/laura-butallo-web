@@ -2,15 +2,7 @@ import { NavItem } from '@/types';
 
 export const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
-    url: '/dashboard/overview',
-    icon: 'dashboard',
-    isActive: false,
-    shortcut: ['d', 'd'],
-    items: []
-  },
-  {
-    title: 'Works Organizer',
+    title: 'Organizador de Obras',
     url: '/dashboard/works-organizer',
     icon: 'works',
     shortcut: ['w', 'w'],

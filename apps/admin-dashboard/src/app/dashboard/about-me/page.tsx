@@ -2,7 +2,7 @@ import PageContainer from '@/components/layout/page-container';
 import AboutForm from '@/features/about/components/about-form';
 
 export const metadata = {
-  title: 'Dashboard: About Me'
+  title: 'Panel: About Me'
 };
 
 export default function Page() {
