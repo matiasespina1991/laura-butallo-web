@@ -744,7 +744,7 @@ export default function WorksCategoryPage({
           sx={{
             width: '100%',
             display: 'flex',
-            paddingInline: isMobile ? '1.4rem' : '2rem',
+            paddingInline: isMobile ? '1.4rem' : '2.1rem',
           }}
         >
           <motion.h1
@@ -758,7 +758,8 @@ export default function WorksCategoryPage({
               marginBottom: '0.7rem',
             }}
           >
-            WORKS {isMobile ? '•' : '﹥'}{' '}
+            WORKS{' '}
+            <span className="breadcrumb-divider">{isMobile ? '•' : '﹥'}</span>{' '}
             {params.category.replace(/-/g, ' ').toUpperCase()}
           </motion.h1>
         </Box>

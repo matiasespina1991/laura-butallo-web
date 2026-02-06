@@ -177,3 +177,19 @@ a {
 .burger.is-open .bottom {
   transform: translateY(-9px) rotate(-45deg);
 }
+
+.breadcrumb-divider {
+  font-weight: 900;
+  margin-inline: -3px;
+  /* font-size: 1rem; */
+}
+
+@media (max-width: 600px) {
+  .breadcrumb-divider {
+    font-size: 0.6rem;
+    font-weight: 100;
+    position: relative;
+    margin-inline: -0.5px;
+    bottom: 2.2px;
+  }
+}
