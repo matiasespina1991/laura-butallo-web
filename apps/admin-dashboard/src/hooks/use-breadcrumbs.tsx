@@ -82,8 +82,10 @@ export function useBreadcrumbs() {
       const mappedTitle = navTitleMap.get(path);
       const isExhibitionDetail =
         exhibitionId && path === `/dashboard/exhibitions/${exhibitionId}`;
+      const isDashboardRoot = path === '/dashboard';
       return {
         title:
+          (isDashboardRoot && 'Panel') ||
           (isExhibitionDetail && (exhibitionTitle || 'Exhibición')) ||
           mappedTitle ||
           segment.charAt(0).toUpperCase() + segment.slice(1),
