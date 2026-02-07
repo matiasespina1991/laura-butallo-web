@@ -28,6 +28,7 @@ export type MediaDoc = {
   id: string;
   type: 'image' | 'video';
   uploadId: string;
+  originalFilename?: string;
   title?: string;
   deletedAt?: unknown | null;
   origin: {
@@ -76,14 +77,16 @@ export async function uploadMediaFiles(
       new Promise<UploadResult>((resolve, reject) => {
         const uploadId = uuidv4();
         const safeName = sanitizeFileName(file.name) || 'file';
+        const timestamp = Date.now().toString();
         const bucketFolder = file.type.startsWith('video/')
           ? 'uploads/videos'
           : 'uploads/images';
-        const storagePath = `${bucketFolder}/${uploadId}-${safeName}`;
+        const storagePath = `${bucketFolder}/${timestamp}/${safeName}`;
         const metadata = {
           contentType: file.type,
           customMetadata: {
             uploadId,
+            originalFilename: file.name,
             originContext: origin.context,
             originRole: resolveOriginRole(origin),
             exhibitionId: origin.exhibitionId ?? ''

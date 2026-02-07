@@ -21,6 +21,7 @@ export interface Media {
   id: string;
   mediaSetId: string | null;
   uploadId: string;
+  originalFilename?: string;
   origin: {
     context: 'gallery' | 'exhibition';
     exhibitionId?: string | null;

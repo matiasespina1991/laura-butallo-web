@@ -12,6 +12,7 @@ import {
 import { db } from '@/lib/firebase';
 import { FileUploader } from '@/components/file-uploader';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import { cn, formatBytes } from '@/lib/utils';
@@ -417,6 +418,10 @@ export default function MediaGallery({
   const [progresses, setProgresses] = useState<Record<string, number>>({});
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isLightboxLoaded, setIsLightboxLoaded] = useState(false);
+  const [isDialogTitleEditing, setIsDialogTitleEditing] = useState(false);
+  const [dialogTitleDraft, setDialogTitleDraft] = useState('');
+  const [isDialogTitleSaving, setIsDialogTitleSaving] = useState(false);
+  const dialogTitleSavingRef = useRef(false);
   const activeMedia =
     activeIndex === null ? null : (items[activeIndex] ?? null);
   const totalItems = items.length;
@@ -533,6 +538,12 @@ export default function MediaGallery({
   }, [activeMedia?.id, lightboxImageSrc, lightboxVideoSrc]);
 
   useEffect(() => {
+    if (isDialogTitleEditing) return;
+    const nextTitle = activeMedia?.title ?? '';
+    setDialogTitleDraft(nextTitle);
+  }, [activeMedia?.id, activeMedia?.title, isDialogTitleEditing]);
+
+  useEffect(() => {
     if (!selectedId || !onSelectionChange) return;
     const exists = items.some((item) => item.id === selectedId);
     if (!exists) {
@@ -574,6 +585,33 @@ export default function MediaGallery({
         setProgresses((prev) => ({ ...prev, [fileName]: progress }));
       }
     );
+  };
+
+  const saveDialogTitle = async () => {
+    if (!activeMedia || dialogTitleSavingRef.current) return;
+    const nextTitle = (dialogTitleDraft ?? '').trim();
+    const currentTitle = (activeMedia.title ?? '').trim();
+
+    if (nextTitle === currentTitle) {
+      setIsDialogTitleEditing(false);
+      setDialogTitleDraft(activeMedia.title ?? '');
+      return;
+    }
+
+    dialogTitleSavingRef.current = true;
+    setIsDialogTitleSaving(true);
+    try {
+      await updateDoc(doc(db, 'media', activeMedia.id), { title: nextTitle });
+      setDialogTitleDraft(nextTitle);
+      setIsDialogTitleEditing(false);
+    } catch (error) {
+      console.error('[Media] update title error (dialog)', error);
+      toast.error('No se pudo actualizar el título.');
+      setIsDialogTitleEditing(true);
+    } finally {
+      dialogTitleSavingRef.current = false;
+      setIsDialogTitleSaving(false);
+    }
   };
 
   return (
@@ -650,17 +688,53 @@ export default function MediaGallery({
               </button>
               <div className='border-border/60 flex items-center justify-between border-b px-5 py-3'>
                 <div className='space-y-0.5'>
-                  <div className='text-sm font-semibold'>
-                    {activeMedia.title || 'Sin título'}
+                  {isDialogTitleEditing ? (
+                    <Input
+                      autoFocus
+                      value={dialogTitleDraft}
+                      disabled={isDialogTitleSaving}
+                      aria-label='Editar título'
+                      className='h-8 w-full max-w-md text-sm font-semibold'
+                      onChange={(event) =>
+                        setDialogTitleDraft(event.target.value)
+                      }
+                      onBlur={() => {
+                        void saveDialogTitle();
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          void saveDialogTitle();
+                        }
+                        if (event.key === 'Escape') {
+                          event.preventDefault();
+                          setIsDialogTitleEditing(false);
+                          setDialogTitleDraft(activeMedia.title ?? '');
+                        }
+                      }}
+                    />
+                  ) : (
+                    <button
+                      type='button'
+                      aria-label='Editar título'
+                      className='text-foreground cursor-text text-left text-sm font-semibold hover:opacity-85'
+                      onClick={() => {
+                        if (!isDialogTitleSaving) {
+                          setIsDialogTitleEditing(true);
+                        }
+                      }}
+                    >
+                      {dialogTitleDraft || 'Sin título'}
+                    </button>
+                  )}
+                  <div className='text-muted-foreground text-xs'>
+                    {activeMedia.originalFilename
+                      ? 'Archivo Original: ' +
+                        activeMedia.originalFilename?.trim()
+                      : ''}
                   </div>
                   <div className='text-muted-foreground text-xs'>
-                    {activeMedia.id}
-                  </div>
-                  <div className='text-muted-foreground text-xs'>
-                    {activeMedia.type === 'video' ? 'Video' : 'Imagen'} ·{' '}
-                    {activeMedia.origin?.context === 'exhibition'
-                      ? 'Exhibición'
-                      : 'Galería'}
+                    Id: {activeMedia.id}
                   </div>
                 </div>
               </div>
@@ -671,7 +745,7 @@ export default function MediaGallery({
                       <video
                         playsInline
                         autoPlay
-                        className='h-full max-h-full w-full max-w-full object-contain'
+                        className='h-full max-h-full w-full max-w-full cursor-pointer object-contain'
                         controls
                         poster={lightboxPosterSrc || undefined}
                         src={lightboxVideoSrc}
@@ -707,7 +781,7 @@ export default function MediaGallery({
                   (activeMedia.type === 'image' && hasImageSource) ? (
                     <div
                       className={cn(
-                        'bg-background/60 absolute inset-0 flex items-center justify-center transition-opacity duration-300',
+                        'bg-background/60 pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-300',
                         isLightboxLoaded ? 'opacity-0' : 'opacity-100'
                       )}
                     >

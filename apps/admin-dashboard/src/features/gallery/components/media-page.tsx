@@ -36,14 +36,14 @@ function SelectedMediaChip({
 }) {
   return (
     <div
-      className={`inline-flex h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-foreground opacity-100 ${className}`}
+      className={`text-foreground inline-flex h-11 items-center gap-2 rounded-full px-3 text-sm font-medium opacity-100 ${className}`}
     >
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             type='button'
             onClick={onClear}
-            className='hover:bg-muted inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-transparent text-foreground transition-colors'
+            className='hover:bg-muted text-foreground inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-transparent transition-colors'
             aria-label='Deseleccionar archivo'
           >
             <IconX className='h-4 w-4' />
@@ -123,12 +123,12 @@ export default function MediaPage() {
       await updateDoc(doc(db, 'media', selectedMedia.id), {
         deletedAt: serverTimestamp()
       });
-      toast.success('Media eliminada.');
+      toast.success('Medio eliminado.');
       setSelectedMedia(null);
       setConfirmOpen(false);
     } catch (error) {
       console.error('[Media] delete error', error);
-      toast.error('No se pudo eliminar el media.');
+      toast.error('No se pudo eliminar el medio.');
     } finally {
       setIsDeleting(false);
     }
@@ -185,7 +185,7 @@ export default function MediaPage() {
         <div className='pointer-events-none fixed right-6 bottom-6 z-50 flex flex-row gap-2'>
           <SelectedMediaChip
             onClear={handleClearSelection}
-            className='pointer-events-auto border border-border bg-background shadow-lg'
+            className='border-border bg-background pointer-events-auto border shadow-lg'
           />
           <Tooltip>
             <TooltipTrigger asChild>
@@ -194,7 +194,7 @@ export default function MediaPage() {
                 variant='outline'
                 disabled={!hasDownloadSource}
                 size='icon'
-                className='pointer-events-auto h-11 w-11 rounded-full !bg-background !text-foreground !opacity-100 !border-border !hover:bg-background !dark:bg-background !dark:hover:bg-background shadow-lg'
+                className='!bg-background !text-foreground !border-border !hover:bg-background !dark:bg-background !dark:hover:bg-background pointer-events-auto h-11 w-11 rounded-full !opacity-100 shadow-lg'
               >
                 <a
                   href={downloadSrc}
@@ -215,7 +215,7 @@ export default function MediaPage() {
                 size='icon'
                 disabled={isDeleting}
                 onClick={() => setConfirmOpen(true)}
-                className='pointer-events-auto h-11 w-11 rounded-full !bg-[#ca2a30] !text-white !opacity-100 !hover:bg-[#ca2a30] !dark:bg-[#ca2a30] !dark:hover:bg-[#ca2a30] shadow-lg'
+                className='!hover:bg-[#ca2a30] !dark:bg-[#ca2a30] !dark:hover:bg-[#ca2a30] pointer-events-auto h-11 w-11 rounded-full !bg-[#ca2a30] !text-white !opacity-100 shadow-lg'
                 aria-label='Eliminar'
               >
                 <IconTrash className='h-5 w-5' />
@@ -231,12 +231,14 @@ export default function MediaPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Eliminar media?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción marca el media como eliminado y lo saca de la
-              galería. Podés volver a subirlo más adelante si lo necesitás.
+              Esta acción marca el media como eliminado y lo saca de la galería.
+              Podés volver a subirlo más adelante si lo necesitás.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? 'Eliminando...' : 'Eliminar'}
             </AlertDialogAction>

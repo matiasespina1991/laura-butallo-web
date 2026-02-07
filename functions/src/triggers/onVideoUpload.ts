@@ -45,6 +45,13 @@ export const onVideoUpload = onObjectFinalized(
 
       const metadata = object.metadata ?? {};
       const uploadId = metadata.uploadId ?? metadata.upload_id ?? '';
+      const pathFilename = storagePath.split('/').pop() ?? '';
+      const originalFilenameRaw =
+        metadata.originalFilename ?? metadata.original_filename ?? pathFilename;
+      const originalFilename =
+        typeof originalFilenameRaw === 'string' && originalFilenameRaw.trim()
+          ? originalFilenameRaw
+          : pathFilename;
       const originContext =
         metadata.originContext === 'exhibition' ? 'exhibition' : 'gallery';
       const originRoleRaw = metadata.originRole ?? metadata.role ?? '';
@@ -78,6 +85,7 @@ export const onVideoUpload = onObjectFinalized(
       console.log('[onVideoUpload] resolved ids', {
         mediaId,
         uploadId: resolvedUploadId,
+        originalFilename,
         storagePath,
         originContext,
         originRole,
@@ -89,6 +97,7 @@ export const onVideoUpload = onObjectFinalized(
         id: mediaId,
         mediaSetId: null,
         uploadId: resolvedUploadId || mediaId,
+        originalFilename,
         origin: {
           context: originContext,
           exhibitionId: originExhibitionId,
