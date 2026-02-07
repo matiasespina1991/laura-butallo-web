@@ -149,13 +149,15 @@ type MediaCardProps = {
   isSelected?: boolean;
   onPreviewClick?: () => void;
   onSelect?: () => void;
+  dataMediaId?: string;
 };
 
 function MediaCard({
   media,
   isSelected,
   onPreviewClick,
-  onSelect
+  onSelect,
+  dataMediaId
 }: MediaCardProps) {
   const previewPath = useMemo(() => getPreviewPath(media), [media]);
   const { src, hasSource, handleError } = useStorageAssetSrc(
@@ -244,6 +246,7 @@ function MediaCard({
 
   return (
     <div
+      data-media-id={dataMediaId}
       className={cn(
         'border-border/60 bg-card group/media-card relative flex h-full flex-col overflow-hidden rounded-lg border shadow-xs',
         isSelected &&
@@ -746,6 +749,7 @@ export default function MediaGallery({
             <MediaCard
               key={media.id}
               media={media}
+              dataMediaId={media.id}
               isSelected={selectedId === media.id}
               onPreviewClick={() => setActiveIndex(index)}
               onSelect={() => {

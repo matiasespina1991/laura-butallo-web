@@ -73,20 +73,35 @@ function buildVariantDownloadName(
 
 function SelectedMediaChip({
   onClear,
-  className = ''
+  className = '',
+  onClick
 }: {
   onClear: () => void;
   className?: string;
+  onClick?: () => void;
 }) {
   return (
     <div
-      className={`text-foreground inline-flex h-11 items-center gap-2 rounded-full px-3 text-sm font-medium opacity-100 ${className}`}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      className={`text-foreground inline-flex h-11 cursor-pointer items-center gap-2 rounded-full px-3 text-sm font-medium opacity-100 ${className}`}
     >
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             type='button'
-            onClick={onClear}
+            onClick={(event) => {
+              event.stopPropagation();
+              onClear();
+            }}
             className='text-foreground inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-[#80808012] transition-colors hover:bg-[#80808024]'
             aria-label='Deseleccionar archivo'
           >
@@ -272,6 +287,15 @@ export default function MediaPage() {
     setSelectedMedia(null);
   }, []);
 
+  const handleScrollToSelected = useCallback(() => {
+    if (!selectedMedia?.id) return;
+    const target = document.querySelector(
+      `[data-media-id="${selectedMedia.id}"]`
+    );
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [selectedMedia?.id]);
+
   const triggerDownload = useCallback(async (url: string, fileName: string) => {
     try {
       const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&name=${encodeURIComponent(fileName)}`;
@@ -331,11 +355,7 @@ export default function MediaPage() {
   );
 
   const handleVideoVariantDownload = useCallback(
-    (variant: {
-      key: VideoVariantKey;
-      src: string;
-      canDownload: boolean;
-    }) => {
+    (variant: { key: VideoVariantKey; src: string; canDownload: boolean }) => {
       if (!variant.canDownload) return;
       const fileName = buildVariantDownloadName(selectedMedia, variant.key);
       void triggerDownload(variant.src, fileName);
@@ -353,6 +373,7 @@ export default function MediaPage() {
             <div ref={actionBarRef} className='flex items-center gap-2'>
               <SelectedMediaChip
                 onClear={handleClearSelection}
+                onClick={handleScrollToSelected}
                 className='border-0 bg-transparent px-0 shadow-none'
               />
               {isVideoSelection ? (
@@ -426,43 +447,47 @@ export default function MediaPage() {
         >
           <SelectedMediaChip
             onClear={handleClearSelection}
+            onClick={handleScrollToSelected}
             className='border-border bg-background pointer-events-auto border shadow-lg'
           />
           {isVideoSelection ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className='pointer-events-auto'>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant='outline'
-                        disabled={!canDownload}
-                        size='icon'
-                        className='!bg-background !text-foreground !border-border !hover:bg-background !dark:bg-background !dark:hover:bg-background h-11 w-11 rounded-full !opacity-100 shadow-lg'
-                      >
-                        <IconDownload className='h-5 w-5' />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align='end' className='min-w-56'>
-                      {videoDownloadOptions.map((variant) => (
-                        <DropdownMenuItem
-                          key={variant.key}
-                          disabled={!variant.canDownload}
-                          onClick={() => handleVideoVariantDownload(variant)}
-                          className='flex items-center justify-between gap-4'
-                        >
-                          <span>{variant.label}</span>
-                          <span className='text-muted-foreground text-xs'>
-                            {variant.sizeLabel}
-                          </span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>Descargar</TooltipContent>
-            </Tooltip>
+            <DropdownMenu>
+              <Tooltip>
+                <DropdownMenuTrigger asChild>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant='outline'
+                      disabled={!canDownload}
+                      size='icon'
+                      className='!bg-background !text-foreground !border-border !hover:bg-background !dark:bg-background !dark:hover:bg-background pointer-events-auto h-11 w-11 rounded-full !opacity-100 shadow-lg'
+                    >
+                      <IconDownload className='h-5 w-5' />
+                    </Button>
+                  </TooltipTrigger>
+                </DropdownMenuTrigger>
+                <TooltipContent>Descargar</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent
+                align='end'
+                side='top'
+                sideOffset={8}
+                className='min-w-56'
+              >
+                {videoDownloadOptions.map((variant) => (
+                  <DropdownMenuItem
+                    key={variant.key}
+                    disabled={!variant.canDownload}
+                    onClick={() => handleVideoVariantDownload(variant)}
+                    className='flex cursor-pointer items-center justify-between gap-4'
+                  >
+                    <span>{variant.label}</span>
+                    <span className='text-muted-foreground text-xs'>
+                      {variant.sizeLabel}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Tooltip>
               <TooltipTrigger asChild>
