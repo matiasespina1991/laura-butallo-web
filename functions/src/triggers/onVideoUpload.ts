@@ -1,6 +1,7 @@
 // triggers/onUploadVideo.ts
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 import admin from 'firebase-admin';
+import fs from 'fs/promises';
 import {
   downloadToTmp,
   uploadFromLocal,
@@ -180,7 +181,11 @@ export const onVideoUpload = onObjectFinalized(
 
       // Transcode resolutions
       const derivativePaths: {
-        [key: string]: { storagePath: string; downloadURL: string | null };
+        [key: string]: {
+          storagePath: string;
+          downloadURL: string | null;
+          sizeBytes?: number;
+        };
       } = {};
 
       const runWithConcurrency = async <T>(
@@ -205,6 +210,7 @@ export const onVideoUpload = onObjectFinalized(
       await runWithConcurrency(resolutions, 2, async (r) => {
         const outLocal = `${tmpBase}/${Date.now()}-${r.name}.webm`;
         await transcodeToWebM(localPath, outLocal, r.height);
+        const outStats = await fs.stat(outLocal).catch(() => null);
         const remotePath = `temp-assets/${mediaId}/video_${r.name}.webm`;
         await uploadFromLocal(outLocal, remotePath, 'video/webm');
         const [downloadURL] = await bucket.file(remotePath).getSignedUrl({
@@ -214,6 +220,7 @@ export const onVideoUpload = onObjectFinalized(
         derivativePaths[`webm_${r.name}`] = {
           storagePath: remotePath,
           downloadURL,
+          sizeBytes: outStats?.size,
         };
         console.log('[onVideoUpload] derivative ready', {
           mediaId,

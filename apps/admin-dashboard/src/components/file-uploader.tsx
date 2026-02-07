@@ -255,6 +255,13 @@ export function FileUploader(props: FileUploaderProps) {
   const showPickerMenu = Boolean(onPickFromGallery);
   const uploadLabel = pickerMenuLabels?.computer ?? 'Subir archivos';
   const galleryLabel = pickerMenuLabels?.gallery ?? 'Agregar desde galería';
+  const isUploading = Boolean(
+    files?.length &&
+      files.some((file) => {
+        const progress = progresses?.[file.name];
+        return typeof progress !== 'number' || progress < 100;
+      })
+  );
 
   React.useEffect(() => {
     if (!menuVisible) return;
@@ -349,7 +356,7 @@ export function FileUploader(props: FileUploaderProps) {
                   </p>
                 </div>
               ) : (
-                <div className='flex flex-col items-center justify-center gap-4 sm:px-5'>
+                <div className='flex max-h-[10rem] flex-col items-center justify-center gap-3 sm:px-5'>
                   <div className='rounded-full border border-dashed p-3'>
                     <IconUpload
                       className='text-muted-foreground size-7'
@@ -369,18 +376,20 @@ export function FileUploader(props: FileUploaderProps) {
                           ? 'Tocá para elegir archivos'
                           : 'Arrastrá y soltá archivos acá, o hacé clic para elegirlos'}
                     </p>
-                    <p
-                      className={cn(
-                        'text-muted-foreground/70',
-                        compact ? 'text-[11px] sm:text-xs' : 'text-sm'
-                      )}
-                    >
-                      Podés subir
-                      {maxFiles > 1
-                        ? ` ${maxFiles === Infinity ? 'varios' : maxFiles}
+                    {!isUploading ? (
+                      <p
+                        className={cn(
+                          'text-muted-foreground/70',
+                          compact ? 'text-[11px] sm:text-xs' : 'text-sm'
+                        )}
+                      >
+                        Podés subir
+                        {maxFiles > 1
+                          ? ` ${maxFiles === Infinity ? 'varios' : maxFiles}
                       archivos (hasta ${formatBytes(maxSize)} cada uno)`
-                        : ` un archivo de hasta ${formatBytes(maxSize)}`}
-                    </p>
+                          : ` un archivo de hasta ${formatBytes(maxSize)}`}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               )}
@@ -500,7 +509,7 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
           ) : null}
           {typeof progress === 'number' && progress >= 100 ? (
             <p className='text-muted-foreground text-left text-xs'>
-              Subida completada. Procesando tu archivo...
+              Completado.
             </p>
           ) : null}
         </div>

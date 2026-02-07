@@ -2,6 +2,7 @@ export type MediaType = 'image' | 'video';
 export interface AssetFile {
     storagePath: string;
     downloadURL: string | null;
+    sizeBytes?: number;
 }
 export interface AssetPaths {
     original: AssetFile;

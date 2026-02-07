@@ -2,11 +2,22 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { IconDownload, IconTrash, IconX } from '@tabler/icons-react';
+import {
+  IconChevronDown,
+  IconDownload,
+  IconTrash,
+  IconX
+} from '@tabler/icons-react';
 import { toast } from 'sonner';
 
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
@@ -27,6 +38,39 @@ import MediaGallery from '@/features/gallery/components/media-gallery';
 import type { MediaDoc } from '@/lib/media-upload';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 
+type AssetFile = {
+  storagePath?: string | null;
+  downloadURL?: string | null;
+  sizeBytes?: number;
+};
+
+type VideoVariantKey = 'webm_1080' | 'webm_720' | 'webm_360';
+
+function formatSizeMb(sizeBytes: number | null) {
+  if (!sizeBytes || sizeBytes <= 0) return '';
+  const sizeInMb = sizeBytes / (1024 * 1024);
+  const value =
+    sizeInMb >= 100
+      ? Math.round(sizeInMb).toString()
+      : sizeInMb.toFixed(1).replace(/\.0$/, '');
+  return `${value} mb`;
+}
+
+function buildVariantDownloadName(
+  media: MediaDoc | null,
+  variantKey: VideoVariantKey
+) {
+  if (!media) return `${variantKey}.webm`;
+  const baseNameRaw = (
+    media.originalFilename ||
+    media.title ||
+    media.id
+  ).trim();
+  const baseName = (baseNameRaw || media.id).replace(/\.[^.]+$/, '');
+  const variantLabel = variantKey.replace('_', '-');
+  return `${baseName}-${variantLabel}.webm`;
+}
+
 function SelectedMediaChip({
   onClear,
   className = ''
@@ -43,10 +87,10 @@ function SelectedMediaChip({
           <button
             type='button'
             onClick={onClear}
-            className='hover:bg-muted text-foreground inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-transparent transition-colors'
+            className='text-foreground inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-[#80808012] transition-colors hover:bg-[#80808024]'
             aria-label='Deseleccionar archivo'
           >
-            <IconX className='h-4 w-4' />
+            <IconX className='h-3 w-3' />
           </button>
         </TooltipTrigger>
         <TooltipContent>Quitar seleccion</TooltipContent>
@@ -62,25 +106,89 @@ export default function MediaPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [showFloatingActions, setShowFloatingActions] = useState(false);
   const actionBarRef = useRef<HTMLDivElement | null>(null);
-  const downloadAsset = selectedMedia?.paths?.original ?? null;
+  const isVideoSelection = selectedMedia?.type === 'video';
+  const imageDownloadAsset = useMemo<AssetFile | null>(() => {
+    if (!selectedMedia || selectedMedia.type !== 'image') return null;
+    const imageCandidates = [
+      selectedMedia.paths?.derivatives?.webp_large,
+      selectedMedia.paths?.derivatives?.webp_medium,
+      selectedMedia.paths?.derivatives?.webp_small,
+      selectedMedia.paths?.original
+    ];
+    return (
+      imageCandidates.find(
+        (asset) => asset?.downloadURL || asset?.storagePath
+      ) ?? null
+    );
+  }, [selectedMedia]);
+  const videoAsset1080 = useMemo<AssetFile | null>(
+    () =>
+      selectedMedia?.type === 'video'
+        ? (selectedMedia.paths?.derivatives?.webm_1080 ?? null)
+        : null,
+    [selectedMedia]
+  );
+  const videoAsset720 = useMemo<AssetFile | null>(
+    () =>
+      selectedMedia?.type === 'video'
+        ? (selectedMedia.paths?.derivatives?.webm_720 ?? null)
+        : null,
+    [selectedMedia]
+  );
+  const videoAsset360 = useMemo<AssetFile | null>(
+    () =>
+      selectedMedia?.type === 'video'
+        ? (selectedMedia.paths?.derivatives?.webm_360 ?? null)
+        : null,
+    [selectedMedia]
+  );
   const {
-    src: downloadSrc,
-    hasSource: hasDownloadSource,
-    forceSigned: resolveDownload
-  } = useStorageAssetSrc(downloadAsset, { preferDirect: true });
+    src: imageDownloadSrc,
+    usingSignedUrl: isImageSignedUrl,
+    hasSource: hasImageSource,
+    forceSigned: resolveImageSignedUrl
+  } = useStorageAssetSrc(imageDownloadAsset, { preferDirect: true });
+  const {
+    src: video1080Src,
+    usingSignedUrl: is1080SignedUrl,
+    hasSource: has1080Source,
+    forceSigned: resolve1080SignedUrl
+  } = useStorageAssetSrc(videoAsset1080, { preferDirect: true });
+  const {
+    src: video720Src,
+    usingSignedUrl: is720SignedUrl,
+    hasSource: has720Source,
+    forceSigned: resolve720SignedUrl
+  } = useStorageAssetSrc(videoAsset720, { preferDirect: true });
+  const {
+    src: video360Src,
+    usingSignedUrl: is360SignedUrl,
+    hasSource: has360Source,
+    forceSigned: resolve360SignedUrl
+  } = useStorageAssetSrc(videoAsset360, { preferDirect: true });
 
-  const downloadName = useMemo(() => {
+  const imageHasSecureSource =
+    Boolean(imageDownloadAsset?.downloadURL) || isImageSignedUrl;
+  const canDownloadImage = hasImageSource && imageHasSecureSource;
+  const canDownload1080 =
+    has1080Source && (Boolean(videoAsset1080?.downloadURL) || is1080SignedUrl);
+  const canDownload720 =
+    has720Source && (Boolean(videoAsset720?.downloadURL) || is720SignedUrl);
+  const canDownload360 =
+    has360Source && (Boolean(videoAsset360?.downloadURL) || is360SignedUrl);
+  const canDownloadVideo = canDownload1080 || canDownload720 || canDownload360;
+  const canDownload = isVideoSelection ? canDownloadVideo : canDownloadImage;
+
+  const imageDownloadName = useMemo(() => {
     if (!selectedMedia) return 'media';
-    const rawPath = downloadAsset?.storagePath ?? '';
-    const lastSegment = rawPath ? (rawPath.split('/').pop() ?? '') : '';
-    const dashed = lastSegment.indexOf('-');
-    if (lastSegment) {
-      return dashed >= 0 && dashed < lastSegment.length - 1
-        ? lastSegment.slice(dashed + 1)
-        : lastSegment;
+    if (selectedMedia.originalFilename?.trim()) {
+      return selectedMedia.originalFilename.trim();
     }
+    const rawPath = imageDownloadAsset?.storagePath ?? '';
+    const lastSegment = rawPath ? (rawPath.split('/').pop() ?? '') : '';
+    if (lastSegment) return lastSegment;
     return (selectedMedia.title ?? selectedMedia.id).trim() || selectedMedia.id;
-  }, [downloadAsset?.storagePath, selectedMedia]);
+  }, [imageDownloadAsset?.storagePath, selectedMedia]);
 
   useEffect(() => {
     if (!selectedMedia) {
@@ -106,14 +214,40 @@ export default function MediaPage() {
   }, [selectedMedia]);
 
   useEffect(() => {
-    if (!selectedMedia) return;
-    if (!downloadAsset?.storagePath || downloadAsset?.downloadURL) return;
-    resolveDownload();
+    if (!imageDownloadAsset?.storagePath || imageDownloadAsset.downloadURL)
+      return;
+    void resolveImageSignedUrl();
   }, [
-    downloadAsset?.downloadURL,
-    downloadAsset?.storagePath,
-    resolveDownload,
-    selectedMedia
+    imageDownloadAsset?.downloadURL,
+    imageDownloadAsset?.storagePath,
+    resolveImageSignedUrl
+  ]);
+
+  useEffect(() => {
+    if (!videoAsset1080?.storagePath || videoAsset1080.downloadURL) return;
+    void resolve1080SignedUrl();
+  }, [
+    resolve1080SignedUrl,
+    videoAsset1080?.downloadURL,
+    videoAsset1080?.storagePath
+  ]);
+
+  useEffect(() => {
+    if (!videoAsset720?.storagePath || videoAsset720.downloadURL) return;
+    void resolve720SignedUrl();
+  }, [
+    resolve720SignedUrl,
+    videoAsset720?.downloadURL,
+    videoAsset720?.storagePath
+  ]);
+
+  useEffect(() => {
+    if (!videoAsset360?.storagePath || videoAsset360.downloadURL) return;
+    void resolve360SignedUrl();
+  }, [
+    resolve360SignedUrl,
+    videoAsset360?.downloadURL,
+    videoAsset360?.storagePath
   ]);
 
   const handleDelete = useCallback(async () => {
@@ -138,6 +272,77 @@ export default function MediaPage() {
     setSelectedMedia(null);
   }, []);
 
+  const triggerDownload = useCallback(async (url: string, fileName: string) => {
+    try {
+      const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&name=${encodeURIComponent(fileName)}`;
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('[Media] download error', error);
+      toast.error('No se pudo iniciar la descarga.');
+    }
+  }, []);
+
+  const handleImageDownload = useCallback(() => {
+    if (!canDownloadImage || !imageDownloadSrc) return;
+    void triggerDownload(imageDownloadSrc, imageDownloadName);
+  }, [canDownloadImage, imageDownloadName, imageDownloadSrc, triggerDownload]);
+
+  const videoDownloadOptions = useMemo(
+    () => [
+      {
+        key: 'webm_1080' as const,
+        label: 'webm 1080',
+        sizeLabel: formatSizeMb(videoAsset1080?.sizeBytes ?? null),
+        canDownload: canDownload1080,
+        src: video1080Src
+      },
+      {
+        key: 'webm_720' as const,
+        label: 'webm 720',
+        sizeLabel: formatSizeMb(videoAsset720?.sizeBytes ?? null),
+        canDownload: canDownload720,
+        src: video720Src
+      },
+      {
+        key: 'webm_360' as const,
+        label: 'webm 360',
+        sizeLabel: formatSizeMb(videoAsset360?.sizeBytes ?? null),
+        canDownload: canDownload360,
+        src: video360Src
+      }
+    ],
+    [
+      canDownload1080,
+      canDownload360,
+      canDownload720,
+      videoAsset1080?.sizeBytes,
+      video1080Src,
+      videoAsset360?.sizeBytes,
+      video360Src,
+      videoAsset720?.sizeBytes,
+      video720Src
+    ]
+  );
+
+  const handleVideoVariantDownload = useCallback(
+    (variant: {
+      key: VideoVariantKey;
+      src: string;
+      canDownload: boolean;
+    }) => {
+      if (!variant.canDownload) return;
+      const fileName = buildVariantDownloadName(selectedMedia, variant.key);
+      void triggerDownload(variant.src, fileName);
+    },
+    [selectedMedia, triggerDownload]
+  );
+
   return (
     <>
       <PageContainer
@@ -150,17 +355,46 @@ export default function MediaPage() {
                 onClear={handleClearSelection}
                 className='border-0 bg-transparent px-0 shadow-none'
               />
-              <Button
-                asChild
-                variant='outline'
-                disabled={!hasDownloadSource}
-                className='h-11'
-              >
-                <a href={downloadSrc} download={downloadName}>
+              {isVideoSelection ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant='outline'
+                      disabled={!canDownload}
+                      className='h-11'
+                    >
+                      <IconDownload className='h-4 w-4' />
+                      Descargar
+                      <IconChevronDown className='h-4 w-4 opacity-70' />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align='start' className='min-w-56'>
+                    {videoDownloadOptions.map((variant) => (
+                      <DropdownMenuItem
+                        key={variant.key}
+                        disabled={!variant.canDownload}
+                        onClick={() => handleVideoVariantDownload(variant)}
+                        className='flex cursor-pointer items-center justify-between gap-4'
+                      >
+                        <span>{variant.label}</span>
+                        <span className='text-muted-foreground text-xs'>
+                          {variant.sizeLabel}
+                        </span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  variant='outline'
+                  disabled={!canDownload}
+                  className='h-11'
+                  onClick={handleImageDownload}
+                >
                   <IconDownload className='h-4 w-4' />
                   Descargar
-                </a>
-              </Button>
+                </Button>
+              )}
               <Button
                 type='button'
                 variant='destructive'
@@ -181,32 +415,70 @@ export default function MediaPage() {
         />
       </PageContainer>
 
-      {selectedMedia && showFloatingActions ? (
-        <div className='pointer-events-none fixed right-6 bottom-6 z-50 flex flex-row gap-2'>
+      {selectedMedia ? (
+        <div
+          className={`pointer-events-none fixed right-6 bottom-6 z-50 flex flex-row gap-2 transition-all duration-300 ease-out will-change-transform ${
+            showFloatingActions
+              ? 'translate-y-0 opacity-100'
+              : 'translate-y-5 opacity-0'
+          }`}
+          aria-hidden={!showFloatingActions}
+        >
           <SelectedMediaChip
             onClear={handleClearSelection}
             className='border-border bg-background pointer-events-auto border shadow-lg'
           />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                variant='outline'
-                disabled={!hasDownloadSource}
-                size='icon'
-                className='!bg-background !text-foreground !border-border !hover:bg-background !dark:bg-background !dark:hover:bg-background pointer-events-auto h-11 w-11 rounded-full !opacity-100 shadow-lg'
-              >
-                <a
-                  href={downloadSrc}
-                  download={downloadName}
-                  aria-label='Descargar'
+          {isVideoSelection ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className='pointer-events-auto'>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant='outline'
+                        disabled={!canDownload}
+                        size='icon'
+                        className='!bg-background !text-foreground !border-border !hover:bg-background !dark:bg-background !dark:hover:bg-background h-11 w-11 rounded-full !opacity-100 shadow-lg'
+                      >
+                        <IconDownload className='h-5 w-5' />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end' className='min-w-56'>
+                      {videoDownloadOptions.map((variant) => (
+                        <DropdownMenuItem
+                          key={variant.key}
+                          disabled={!variant.canDownload}
+                          onClick={() => handleVideoVariantDownload(variant)}
+                          className='flex items-center justify-between gap-4'
+                        >
+                          <span>{variant.label}</span>
+                          <span className='text-muted-foreground text-xs'>
+                            {variant.sizeLabel}
+                          </span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>Descargar</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='outline'
+                  disabled={!canDownload}
+                  size='icon'
+                  className='!bg-background !text-foreground !border-border !hover:bg-background !dark:bg-background !dark:hover:bg-background pointer-events-auto h-11 w-11 rounded-full !opacity-100 shadow-lg'
+                  onClick={handleImageDownload}
                 >
                   <IconDownload className='h-5 w-5' />
-                </a>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Descargar</TooltipContent>
-          </Tooltip>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Descargar</TooltipContent>
+            </Tooltip>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -229,9 +501,9 @@ export default function MediaPage() {
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar media?</AlertDialogTitle>
+            <AlertDialogTitle>Eliminar medio?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción marca el media como eliminado y lo saca de la galería.
+              Esta acción marca el medio como eliminado y lo saca de la galería.
               Podés volver a subirlo más adelante si lo necesitás.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -239,7 +511,11 @@ export default function MediaPage() {
             <AlertDialogCancel disabled={isDeleting}>
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+            <AlertDialogAction
+              className='bg-red-700 hover:bg-red-800 focus:ring-red-500 disabled:bg-red-600 disabled:hover:bg-red-600'
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
               {isDeleting ? 'Eliminando...' : 'Eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>

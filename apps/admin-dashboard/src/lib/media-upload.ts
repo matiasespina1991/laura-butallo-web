@@ -30,6 +30,7 @@ export type MediaDoc = {
   uploadId: string;
   originalFilename?: string;
   title?: string;
+  createdAt?: unknown;
   deletedAt?: unknown | null;
   origin: {
     context: MediaOriginContext;
@@ -43,12 +44,24 @@ export type MediaDoc = {
     updatedAt?: unknown;
   };
   paths?: {
-    original?: { storagePath?: string | null; downloadURL?: string | null };
+    original?: {
+      storagePath?: string | null;
+      downloadURL?: string | null;
+      sizeBytes?: number;
+    };
     derivatives?: Record<
       string,
-      { storagePath?: string | null; downloadURL?: string | null }
+      {
+        storagePath?: string | null;
+        downloadURL?: string | null;
+        sizeBytes?: number;
+      }
     >;
-    poster?: { storagePath?: string | null; downloadURL?: string | null };
+    poster?: {
+      storagePath?: string | null;
+      downloadURL?: string | null;
+      sizeBytes?: number;
+    };
   };
   sizeBytes?: number;
 };

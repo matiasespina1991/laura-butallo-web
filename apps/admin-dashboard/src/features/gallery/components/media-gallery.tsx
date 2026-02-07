@@ -14,6 +14,11 @@ import { FileUploader } from '@/components/file-uploader';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import { cn, formatBytes } from '@/lib/utils';
 import {
@@ -21,6 +26,7 @@ import {
   IconChevronRight,
   IconArrowsMaximize,
   IconDeviceFloppy,
+  IconInfoCircle,
   IconMovie,
   IconPhoto
 } from '@tabler/icons-react';
@@ -47,15 +53,15 @@ function getProcessingLabel(stage?: string) {
     case 'created':
       return 'Preparando';
     case 'download_start':
-      return 'Descargando';
+      return 'Preparando';
     case 'downloaded':
-      return 'Descargado';
+      return 'Preparando';
     case 'metadata':
-      return 'Leyendo metadata';
+      return 'Obteniendo metadata';
     case 'poster_generated':
-      return 'Generando poster';
+      return 'Procesando portada';
     case 'poster_uploaded':
-      return 'Subiendo poster';
+      return 'Procesando portada';
     case 'variants_ready':
       return 'Creando variantes';
     case 'transcode_360':
@@ -73,6 +79,69 @@ function getProcessingLabel(stage?: string) {
     default:
       return 'Procesando';
   }
+}
+
+function formatOriginalFilename(filename?: string | null) {
+  if (!filename) return '';
+  const trimmed = filename.trim();
+  return trimmed;
+}
+
+function toDate(value: unknown): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) return value;
+
+  if (typeof value === 'object' && value !== null) {
+    if ('toDate' in value && typeof value.toDate === 'function') {
+      const maybeDate = value.toDate();
+      return maybeDate instanceof Date ? maybeDate : null;
+    }
+    if (
+      'seconds' in value &&
+      typeof (value as { seconds?: unknown }).seconds === 'number'
+    ) {
+      return new Date((value as { seconds: number }).seconds * 1000);
+    }
+  }
+
+  return null;
+}
+
+function formatCreatedAt(value: unknown) {
+  const date = toDate(value);
+  if (!date) return '';
+
+  const weekdays = [
+    'Domingo',
+    'Lunes',
+    'Martes',
+    'Miercoles',
+    'Jueves',
+    'Viernes',
+    'Sabado'
+  ] as const;
+  const months = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre'
+  ] as const;
+
+  const weekday = weekdays[date.getDay()];
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${weekday}, ${day} de ${month} de ${year} a las ${hh}:${min} hs`;
 }
 
 type MediaCardProps = {
@@ -95,6 +164,7 @@ function MediaCard({
   );
   const [isPreviewLoaded, setIsPreviewLoaded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isInfoTooltipOpen, setIsInfoTooltipOpen] = useState(false);
   const [localTitle, setLocalTitle] = useState(media.title ?? '');
   const [isSaving, setIsSaving] = useState(false);
   const loadStartRef = useRef(0);
@@ -108,6 +178,11 @@ function MediaCard({
   );
   const hasProcessing = typeof media.processing?.progress === 'number';
   const processingLabel = getProcessingLabel(media.processing?.stage);
+  const originalFilenameLabel = formatOriginalFilename(media.originalFilename);
+  const createdAtLabel = formatCreatedAt(media.createdAt);
+  const originLabel =
+    media.origin?.context === 'exhibition' ? 'Exhibición' : null;
+  const hasSizeBytes = typeof media.sizeBytes === 'number';
 
   useEffect(() => {
     if (!isEditing) {
@@ -170,7 +245,7 @@ function MediaCard({
   return (
     <div
       className={cn(
-        'border-border/60 bg-card relative flex h-full flex-col overflow-hidden rounded-lg border shadow-xs',
+        'border-border/60 bg-card group/media-card relative flex h-full flex-col overflow-hidden rounded-lg border shadow-xs',
         isSelected &&
           'ring-offset-background ring-2 ring-[#006cd1]/40 ring-offset-2'
       )}
@@ -281,14 +356,50 @@ function MediaCard({
             {media.type === 'video' ? 'Video' : 'Imagen'}
           </span>
         </span>
-        <span className='bg-background/80 text-foreground pointer-events-none absolute right-2 bottom-2 z-10 inline-flex h-8 w-8 scale-90 items-center justify-center rounded-full border opacity-0 shadow-sm transition duration-250 ease-out group-hover/preview:scale-100 group-hover/preview:opacity-100'>
+        <span
+          className={cn(
+            'bg-background/80 text-foreground pointer-events-none absolute right-2 bottom-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full border shadow-sm transition duration-250 ease-out',
+            isInfoTooltipOpen
+              ? 'scale-100 opacity-100'
+              : 'scale-90 opacity-0 group-hover/preview:scale-100 group-hover/preview:opacity-100'
+          )}
+        >
           <IconArrowsMaximize className='h-4 w-4' />
         </span>
-        <span className='pointer-events-none absolute inset-0 bg-black/10 opacity-0 transition group-hover/preview:opacity-100' />
+        <span
+          className={cn(
+            'pointer-events-none absolute inset-0 bg-black/10 transition',
+            isInfoTooltipOpen
+              ? 'opacity-100'
+              : 'opacity-0 group-hover/preview:opacity-100'
+          )}
+        />
       </button>
+      {createdAtLabel ? (
+        <Tooltip onOpenChange={setIsInfoTooltipOpen}>
+          <TooltipTrigger asChild>
+            <button
+              type='button'
+              className={cn(
+                'bg-background/80 text-foreground absolute top-2 right-2 z-20 hidden h-6 w-6 cursor-pointer items-center justify-center rounded-full shadow-sm transition-opacity duration-200 sm:inline-flex',
+                isInfoTooltipOpen
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover/media-card:opacity-100'
+              )}
+              aria-label='Info de subida'
+              onClick={(event) => event.stopPropagation()}
+            >
+              <IconInfoCircle opacity={0.7} className='h-4 w-4' />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side='bottom' align='end'>
+            <span>{createdAtLabel}</span>
+          </TooltipContent>
+        </Tooltip>
+      ) : null}
       <div
         className={cn(
-          'peer flex flex-1 flex-col gap-1 rounded-b-lg px-3 py-2 transition-colors',
+          'peer flex flex-1 flex-col gap-0.5 rounded-b-lg px-3 py-2 transition-colors',
           onSelect && 'hover:bg-muted/40 cursor-pointer',
           isSelected && 'bg-muted/40'
         )}
@@ -301,7 +412,7 @@ function MediaCard({
           role='textbox'
           aria-label='Editar título'
           className={cn(
-            'text-foreground text-left text-sm font-medium outline-none',
+            'text-foreground text-left text-sm leading-tight font-medium outline-none',
             isEditing
               ? 'caret-foreground inline-block min-h-[1.25rem] min-w-[6ch] cursor-text'
               : 'w-fit truncate'
@@ -332,17 +443,27 @@ function MediaCard({
         >
           {isEditing ? draftTitleRef.current : localTitle || 'Sin título'}
         </span>
-        <div className='text-muted-foreground flex items-center justify-between text-xs'>
-          <span>
-            {media.origin?.context === 'exhibition' ? 'Exhibición' : 'Galería'}
+        {originalFilenameLabel ? (
+          <span className='text-muted-foreground truncate text-[11px] leading-tight'>
+            {originalFilenameLabel}
           </span>
-          {typeof media.sizeBytes === 'number' ? (
-            <span className='inline-flex items-center gap-1'>
-              <IconDeviceFloppy className='h-3.5 w-3.5' aria-hidden='true' />
-              {formatBytes(media.sizeBytes, { decimals: 1 })}
-            </span>
-          ) : null}
-        </div>
+        ) : null}
+        {originLabel || hasSizeBytes ? (
+          <div
+            className={cn(
+              'text-muted-foreground flex items-center text-xs leading-tight',
+              originLabel ? 'justify-between' : 'justify-end'
+            )}
+          >
+            {originLabel ? <span>{originLabel}</span> : <span />}
+            {hasSizeBytes ? (
+              <span className='inline-flex items-center gap-1'>
+                <IconDeviceFloppy className='h-3.5 w-3.5' aria-hidden='true' />
+                {formatBytes(media.sizeBytes!, { decimals: 1 })}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
       {!isSelected ? (
         <span className='peer-hover:ring-muted-foreground/30 peer-hover:ring-offset-background pointer-events-none absolute inset-0 rounded-lg ring-0 ring-transparent ring-offset-0 transition peer-hover:ring-2 peer-hover:ring-offset-2' />

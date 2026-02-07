@@ -1,6 +1,7 @@
 // triggers/onUploadImage.ts
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
 import admin from 'firebase-admin';
+import fs from 'fs/promises';
 import {
   downloadToTmp,
   uploadFromLocal,
@@ -148,11 +149,16 @@ export const onImageUpload = onObjectFinalized(
 
         const bucket = admin.storage().bucket();
         const derivativePaths: {
-          [k: string]: { storagePath: string; downloadURL: string };
+          [k: string]: {
+            storagePath: string;
+            downloadURL: string;
+            sizeBytes?: number;
+          };
         } = {};
 
         // Upload each variant and create signed URL
         for (const [key, info] of Object.entries(variants)) {
+          const variantStats = await fs.stat(info.path).catch(() => null);
           const dest = `temp-assets/${mediaId}/${key}.webp`;
           await uploadFromLocal(info.path, dest, 'image/webp');
 
@@ -161,7 +167,11 @@ export const onImageUpload = onObjectFinalized(
             expires: '03-01-2500',
           });
 
-          derivativePaths[key] = { storagePath: dest, downloadURL: url };
+          derivativePaths[key] = {
+            storagePath: dest,
+            downloadURL: url,
+            sizeBytes: variantStats?.size,
+          };
           console.log('[onImageUpload] derivative uploaded', {
             mediaId,
             key,
