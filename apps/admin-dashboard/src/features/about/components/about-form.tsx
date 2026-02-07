@@ -254,76 +254,92 @@ export default function AboutForm() {
           className='space-y-8'
         >
           {loading ? (
-            <div className='text-muted-foreground text-sm'>
-              Cargando About Me...
-            </div>
-          ) : null}
-
-          <div className='flex flex-col gap-8 lg:flex-row lg:items-start'>
-            <div className='flex flex-1 flex-col gap-6 lg:flex-[3]'>
-              <FormInput
-                control={form.control}
-                name='title'
-                label='Título'
-                placeholder='Ingresá el título'
-                required
-              />
-
-              <FormQuill
-                control={form.control}
-                name='content'
-                label='Contenido'
-                placeholder='Escribí el texto principal...'
-              />
-            </div>
-
-            <div className='flex flex-1 flex-col gap-6 lg:flex-[1]'>
-              <div className='space-y-2'>
-                <div className='flex flex-wrap items-center gap-3'>
-                  <div className='text-sm font-semibold'>Imagen</div>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    size='sm'
-                    className='h-8 px-3 text-xs'
-                    onClick={() => setIsImagePickerOpen(true)}
-                  >
-                    Agregar desde galería
-                  </Button>
+            <div className='space-y-2'>
+              <div className='bg-muted h-4 w-36 animate-pulse rounded-md' />
+              <div className='grid gap-6 lg:grid-cols-[3fr_1fr]'>
+                <div className='space-y-4'>
+                  <div className='bg-muted h-8 w-full animate-pulse rounded-md' />
+                  <div className='bg-muted h-76 w-full animate-pulse rounded-md' />
                 </div>
-                {imageMedia ? (
-                  <MediaPreviewCard media={imageMedia} onRemove={removeImage} />
-                ) : null}
-                <FileUploader
-                  onUpload={handleImageUpload}
-                  progresses={imageProgress}
-                  accept={{ 'image/*': [] }}
-                  maxFiles={1}
-                  maxSize={MAX_UPLOAD_SIZE}
-                  onPickFromGallery={() => setIsImagePickerOpen(true)}
-                />
+                <div className='space-y-4'>
+                  <div className='bg-muted h-8 w-40 animate-pulse rounded-md' />
+                  <div className='bg-muted h-48 w-full animate-pulse rounded-md' />
+                </div>
               </div>
             </div>
-          </div>
-
-          {hasUnsavedChanges ? (
-            <div className='mb-1 flex items-center text-sm'>
-              <span className='text-red-500'>Hay cambios sin guardar.</span>
-              <Button
-                type='button'
-                variant='link'
-                className='text-foreground ml-1 h-auto p-0 text-sm underline underline-offset-2'
-                onClick={handleUndoChanges}
-              >
-                Deshacer
-              </Button>
-              <span>.</span>
-            </div>
           ) : null}
+          {!loading ? (
+            <>
+              <div className='flex flex-col gap-8 lg:flex-row lg:items-start'>
+                <div className='flex flex-1 flex-col gap-6 lg:flex-[3]'>
+                  <FormInput
+                    control={form.control}
+                    name='title'
+                    label='Título'
+                    placeholder='Ingresá el título'
+                    required
+                  />
 
-          <Button type='submit' disabled={saving || loading}>
-            {saving ? 'Guardando...' : 'Guardar'}
-          </Button>
+                  <FormQuill
+                    control={form.control}
+                    name='content'
+                    label='Contenido'
+                    placeholder='Escribí el texto principal...'
+                  />
+                </div>
+
+                <div className='flex flex-1 flex-col gap-6 lg:flex-[1]'>
+                  <div className='space-y-2'>
+                    <div className='flex flex-wrap items-center gap-3'>
+                      <div className='text-sm font-semibold'>Imagen</div>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        className='h-8 px-3 text-xs'
+                        onClick={() => setIsImagePickerOpen(true)}
+                      >
+                        Agregar desde galería
+                      </Button>
+                    </div>
+                    {imageMedia ? (
+                      <MediaPreviewCard
+                        media={imageMedia}
+                        onRemove={removeImage}
+                      />
+                    ) : null}
+                    <FileUploader
+                      onUpload={handleImageUpload}
+                      progresses={imageProgress}
+                      accept={{ 'image/*': [] }}
+                      maxFiles={1}
+                      maxSize={MAX_UPLOAD_SIZE}
+                      onPickFromGallery={() => setIsImagePickerOpen(true)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {hasUnsavedChanges ? (
+                <div className='mb-1 flex items-center text-sm'>
+                  <span className='text-red-500'>Hay cambios sin guardar.</span>
+                  <Button
+                    type='button'
+                    variant='link'
+                    className='text-foreground ml-1 h-auto p-0 text-sm underline underline-offset-2'
+                    onClick={handleUndoChanges}
+                  >
+                    Deshacer
+                  </Button>
+                  <span>.</span>
+                </div>
+              ) : null}
+
+              <Button type='submit' disabled={saving || loading}>
+                {saving ? 'Guardando...' : 'Guardar'}
+              </Button>
+            </>
+          ) : null}
         </Form>
 
         <MediaPickerDialog

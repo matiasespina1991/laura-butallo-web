@@ -227,49 +227,62 @@ export default function ContactForm() {
     <Card className='mx-auto w-full'>
       <CardContent className='space-y-6 pt-2'>
         {loading ? (
-          <div className='text-muted-foreground text-sm'>
-            Cargando Contacto...
+          <div className='space-y-3 pt-1'>
+            <div className='bg-muted h-15 w-full animate-pulse rounded-lg' />
+            <div className='bg-muted h-15 w-full animate-pulse rounded-lg' />
+            <div className='bg-muted h-15 w-full animate-pulse rounded-lg' />
+            <div className='flex justify-end gap-2'>
+              <div className='bg-muted h-8 w-32 animate-pulse rounded-md' />
+            </div>
+            <div className='bg-muted h-10 w-40 animate-pulse rounded-md' />
           </div>
         ) : null}
-
-        {contactItems.length ? (
-          <DndContext sensors={sensors} onDragEnd={handleContactDragEnd}>
-            <SortableContext
-              items={contactIds}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className='flex flex-col gap-3'>
-                {contactItems.map((item) => (
-                  <SortableContactRow
-                    key={item.id}
-                    item={item}
-                    onChange={handleContactChange}
-                    onRemove={() => handleContactRemove(item.id)}
-                  />
-                ))}
+        {!loading ? (
+          <>
+            {contactItems.length ? (
+              <DndContext sensors={sensors} onDragEnd={handleContactDragEnd}>
+                <SortableContext
+                  items={contactIds}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className='flex flex-col gap-3'>
+                    {contactItems.map((item) => (
+                      <SortableContactRow
+                        key={item.id}
+                        item={item}
+                        onChange={handleContactChange}
+                        onRemove={() => handleContactRemove(item.id)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            ) : (
+              <div className='text-muted-foreground text-sm'>
+                No hay contactos todavía.
               </div>
-            </SortableContext>
-          </DndContext>
-        ) : (
-          <div className='text-muted-foreground text-sm'>
-            No hay contactos todavía.
-          </div>
-        )}
-        <div className='flex flex-wrap items-center justify-end gap-2'>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            className='h-8 px-3 text-xs'
-            onClick={handleContactAdd}
-          >
-            Agregar contacto
-          </Button>
-        </div>
+            )}
+            <div className='flex flex-wrap items-center justify-end gap-2'>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                className='h-8 px-3 text-xs'
+                onClick={handleContactAdd}
+              >
+                Agregar contacto
+              </Button>
+            </div>
 
-        <Button type='button' disabled={saving || loading} onClick={handleSave}>
-          {saving ? 'Guardando...' : 'Guardar Contacto'}
-        </Button>
+            <Button
+              type='button'
+              disabled={saving || loading}
+              onClick={handleSave}
+            >
+              {saving ? 'Guardando...' : 'Guardar Contacto'}
+            </Button>
+          </>
+        ) : null}
       </CardContent>
     </Card>
   );
