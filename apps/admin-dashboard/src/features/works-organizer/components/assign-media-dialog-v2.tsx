@@ -68,7 +68,7 @@ export default function AssignMediaDialogV2({
       setAssignedMediaIds(assignedIds);
     } catch (error) {
       console.error('Error loading assigned media:', error);
-      toast.error('Error al cargar media asignados');
+      toast.error('Error al cargar medios asignados');
     }
   }
 
@@ -117,11 +117,11 @@ export default function AssignMediaDialogV2({
 
       await batch.commit();
 
-      toast.success(`${selectedMedia.length} media asignados`);
+      toast.success(`${selectedMedia.length} medios asignados`);
       onSuccess();
     } catch (error) {
       console.error('Error assigning media:', error);
-      toast.error('Error al asignar media');
+      toast.error('Error al asignar medios');
     }
   }
 
@@ -136,8 +136,8 @@ export default function AssignMediaDialogV2({
     <MediaPickerDialog
       open={open}
       onOpenChange={onOpenChange}
-      title='Agregar Media al Mediaset'
-      description={`Mostrando solo media no asignados a ${category}. Seleccioná los elementos que querés agregar.`}
+      title='Agregar Medio a la Fila'
+      description={`Mostrando solo medios no asignados a ${category}. Seleccioná los elementos que querés agregar.`}
       selectionMode='multiple'
       filterPredicate={filterUnassigned}
       selectedIds={[]}

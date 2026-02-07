@@ -118,8 +118,8 @@ export default function MediasetItem({
                       ) : null;
                     })}
                     {items.length === 0 && (
-                      <div className='bg-muted text-muted-foreground flex h-12 w-12 items-center justify-center rounded text-xs'>
-                        Empty
+                      <div className='bg-muted text-muted-foreground flex h-12 w-12 items-center justify-center rounded text-[0.6rem]'>
+                        Vacío
                       </div>
                     )}
                   </div>

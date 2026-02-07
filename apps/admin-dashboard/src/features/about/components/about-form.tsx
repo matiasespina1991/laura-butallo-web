@@ -274,7 +274,6 @@ export default function AboutForm() {
                 name='content'
                 label='Contenido'
                 placeholder='Escribí el texto principal...'
-                height={280}
               />
             </div>
 

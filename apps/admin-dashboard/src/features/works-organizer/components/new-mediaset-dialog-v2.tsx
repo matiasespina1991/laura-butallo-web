@@ -69,7 +69,7 @@ export default function NewMediasetDialog({
           onClick={() => handleCreate('start')}
           className='flex items-center gap-2'
         >
-          <ArrowUpToLine className='h-4 w-4' />
+          <ArrowUpToLine className='h-4 w-4 cursor-pointer' />
           Agregar al principio
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -77,7 +77,7 @@ export default function NewMediasetDialog({
           onClick={() => handleCreate('end')}
           className='flex items-center gap-2'
         >
-          <ArrowDownToLine className='h-4 w-4' />
+          <ArrowDownToLine className='h-4 w-4 cursor-pointer' />
           Agregar al final
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -16,22 +16,22 @@ export default function WorksOrganizerPage() {
         defaultValue='home'
         className='flex h-[calc(100dvh-170px)] min-h-0 w-full flex-col'
       >
-        <TabsList className='bg-background border-border sticky top-0 z-20 grid w-full grid-cols-3 border'>
+        <TabsList className='bg-background border-border sticky top-0 z-20 grid w-full grid-cols-3 border p-[1px]'>
           <TabsTrigger
             value='home'
-            className='data-[state=active]:bg-muted/80 data-[state=active]:border-border cursor-pointer'
+            className='data-[state=active]:bg-muted/90 data-[state=active]:border-border cursor-pointer'
           >
             Home
           </TabsTrigger>
           <TabsTrigger
             value='caves'
-            className='data-[state=active]:bg-muted/80 data-[state=active]:border-border cursor-pointer'
+            className='data-[state=active]:bg-muted/90 data-[state=active]:border-border cursor-pointer'
           >
             Caves
           </TabsTrigger>
           <TabsTrigger
             value='landscapes'
-            className='data-[state=active]:bg-muted/80 data-[state=active]:border-border cursor-pointer'
+            className='data-[state=active]:bg-muted/90 data-[state=active]:border-border cursor-pointer'
           >
             Landscapes
           </TabsTrigger>

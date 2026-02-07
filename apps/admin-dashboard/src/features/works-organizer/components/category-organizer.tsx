@@ -211,20 +211,23 @@ export default function CategoryOrganizer({ category }: Props) {
         />
       </div>
 
-      <div ref={listContainerRef} className='min-h-0 flex-1 overflow-y-auto pr-1'>
+      <div
+        ref={listContainerRef}
+        className='min-h-0 flex-1 overflow-y-auto pr-1'
+      >
         {loading ? (
           <div className='space-y-4'>
             <div className='flex items-center gap-3'>
               <Skeleton className='h-6 w-4' />
-              <Skeleton className='h-[88px] flex-1' />
+              <Skeleton className='h-[65px] flex-1' />
             </div>
             <div className='flex items-center gap-3'>
               <Skeleton className='h-6 w-4' />
-              <Skeleton className='h-[88px] flex-1' />
+              <Skeleton className='h-[65px] flex-1' />
             </div>
             <div className='flex items-center gap-3'>
               <Skeleton className='h-6 w-4' />
-              <Skeleton className='h-[88px] flex-1' />
+              <Skeleton className='h-[65px] flex-1' />
             </div>
           </div>
         ) : mediasets.length === 0 ? (
