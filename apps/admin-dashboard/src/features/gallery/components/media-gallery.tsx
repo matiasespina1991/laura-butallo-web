@@ -223,7 +223,7 @@ function MediaCard({
           />
         ) : null}
         {!hasSource || !src ? (
-          <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-xs'>
+          <div className='text-muted-foreground flex h-full flex-col items-center justify-center text-center text-xs'>
             {media.processed ? null : (
               <svg
                 className='text-muted-foreground mb-2 h-6 w-6 animate-spin'

@@ -1,12 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { IconDownload, IconTrash } from '@tabler/icons-react';
+import { IconDownload, IconTrash, IconX } from '@tabler/icons-react';
 import { toast } from 'sonner';
 
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,18 +20,48 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
+  AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { db } from '@/lib/firebase';
 import MediaGallery from '@/features/gallery/components/media-gallery';
 import type { MediaDoc } from '@/lib/media-upload';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 
+function SelectedMediaChip({
+  onClear,
+  className = ''
+}: {
+  onClear: () => void;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`inline-flex h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-foreground opacity-100 ${className}`}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type='button'
+            onClick={onClear}
+            className='hover:bg-muted inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-transparent text-foreground transition-colors'
+            aria-label='Deseleccionar archivo'
+          >
+            <IconX className='h-4 w-4' />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>Quitar seleccion</TooltipContent>
+      </Tooltip>
+      <span className='whitespace-nowrap'>1 medio seleccionado</span>
+    </div>
+  );
+}
+
 export default function MediaPage() {
   const [selectedMedia, setSelectedMedia] = useState<MediaDoc | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [showFloatingActions, setShowFloatingActions] = useState(false);
+  const actionBarRef = useRef<HTMLDivElement | null>(null);
   const downloadAsset = selectedMedia?.paths?.original ?? null;
   const {
     src: downloadSrc,
@@ -50,7 +85,24 @@ export default function MediaPage() {
   useEffect(() => {
     if (!selectedMedia) {
       setConfirmOpen(false);
+      setShowFloatingActions(false);
     }
+  }, [selectedMedia]);
+
+  useEffect(() => {
+    if (!selectedMedia) return;
+    const actionBarElement = actionBarRef.current;
+    if (!actionBarElement) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowFloatingActions(!entry.isIntersecting);
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(actionBarElement);
+    return () => observer.disconnect();
   }, [selectedMedia]);
 
   useEffect(() => {
@@ -82,60 +134,115 @@ export default function MediaPage() {
     }
   }, [selectedMedia]);
 
+  const handleClearSelection = useCallback(() => {
+    setSelectedMedia(null);
+  }, []);
+
   return (
-    <PageContainer
-      pageTitle='Galería'
-      pageDescription='Gestiona imágenes y videos del sitio.'
-      pageHeaderAction={
-        selectedMedia ? (
-          <div className='flex items-center gap-2'>
-            <Button asChild variant='outline' disabled={!hasDownloadSource}>
-              <a href={downloadSrc} download={downloadName}>
-                <IconDownload className='h-4 w-4' />
-                Descargar
-              </a>
-            </Button>
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-              <AlertDialogTrigger asChild>
-                <Button
-                  type='button'
-                  variant='destructive'
-                  disabled={isDeleting}
+    <>
+      <PageContainer
+        pageTitle='Galería'
+        pageDescription='Gestiona imágenes y videos del sitio.'
+        pageHeaderAction={
+          selectedMedia ? (
+            <div ref={actionBarRef} className='flex items-center gap-2'>
+              <SelectedMediaChip
+                onClear={handleClearSelection}
+                className='border-0 bg-transparent px-0 shadow-none'
+              />
+              <Button
+                asChild
+                variant='outline'
+                disabled={!hasDownloadSource}
+                className='h-11'
+              >
+                <a href={downloadSrc} download={downloadName}>
+                  <IconDownload className='h-4 w-4' />
+                  Descargar
+                </a>
+              </Button>
+              <Button
+                type='button'
+                variant='destructive'
+                disabled={isDeleting}
+                onClick={() => setConfirmOpen(true)}
+                className='h-11'
+              >
+                <IconTrash className='h-4 w-4' />
+                Eliminar
+              </Button>
+            </div>
+          ) : null
+        }
+      >
+        <MediaGallery
+          selectedId={selectedMedia?.id ?? null}
+          onSelectionChange={setSelectedMedia}
+        />
+      </PageContainer>
+
+      {selectedMedia && showFloatingActions ? (
+        <div className='pointer-events-none fixed right-6 bottom-6 z-50 flex flex-row gap-2'>
+          <SelectedMediaChip
+            onClear={handleClearSelection}
+            className='pointer-events-auto border border-border bg-background shadow-lg'
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                variant='outline'
+                disabled={!hasDownloadSource}
+                size='icon'
+                className='pointer-events-auto h-11 w-11 rounded-full !bg-background !text-foreground !opacity-100 !border-border !hover:bg-background !dark:bg-background !dark:hover:bg-background shadow-lg'
+              >
+                <a
+                  href={downloadSrc}
+                  download={downloadName}
+                  aria-label='Descargar'
                 >
-                  <IconTrash className='h-4 w-4' />
-                  Eliminar
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Eliminar media?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción marca el media como eliminado y lo saca de la
-                    galería. Podés volver a subirlo más adelante si lo
-                    necesitás.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={isDeleting}>
-                    Cancelar
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                  >
-                    {isDeleting ? 'Eliminando...' : 'Eliminar'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        ) : null
-      }
-    >
-      <MediaGallery
-        selectedId={selectedMedia?.id ?? null}
-        onSelectionChange={setSelectedMedia}
-      />
-    </PageContainer>
+                  <IconDownload className='h-5 w-5' />
+                </a>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Descargar</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type='button'
+                variant='destructive'
+                size='icon'
+                disabled={isDeleting}
+                onClick={() => setConfirmOpen(true)}
+                className='pointer-events-auto h-11 w-11 rounded-full !bg-[#ca2a30] !text-white !opacity-100 !hover:bg-[#ca2a30] !dark:bg-[#ca2a30] !dark:hover:bg-[#ca2a30] shadow-lg'
+                aria-label='Eliminar'
+              >
+                <IconTrash className='h-5 w-5' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Eliminar</TooltipContent>
+          </Tooltip>
+        </div>
+      ) : null}
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar media?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción marca el media como eliminado y lo saca de la
+              galería. Podés volver a subirlo más adelante si lo necesitás.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? 'Eliminando...' : 'Eliminar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
