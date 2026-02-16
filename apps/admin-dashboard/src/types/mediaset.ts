@@ -25,4 +25,10 @@ export interface Media {
   uploadId: string;
   createdAt: any;
   modifiedAt: any;
+  link?: {
+    provider: 'zora' | 'objkt';
+    url: string;
+    fontColor: string;
+    updatedAt?: any;
+  } | null;
 }

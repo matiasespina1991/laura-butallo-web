@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styles from '../../page.module.css';
 import { MediaSet } from '@/utils/types/mediaset';
-import { Media } from '@/utils/types/media';
+import { Media, MediaLinkProvider } from '@/utils/types/media';
 import ScrollContainer from 'react-indiana-drag-scroll';
 import { AnimatePresence, motion } from 'framer-motion';
 import NextImage from 'next/image';
@@ -31,7 +31,6 @@ type MediaWithHandlers = {
   isVisible: boolean;
   sequenceVersion: number;
   isInitialLoad: boolean;
-  fontColor?: string;
   showPostSkeleton: boolean;
   openLightbox: (
     mediaArray: Media[],
@@ -41,6 +40,82 @@ type MediaWithHandlers = {
   mediaArray: Media[];
   setSize: number;
 };
+
+const DEFAULT_MEDIA_LINK_COLOR = '#ffffff';
+
+const isValidHexColor = (value: string | undefined | null) =>
+  Boolean(value && /^#[0-9a-fA-F]{6}$/.test(value));
+
+const sanitizeMediaLinkColor = (value: string | undefined | null) =>
+  typeof value === 'string' && isValidHexColor(value)
+    ? value.toLowerCase()
+    : DEFAULT_MEDIA_LINK_COLOR;
+
+const getMediaLink = (media: Media) => {
+  const link = media.link;
+  if (!link) return null;
+
+  const provider = link.provider;
+  if (provider !== 'zora' && provider !== 'objkt') return null;
+
+  const url = link.url?.trim();
+  if (!url) return null;
+
+  return {
+    provider,
+    url,
+    fontColor: sanitizeMediaLinkColor(link.fontColor),
+  };
+};
+
+function MediaLinkAnchor({
+  link,
+  setSize,
+  alwaysVisible = false,
+}: {
+  link: { provider: MediaLinkProvider; url: string; fontColor: string };
+  setSize: number;
+  alwaysVisible?: boolean;
+}) {
+  const textSize = setSize === 1 ? '4rem' : setSize === 2 ? '3rem' : '2rem';
+  const zoraLogoSize =
+    setSize === 1 ? '2.5rem' : setSize === 2 ? '2rem' : '1.5rem';
+  const arrowFilter =
+    link.fontColor.toLowerCase() === '#000000' ? 'invert(0)' : 'invert(1)';
+
+  return (
+    <a
+      className={styles.seeMore}
+      href={link.url}
+      target="_blank"
+      rel="noreferrer noopener"
+      onClick={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      style={{
+        fontSize: textSize,
+        color: link.fontColor,
+        opacity: alwaysVisible ? 1 : undefined,
+      }}
+    >
+      {`see in ${link.provider}`}
+      {link.provider === 'zora' ? (
+        <img
+          src="/images/logos/zora/zora_logo.svg"
+          alt=""
+          aria-hidden="true"
+          style={{ width: zoraLogoSize }}
+        />
+      ) : null}
+      <img
+        src="/images/icons/arrows/arrow_contact_light.png"
+        alt=""
+        aria-hidden="true"
+        className={styles.seeMoreIcon}
+        style={{ filter: arrowFilter }}
+      />
+    </a>
+  );
+}
 
 function MediaItem(props: MediaWithHandlers) {
   if (props.m.type === 'image') {
@@ -58,7 +133,6 @@ function ImageGridItem({
   onMediaLoaded,
   isVisible,
   sequenceVersion,
-  fontColor,
   isInitialLoad,
   showPostSkeleton,
   openLightbox,
@@ -86,6 +160,7 @@ function ImageGridItem({
     [m, isMobileDevice]
   );
   const lowImage = useStorageAssetSrc(sources.low ?? sources.original);
+  const mediaLink = getMediaLink(m);
 
   const notifyLoaded = useCallback(() => {
     if (hasNotifiedRef.current) return;
@@ -194,35 +269,7 @@ function ImageGridItem({
           loading={setIndex === 0 ? 'eager' : 'lazy'}
         />
       ) : null}
-      {/* SEE MORE LINK */}
-      <a
-        className={styles.seeMore}
-        href="https://zora.co"
-        target="_blank"
-        rel="noreferrer noopener"
-        onClick={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-        style={{
-          fontSize: setSize === 1 ? '4rem' : setSize === 2 ? '3rem' : '2rem',
-          color: fontColor,
-        }}
-      >
-        see in zora
-        <img
-          src="/images/logos/zora/zora_logo.svg"
-          alt=""
-          aria-hidden="true"
-          style={{
-            width: setSize === 1 ? '2.5rem' : setSize === 2 ? '2rem' : '1.5rem',
-          }}
-        />
-        <img
-          src="/images/icons/arrows/arrow_contact_light.png"
-          alt=""
-          aria-hidden="true"
-          className={styles.seeMoreIcon}
-        />
-      </a>
+      {mediaLink ? <MediaLinkAnchor link={mediaLink} setSize={setSize} /> : null}
     </motion.div>
   );
 }
@@ -264,6 +311,7 @@ function VideoGridItem({
   );
   const videoSource = useStorageAssetSrc(sources.low);
   const posterSource = useStorageAssetSrc(sources.poster);
+  const mediaLink = getMediaLink(m);
 
   const handleVideoLoaded = useCallback(() => {
     if (hasNotifiedRef.current) return;
@@ -372,34 +420,7 @@ function VideoGridItem({
       >
         Your browser does not support video.
       </video>
-      {/* SEE MORE LINK */}
-      {/* <a
-        className={styles.seeMore}
-        href="https://zora.co"
-        target="_blank"
-        rel="noreferrer noopener"
-        onClick={(event) => event.stopPropagation()}
-        onMouseDown={(event) => event.stopPropagation()}
-        style={{
-          fontSize: setSize === 1 ? '4rem' : setSize === 2 ? '3rem' : '2rem',
-        }}
-      >
-        see in zora
-        <img
-          src="/images/logos/zora/zora_logo.svg"
-          alt=""
-          aria-hidden="true"
-          style={{
-            width: setSize === 1 ? '2.5rem' : setSize === 2 ? '2rem' : '1.5rem',
-          }}
-        />
-        <img
-          src="/images/icons/arrows/arrow_contact_light.png"
-          alt=""
-          aria-hidden="true"
-          className={styles.seeMoreIcon}
-        />
-      </a> */}
+      {mediaLink ? <MediaLinkAnchor link={mediaLink} setSize={setSize} /> : null}
     </motion.div>
   );
 }
@@ -997,6 +1018,7 @@ export default function WorksCategoryPage({
                             sx={{
                               borderRadius: '6px',
                               overflow: 'hidden',
+                              position: 'relative',
                             }}
                           >
                             <IconButton
@@ -1045,12 +1067,25 @@ export default function WorksCategoryPage({
                                 mediaSetsWithMedia[activeMediaSetIndex].media[
                                   activeMediaIndex
                                 ];
+                              const mediaLink = getMediaLink(media);
+                              const setSize =
+                                mediaSetsWithMedia[activeMediaSetIndex].media
+                                  .length;
                               return (
-                                <LightboxMediaContent
-                                  media={media}
-                                  isMobileQuery={isMobileQuery}
-                                  isMobileDevice={isMobile}
-                                />
+                                <>
+                                  <LightboxMediaContent
+                                    media={media}
+                                    isMobileQuery={isMobileQuery}
+                                    isMobileDevice={isMobile}
+                                  />
+                                  {mediaLink ? (
+                                    <MediaLinkAnchor
+                                      link={mediaLink}
+                                      setSize={setSize}
+                                      alwaysVisible
+                                    />
+                                  ) : null}
+                                </>
                               );
                             })()}
                           </Box>

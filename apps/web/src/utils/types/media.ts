@@ -14,6 +14,15 @@ export interface AssetPaths {
   poster?: AssetFile;
 }
 
+export type MediaLinkProvider = 'zora' | 'objkt';
+
+export interface MediaLink {
+  provider: MediaLinkProvider;
+  url: string;
+  fontColor?: string;
+  updatedAt?: Timestamp;
+}
+
 export interface Media {
   id: string;
   mediaSetIds?: string[];
@@ -42,4 +51,5 @@ export interface Media {
   processed: boolean;
   order?: number; // position within mediaset
   flex?: number; // grid flex size (1-4)
+  link?: MediaLink | null;
 }

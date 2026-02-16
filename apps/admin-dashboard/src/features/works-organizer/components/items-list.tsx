@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -18,16 +18,17 @@ import {
 } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus, X } from 'lucide-react';
+import { GripVertical, Link2, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
 import { cn } from '@/lib/utils';
 import type { MediaSetItem, Media } from '@/types/mediaset';
 import AssignMediaDialogV2 from './assign-media-dialog-v2';
+import MediaLinkDialog from './media-link-dialog';
 
 interface MediaItemWithData extends MediaSetItem {
   media?: Media;
@@ -47,6 +48,10 @@ function MediaItemCard({
   mediasetId: string;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [localLink, setLocalLink] = useState<Media['link']>(
+    item.media?.link ?? null
+  );
 
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: item.id });
@@ -67,6 +72,14 @@ function MediaItemCard({
     thumbnailPath ? { storagePath: thumbnailPath } : null,
     { preferDirect: false }
   );
+  const hasActiveProvider = Boolean(
+    localLink?.provider && localLink?.url?.trim()
+  );
+  const activeProvider = hasActiveProvider ? localLink?.provider : null;
+
+  useEffect(() => {
+    setLocalLink(item.media?.link ?? null);
+  }, [item.media?.link]);
 
   async function handleRemove(e: React.MouseEvent) {
     e.stopPropagation();
@@ -109,8 +122,32 @@ function MediaItemCard({
           <GripVertical className='text-muted-foreground h-4 w-4' />
         </button>
         <p className='text-xs font-medium'>
-          {item.media.type === 'image' ? 'Image' : 'Video'}
+          {item.media.type === 'image' ? 'Imagen' : 'Video'}
         </p>
+        {hasActiveProvider ? (
+          <a
+            href={localLink?.url ?? '#'}
+            target='_blank'
+            rel='noreferrer noopener'
+            onClick={(event) => {
+              event.stopPropagation();
+            }}
+            onMouseDown={(event) => event.stopPropagation()}
+            className='bg-background/80 text-foreground hover:bg-background inline-flex h-6 cursor-pointer items-center gap-1 rounded-full border px-2 text-[11px] font-medium shadow-sm transition'
+            aria-label='Abrir link del proveedor'
+            title='Abrir link del proveedor'
+          >
+            {activeProvider === 'zora' ? (
+              <img
+                src='/assets/branding/logos/zora_logo.svg'
+                alt=''
+                aria-hidden='true'
+                className='h-3.5 w-3.5 rounded-full'
+              />
+            ) : null}
+            <span>{activeProvider}</span>
+          </a>
+        ) : null}
       </div>
 
       <div className='bg-muted relative aspect-square w-full overflow-hidden rounded'>
@@ -129,7 +166,33 @@ function MediaItemCard({
             onError={() => setImageLoaded(false)}
           />
         )}
+        <button
+          type='button'
+          onClick={(event) => {
+            event.stopPropagation();
+            setLinkDialogOpen(true);
+          }}
+          className={cn(
+            'bg-background/90 hover:bg-background absolute top-1/2 left-1/2 z-20 inline-flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border shadow-sm transition-all duration-200',
+            'opacity-0 scale-90 group-hover:scale-100 group-hover:opacity-100 focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none',
+            'text-foreground'
+          )}
+          title='Editar link'
+          aria-label='Editar link de media'
+        >
+          <Link2 className='h-4 w-4' />
+        </button>
       </div>
+
+      <MediaLinkDialog
+        open={linkDialogOpen}
+        onOpenChange={setLinkDialogOpen}
+        mediaId={item.media.id}
+        initialLink={localLink}
+        onSaved={(nextLink) => {
+          setLocalLink(nextLink);
+        }}
+      />
     </div>
   );
 }
