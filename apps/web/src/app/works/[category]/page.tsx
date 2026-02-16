@@ -31,6 +31,7 @@ type MediaWithHandlers = {
   isVisible: boolean;
   sequenceVersion: number;
   isInitialLoad: boolean;
+  fontColor?: string;
   showPostSkeleton: boolean;
   openLightbox: (
     mediaArray: Media[],
@@ -57,6 +58,7 @@ function ImageGridItem({
   onMediaLoaded,
   isVisible,
   sequenceVersion,
+  fontColor,
   isInitialLoad,
   showPostSkeleton,
   openLightbox,
@@ -193,7 +195,7 @@ function ImageGridItem({
         />
       ) : null}
       {/* SEE MORE LINK */}
-      {/* <a
+      <a
         className={styles.seeMore}
         href="https://zora.co"
         target="_blank"
@@ -202,6 +204,7 @@ function ImageGridItem({
         onMouseDown={(event) => event.stopPropagation()}
         style={{
           fontSize: setSize === 1 ? '4rem' : setSize === 2 ? '3rem' : '2rem',
+          color: fontColor,
         }}
       >
         see in zora
@@ -219,7 +222,7 @@ function ImageGridItem({
           aria-hidden="true"
           className={styles.seeMoreIcon}
         />
-      </a> */}
+      </a>
     </motion.div>
   );
 }
