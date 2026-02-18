@@ -38,6 +38,19 @@ interface Props {
   mediaList: (Media & MediaSetItem)[];
 }
 
+const getSortedMediaEntries = (item: MediaSetItem) => {
+  if (!Array.isArray(item.mediaItems) || item.mediaItems.length === 0) {
+    return [];
+  }
+  return [...item.mediaItems].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+};
+
+const getPrimaryMediaId = (item: MediaSetItem) => {
+  const fromArray = getSortedMediaEntries(item)[0]?.mediaId;
+  if (fromArray) return fromArray;
+  return item.mediaId || null;
+};
+
 export default function MediasetItem({
   mediaset,
   index,
@@ -110,8 +123,10 @@ export default function MediasetItem({
                     }}
                   >
                     {items.slice(0, 4).map((item) => {
+                      const primaryMediaId = getPrimaryMediaId(item);
+                      if (!primaryMediaId) return null;
                       const media = mediaList.find(
-                        (m: any) => m.id === item.mediaId
+                        (m: any) => m.id === primaryMediaId
                       );
                       return media ? (
                         <MediaThumbnail key={item.id} media={media} />
@@ -146,7 +161,9 @@ export default function MediasetItem({
                     category={mediaset.category}
                     items={items.map((item) => ({
                       ...item,
-                      media: mediaList.find((m: any) => m.id === item.mediaId)
+                      media: mediaList.find(
+                        (m: any) => m.id === getPrimaryMediaId(item)
+                      )
                     }))}
                   />
                 </CardContent>

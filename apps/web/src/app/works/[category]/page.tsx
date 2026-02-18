@@ -68,6 +68,12 @@ const getMediaLink = (media: Media) => {
   };
 };
 
+const getItemCarouselMedia = (media: Media) => {
+  const items =
+    media.carouselMedia?.filter((entry) => Boolean(entry?.id)) ?? [];
+  return items.length > 1 ? items : null;
+};
+
 function MediaLinkAnchor({
   link,
   setSize,
@@ -161,6 +167,7 @@ function ImageGridItem({
   );
   const lowImage = useStorageAssetSrc(sources.low ?? sources.original);
   const mediaLink = getMediaLink(m);
+  const hasCarousel = Boolean(getItemCarouselMedia(m));
 
   const notifyLoaded = useCallback(() => {
     if (hasNotifiedRef.current) return;
@@ -269,7 +276,34 @@ function ImageGridItem({
           loading={setIndex === 0 ? 'eager' : 'lazy'}
         />
       ) : null}
-      {mediaLink ? <MediaLinkAnchor link={mediaLink} setSize={setSize} /> : null}
+      {hasCarousel ? (
+        <Box
+          sx={{
+            position: 'absolute',
+            right: '0.55rem',
+            bottom: '0.55rem',
+            zIndex: 3,
+            width: isMobileDevice ? '1.5rem' : '1.75rem',
+            height: isMobileDevice ? '1.5rem' : '1.75rem',
+            borderRadius: '999px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.52)',
+            border: '1px solid rgba(255,255,255,0.34)',
+            color: '#ffffff',
+            fontSize: isMobileDevice ? '0.75rem' : '0.88rem',
+            lineHeight: 1,
+            pointerEvents: 'none',
+          }}
+          aria-hidden="true"
+        >
+          ⧉
+        </Box>
+      ) : null}
+      {mediaLink ? (
+        <MediaLinkAnchor link={mediaLink} setSize={setSize} />
+      ) : null}
     </motion.div>
   );
 }
@@ -312,6 +346,7 @@ function VideoGridItem({
   const videoSource = useStorageAssetSrc(sources.low);
   const posterSource = useStorageAssetSrc(sources.poster);
   const mediaLink = getMediaLink(m);
+  const hasCarousel = Boolean(getItemCarouselMedia(m));
 
   const handleVideoLoaded = useCallback(() => {
     if (hasNotifiedRef.current) return;
@@ -420,7 +455,34 @@ function VideoGridItem({
       >
         Your browser does not support video.
       </video>
-      {mediaLink ? <MediaLinkAnchor link={mediaLink} setSize={setSize} /> : null}
+      {hasCarousel ? (
+        <Box
+          sx={{
+            position: 'absolute',
+            right: '0.55rem',
+            bottom: '0.55rem',
+            zIndex: 3,
+            width: isMobileDevice ? '1.5rem' : '1.75rem',
+            height: isMobileDevice ? '1.5rem' : '1.75rem',
+            borderRadius: '999px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0,0,0,0.52)',
+            border: '1px solid rgba(255,255,255,0.34)',
+            color: '#ffffff',
+            fontSize: isMobileDevice ? '0.75rem' : '0.88rem',
+            lineHeight: 1,
+            pointerEvents: 'none',
+          }}
+          aria-hidden="true"
+        >
+          ⧉
+        </Box>
+      ) : null}
+      {mediaLink ? (
+        <MediaLinkAnchor link={mediaLink} setSize={setSize} />
+      ) : null}
     </motion.div>
   );
 }
@@ -431,7 +493,7 @@ type LightboxMediaProps = {
   isMobileDevice: boolean;
 };
 
-function LightboxMediaContent(props: LightboxMediaProps) {
+function SingleLightboxMediaContent(props: LightboxMediaProps) {
   if (props.media.type === 'image') {
     return <LightboxImageContent {...props} />;
   }
@@ -506,6 +568,7 @@ export default function WorksCategoryPage({
   const [activeMediaSetIndex, setActiveMediaSetIndex] = useState<number | null>(
     null
   );
+  const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [lightboxImageIsDragging, setLightboxImageIsDragging] =
     useState<boolean>(false);
@@ -524,6 +587,19 @@ export default function WorksCategoryPage({
   const isMobileQuery = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
   );
+  const activeBaseMedia =
+    activeMediaSetIndex !== null && activeMediaIndex !== null
+      ? (mediaSetsWithMedia[activeMediaSetIndex]?.media[activeMediaIndex] ??
+        null)
+      : null;
+  const activeCarouselItems = useMemo(
+    () => (activeBaseMedia ? getItemCarouselMedia(activeBaseMedia) : null),
+    [activeBaseMedia]
+  );
+  const activeLightboxMedia =
+    activeCarouselItems?.[activeCarouselIndex] ?? activeBaseMedia;
+  const hasActiveCarousel =
+    Boolean(activeCarouselItems) && (activeCarouselItems?.length ?? 0) > 1;
 
   const getGridColumns = (length: number) => {
     switch (length) {
@@ -630,6 +706,16 @@ export default function WorksCategoryPage({
     return () => window.clearTimeout(timeout);
   }, [allImagesLoaded]);
 
+  useEffect(() => {
+    if (!activeCarouselItems) {
+      if (activeCarouselIndex !== 0) setActiveCarouselIndex(0);
+      return;
+    }
+    if (activeCarouselIndex > activeCarouselItems.length - 1) {
+      setActiveCarouselIndex(0);
+    }
+  }, [activeCarouselItems, activeCarouselIndex]);
+
   const handleMediaLoaded = useCallback(
     (setId: string, index: number, total: number) => {
       const existing = loadedFlagsRef.current[setId];
@@ -671,42 +757,76 @@ export default function WorksCategoryPage({
   );
 
   const handlePreviousMedia = useCallback(() => {
-    if (activeMediaIndex !== null && activeMediaSetIndex !== null) {
-      const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
-      if (activeMediaIndex > 0) {
-        setActiveMediaIndex(activeMediaIndex - 1);
-      } else {
-        const prevSetIndex =
-          activeMediaSetIndex > 0
-            ? activeMediaSetIndex - 1
-            : mediaSetsWithMedia.length - 1;
-        const prevSet = mediaSetsWithMedia[prevSetIndex];
-        if (prevSet.media.length > 0) {
-          setActiveMediaSetIndex(prevSetIndex);
-          setActiveMediaIndex(prevSet.media.length - 1);
-        }
-      }
+    if (activeMediaIndex === null || activeMediaSetIndex === null) return;
+    const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
+    if (!currentSet || currentSet.media.length === 0) return;
+
+    const currentMedia = currentSet.media[activeMediaIndex];
+    const currentCarousel = getItemCarouselMedia(currentMedia);
+    if (currentCarousel && activeCarouselIndex > 0) {
+      setActiveCarouselIndex((prev) => prev - 1);
+      return;
     }
-  }, [activeMediaIndex, activeMediaSetIndex, mediaSetsWithMedia]);
+
+    if (activeMediaIndex > 0) {
+      const prevIndex = activeMediaIndex - 1;
+      setActiveMediaIndex(prevIndex);
+      const prevCarousel = getItemCarouselMedia(currentSet.media[prevIndex]);
+      setActiveCarouselIndex(prevCarousel ? prevCarousel.length - 1 : 0);
+      return;
+    }
+
+    const prevSetIndex =
+      activeMediaSetIndex > 0
+        ? activeMediaSetIndex - 1
+        : mediaSetsWithMedia.length - 1;
+    const prevSet = mediaSetsWithMedia[prevSetIndex];
+    if (!prevSet || prevSet.media.length === 0) return;
+    const prevMediaIndex = prevSet.media.length - 1;
+    setActiveMediaSetIndex(prevSetIndex);
+    setActiveMediaIndex(prevMediaIndex);
+    const prevCarousel = getItemCarouselMedia(prevSet.media[prevMediaIndex]);
+    setActiveCarouselIndex(prevCarousel ? prevCarousel.length - 1 : 0);
+  }, [
+    activeMediaIndex,
+    activeMediaSetIndex,
+    activeCarouselIndex,
+    mediaSetsWithMedia,
+  ]);
 
   const handleNextMedia = useCallback(() => {
-    if (activeMediaIndex !== null && activeMediaSetIndex !== null) {
-      const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
-      if (activeMediaIndex < currentSet.media.length - 1) {
-        setActiveMediaIndex(activeMediaIndex + 1);
-      } else {
-        const nextSetIndex =
-          activeMediaSetIndex < mediaSetsWithMedia.length - 1
-            ? activeMediaSetIndex + 1
-            : 0;
-        const nextSet = mediaSetsWithMedia[nextSetIndex];
-        if (nextSet.media.length > 0) {
-          setActiveMediaSetIndex(nextSetIndex);
-          setActiveMediaIndex(0);
-        }
-      }
+    if (activeMediaIndex === null || activeMediaSetIndex === null) return;
+    const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
+    if (!currentSet || currentSet.media.length === 0) return;
+
+    const currentMedia = currentSet.media[activeMediaIndex];
+    const currentCarousel = getItemCarouselMedia(currentMedia);
+    if (currentCarousel && activeCarouselIndex < currentCarousel.length - 1) {
+      setActiveCarouselIndex((prev) => prev + 1);
+      return;
     }
-  }, [activeMediaIndex, activeMediaSetIndex, mediaSetsWithMedia]);
+
+    if (activeMediaIndex < currentSet.media.length - 1) {
+      setActiveMediaIndex(activeMediaIndex + 1);
+      setActiveCarouselIndex(0);
+      return;
+    }
+
+    const nextSetIndex =
+      activeMediaSetIndex < mediaSetsWithMedia.length - 1
+        ? activeMediaSetIndex + 1
+        : 0;
+    const nextSet = mediaSetsWithMedia[nextSetIndex];
+    if (!nextSet || nextSet.media.length === 0) return;
+    setActiveMediaSetIndex(nextSetIndex);
+    setActiveMediaIndex(0);
+    setActiveCarouselIndex(0);
+  }, [
+    activeMediaIndex,
+    activeMediaSetIndex,
+    activeCarouselIndex,
+    mediaSetsWithMedia,
+  ]);
 
   useEffect(() => {
     if (lightboxOpen) {
@@ -729,6 +849,7 @@ export default function WorksCategoryPage({
   ) => {
     setActiveMediaIndex(mediaIndex);
     setActiveMediaSetIndex(setIndex);
+    setActiveCarouselIndex(0);
     setLightboxOpen(true);
   };
 
@@ -736,6 +857,7 @@ export default function WorksCategoryPage({
     setLightboxOpen(false);
     setActiveMediaIndex(null);
     setActiveMediaSetIndex(null);
+    setActiveCarouselIndex(0);
   };
 
   useEffect(() => {
@@ -981,9 +1103,9 @@ export default function WorksCategoryPage({
                     <AnimatePresence>
                       <motion.div
                         key={
-                          mediaSetsWithMedia[activeMediaSetIndex].media[
-                            activeMediaIndex
-                          ].id
+                          activeLightboxMedia
+                            ? `${activeLightboxMedia.id}-${activeCarouselIndex}`
+                            : 'lightbox-media'
                         }
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -1018,7 +1140,6 @@ export default function WorksCategoryPage({
                             sx={{
                               borderRadius: '6px',
                               overflow: 'hidden',
-                              position: 'relative',
                             }}
                           >
                             <IconButton
@@ -1062,32 +1183,89 @@ export default function WorksCategoryPage({
                               </svg>
                             </IconButton>
 
-                            {(() => {
-                              const media =
-                                mediaSetsWithMedia[activeMediaSetIndex].media[
-                                  activeMediaIndex
-                                ];
-                              const mediaLink = getMediaLink(media);
-                              const setSize =
-                                mediaSetsWithMedia[activeMediaSetIndex].media
-                                  .length;
-                              return (
-                                <>
-                                  <LightboxMediaContent
-                                    media={media}
-                                    isMobileQuery={isMobileQuery}
-                                    isMobileDevice={isMobile}
-                                  />
-                                  {mediaLink ? (
-                                    <MediaLinkAnchor
-                                      link={mediaLink}
-                                      setSize={setSize}
-                                      alwaysVisible
+                            <Box
+                              sx={{
+                                position: 'relative',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              {hasActiveCarousel ? (
+                                <IconButton
+                                  sx={{
+                                    position: 'absolute',
+                                    left: { xs: '0.15rem', sm: '0.4rem' },
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    color: 'white',
+                                    zIndex: 2000,
+                                    width: '3rem',
+                                    height: '3rem',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                    },
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePreviousMedia();
+                                  }}
+                                >
+                                  <MinimalLeftArrowIcon />
+                                </IconButton>
+                              ) : null}
+                              {(() => {
+                                if (!activeLightboxMedia) return null;
+                                const mediaLink =
+                                  getMediaLink(activeLightboxMedia);
+                                const setSize =
+                                  mediaSetsWithMedia[activeMediaSetIndex].media
+                                    .length;
+                                return (
+                                  <>
+                                    <SingleLightboxMediaContent
+                                      media={activeLightboxMedia}
+                                      isMobileQuery={isMobileQuery}
+                                      isMobileDevice={isMobile}
                                     />
-                                  ) : null}
-                                </>
-                              );
-                            })()}
+                                    {mediaLink ? (
+                                      <MediaLinkAnchor
+                                        link={mediaLink}
+                                        setSize={setSize}
+                                        alwaysVisible
+                                      />
+                                    ) : null}
+                                  </>
+                                );
+                              })()}
+                              {hasActiveCarousel ? (
+                                <IconButton
+                                  sx={{
+                                    position: 'absolute',
+                                    right: { xs: '0.15rem', sm: '0.4rem' },
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    color: 'white',
+                                    zIndex: 2000,
+                                    width: '3rem',
+                                    height: '3rem',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                                    border: '1px solid rgba(255,255,255,0.3)',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                    },
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleNextMedia();
+                                  }}
+                                >
+                                  <MinimalRightArrowIcon />
+                                </IconButton>
+                              ) : null}
+                            </Box>
                           </Box>
                         </Box>
                       </motion.div>

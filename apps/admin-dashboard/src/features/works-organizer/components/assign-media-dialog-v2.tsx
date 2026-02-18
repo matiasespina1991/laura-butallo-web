@@ -20,7 +20,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   mediasetId: string;
   category: 'home' | 'caves' | 'landscapes';
-  currentItemsCount: number;
+  mode: 'single' | 'carousel';
   onSuccess: () => void;
 }
 
@@ -29,7 +29,7 @@ export default function AssignMediaDialogV2({
   onOpenChange,
   mediasetId,
   category,
-  currentItemsCount,
+  mode,
   onSuccess
 }: Props) {
   const [assignedMediaIds, setAssignedMediaIds] = useState<Set<string>>(
@@ -62,6 +62,13 @@ export default function AssignMediaDialogV2({
           if (itemData.mediaId) {
             assignedIds.add(itemData.mediaId);
           }
+          if (Array.isArray(itemData.mediaItems)) {
+            itemData.mediaItems.forEach(
+              (entry: { mediaId?: string; order?: number }) => {
+                if (entry?.mediaId) assignedIds.add(entry.mediaId);
+              }
+            );
+          }
         });
       }
 
@@ -80,7 +87,7 @@ export default function AssignMediaDialogV2({
   }, [open, category]);
 
   async function handleConfirm(selectedMedia: MediaDoc[]) {
-    if (selectedMedia.length === 0) return;
+    if (selectedMedia.length === 0) return false;
 
     try {
       // Get current max order for this mediaset
@@ -98,30 +105,60 @@ export default function AssignMediaDialogV2({
 
       const batch = writeBatch(db);
 
-      // Sort by createdAt if available
-      const sorted = [...selectedMedia].sort((a, b) => {
-        const aTime = (a as any).createdAt?.toMillis?.() || 0;
-        const bTime = (b as any).createdAt?.toMillis?.() || 0;
-        return aTime - bTime;
-      });
+      // Keep user selection order from the picker (1, 2, 3...)
+      const orderedSelection = [...selectedMedia];
 
-      sorted.forEach((media, index) => {
-        // Use mediaId as the itemId
+      if (mode === 'carousel') {
+        if (orderedSelection.length < 2) {
+          toast.error('Seleccioná al menos 2 medios para crear un carousel.');
+          return false;
+        }
+
+        const carouselRefs = orderedSelection.map((media, index) => ({
+          mediaId: media.id,
+          order: index
+        }));
+        const primaryMediaId = carouselRefs[0]?.mediaId;
+        if (!primaryMediaId) {
+          toast.error('No se pudo determinar el medio principal.');
+          return false;
+        }
+
+        const newItemRef = doc(collection(db, 'mediasets', mediasetId, 'items'));
+        batch.set(newItemRef, {
+          mediaId: primaryMediaId,
+          mediaItems: carouselRefs,
+          order: maxOrder + 1,
+          flex: 1
+        });
+      } else {
+        const media = orderedSelection[0];
+        if (!media) {
+          toast.error('No se pudo determinar el medio a agregar.');
+          return false;
+        }
+
         const newItemRef = doc(db, 'mediasets', mediasetId, 'items', media.id);
         batch.set(newItemRef, {
           mediaId: media.id,
-          order: maxOrder + 1 + index,
+          order: maxOrder + 1,
           flex: 1
         });
-      });
+      }
 
       await batch.commit();
 
-      toast.success(`${selectedMedia.length} medios asignados`);
+      toast.success(
+        mode === 'carousel'
+          ? 'Carousel agregado a la fila'
+          : 'Medio agregado a la fila'
+      );
       onSuccess();
+      return true;
     } catch (error) {
       console.error('Error assigning media:', error);
       toast.error('Error al asignar medios');
+      return false;
     }
   }
 
@@ -130,15 +167,21 @@ export default function AssignMediaDialogV2({
     return !assignedMediaIds.has(media.id);
   };
 
-  const maxSelection = 4 - currentItemsCount;
+  const maxSelection = mode === 'carousel' ? 10 : 1;
+  const title =
+    mode === 'carousel' ? 'Agregar Carousel a la Fila' : 'Agregar Medio a la Fila';
+  const description =
+    mode === 'carousel'
+      ? `Mostrando solo medios no asignados a ${category}. Seleccioná entre 2 y 10 para el carousel.`
+      : `Mostrando solo medios no asignados a ${category}. Seleccioná un elemento para agregar.`;
 
   return (
     <MediaPickerDialog
       open={open}
       onOpenChange={onOpenChange}
-      title='Agregar Medio a la Fila'
-      description={`Mostrando solo medios no asignados a ${category}. Seleccioná los elementos que querés agregar.`}
-      selectionMode='multiple'
+      title={title}
+      description={description}
+      selectionMode={mode === 'carousel' ? 'multiple' : 'single'}
       filterPredicate={filterUnassigned}
       selectedIds={[]}
       maxSelection={maxSelection}

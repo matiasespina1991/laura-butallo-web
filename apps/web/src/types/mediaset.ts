@@ -12,6 +12,10 @@ export interface MediaSet {
 export interface MediaSetItem {
   id: string;
   mediaId: string;
+  mediaItems?: Array<{
+    mediaId: string;
+    order: number;
+  }>;
   order: number;
   flex: number;
 }

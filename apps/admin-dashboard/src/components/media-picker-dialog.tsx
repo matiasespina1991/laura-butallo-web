@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -28,12 +28,13 @@ export type MediaPickerDialogProps = {
   open: boolean;
   title: string;
   description?: string;
+  confirmLabel?: string;
   selectionMode?: MediaPickerSelectionMode;
   selectedIds?: string[];
   allowedTypes?: Array<MediaDoc['type']>;
   filterPredicate?: (media: MediaDoc) => boolean;
   maxSelection?: number;
-  onConfirm: (items: MediaDoc[]) => void | Promise<void>;
+  onConfirm: (items: MediaDoc[]) => void | boolean | Promise<void | boolean>;
   onOpenChange: (open: boolean) => void;
 };
 
@@ -53,10 +54,14 @@ function getGalleryPreviewPath(media: MediaDoc) {
 function MediaPickerCard({
   media,
   selected,
+  selectionOrder,
+  showSelectionOrder,
   onSelect
 }: {
   media: MediaDoc;
   selected: boolean;
+  selectionOrder: number | null;
+  showSelectionOrder: boolean;
   onSelect: () => void;
 }) {
   const previewPath = getGalleryPreviewPath(media);
@@ -183,6 +188,14 @@ function MediaPickerCard({
           {media.origin?.context === 'exhibition' ? 'Exhibición' : 'Galería'}
         </div>
       </div>
+      {showSelectionOrder && selected && selectionOrder !== null ? (
+        <span
+          className='absolute right-2 bottom-2 z-30 inline-flex h-6 min-w-[1.65rem] items-center justify-center rounded-full border border-white/60 bg-black/75 px-1.5 text-[11px] font-semibold text-white shadow-sm'
+          aria-label={`Posición seleccionada ${selectionOrder}`}
+        >
+          {selectionOrder}
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -191,6 +204,7 @@ export default function MediaPickerDialog({
   open,
   title,
   description,
+  confirmLabel = 'Aceptar',
   selectionMode = 'single',
   selectedIds = [],
   allowedTypes,
@@ -302,8 +316,22 @@ export default function MediaPickerDialog({
     });
   };
 
-  const selectedItems = filteredItems.filter((item) =>
-    selection.includes(item.id)
+  const selectionOrderById = useMemo(
+    () => new Map(selection.map((id, index) => [id, index + 1])),
+    [selection]
+  );
+
+  const filteredItemsById = useMemo(
+    () => new Map(filteredItems.map((item) => [item.id, item])),
+    [filteredItems]
+  );
+
+  const selectedItems = useMemo(
+    () =>
+      selection
+        .map((id) => filteredItemsById.get(id))
+        .filter((item): item is MediaDoc => Boolean(item)),
+    [selection, filteredItemsById]
   );
 
   const skeletonCards = Array.from({ length: 15 });
@@ -385,6 +413,8 @@ export default function MediaPickerDialog({
                   key={media.id}
                   media={media}
                   selected={selection.includes(media.id)}
+                  selectionOrder={selectionOrderById.get(media.id) ?? null}
+                  showSelectionOrder={selectionMode === 'multiple'}
                   onSelect={() => toggleSelection(media.id)}
                 />
               ))}
@@ -413,12 +443,14 @@ export default function MediaPickerDialog({
             <Button
               type='button'
               onClick={async () => {
-                await onConfirm(selectedItems);
-                onOpenChange(false);
+                const shouldClose = await onConfirm(selectedItems);
+                if (shouldClose !== false) {
+                  onOpenChange(false);
+                }
               }}
               disabled={selection.length === 0}
             >
-              Aceptar
+              {confirmLabel}
             </Button>
           </div>
         </DialogFooter>

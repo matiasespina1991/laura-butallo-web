@@ -40,6 +40,27 @@ interface Props {
   category: 'home' | 'caves' | 'landscapes';
 }
 
+const getSortedMediaEntries = (item: MediaSetItem) => {
+  if (!Array.isArray(item.mediaItems) || item.mediaItems.length === 0) {
+    return [];
+  }
+  return [...item.mediaItems].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+};
+
+const getItemMediaIds = (item: MediaSetItem) => {
+  const fromArray = getSortedMediaEntries(item)
+    .map((entry) => entry.mediaId)
+    .filter((mediaId): mediaId is string => Boolean(mediaId));
+  if (fromArray.length > 0) return fromArray;
+  return item.mediaId ? [item.mediaId] : [];
+};
+
+const getPrimaryMediaId = (item: MediaSetItem) => {
+  const fromArray = getSortedMediaEntries(item)[0]?.mediaId;
+  if (fromArray) return fromArray;
+  return item.mediaId || null;
+};
+
 export default function CategoryOrganizer({ category }: Props) {
   const [mediasets, setMediasets] = useState<MediaSet[]>([]);
   const [itemsByMediaset, setItemsByMediaset] = useState<
@@ -119,31 +140,24 @@ export default function CategoryOrganizer({ category }: Props) {
           );
           setItemsByMediaset((prev) => ({ ...prev, [mediaset.id]: items }));
 
-          // Load media for these items
-          const mediaPromises = items.map(async (item) => {
+          const mediaIds = Array.from(
+            new Set(items.flatMap((item) => getItemMediaIds(item)))
+          );
+
+          // Load media for these items (including carousel entries)
+          const mediaPromises = mediaIds.map(async (mediaId) => {
             try {
-              console.log(
-                `[CategoryOrganizer] Loading media: ${item.mediaId} for item: ${item.id}`
-              );
-              const mediaDocRef = doc(db, 'media', item.mediaId);
+              const mediaDocRef = doc(db, 'media', mediaId);
               const mediaDocSnap = await getDoc(mediaDocRef);
               if (mediaDocSnap.exists()) {
                 const media = {
                   ...mediaDocSnap.data(),
                   id: mediaDocSnap.id
                 } as Media;
-                console.log(`[CategoryOrganizer] Media found:`, media.id);
-                setMediaById((prev) => ({ ...prev, [item.mediaId]: media }));
-              } else {
-                console.error(
-                  `[CategoryOrganizer] Media document does not exist: ${item.mediaId}`
-                );
+                setMediaById((prev) => ({ ...prev, [mediaId]: media }));
               }
             } catch (error) {
-              console.error(
-                `[CategoryOrganizer] Error loading media ${item.mediaId}:`,
-                error
-              );
+              console.error(`[CategoryOrganizer] Error loading media ${mediaId}:`, error);
             }
           });
 
@@ -250,11 +264,19 @@ export default function CategoryOrganizer({ category }: Props) {
                 {mediasets.map((mediaset, index) => {
                   const items = itemsByMediaset[mediaset.id] || [];
                   const mediaList = items
-                    .map((item) => ({
-                      ...mediaById[item.mediaId],
-                      ...item
-                    }))
-                    .filter((m) => m.id);
+                    .map((item) => {
+                      const primaryMediaId = getPrimaryMediaId(item);
+                      if (!primaryMediaId) return null;
+                      const primaryMedia = mediaById[primaryMediaId];
+                      if (!primaryMedia) return null;
+                      return {
+                        ...item,
+                        ...primaryMedia,
+                        id: primaryMedia.id,
+                        mediaId: primaryMediaId
+                      };
+                    })
+                    .filter((m): m is Media & MediaSetItem => Boolean(m?.id));
 
                   return (
                     <MediasetItem

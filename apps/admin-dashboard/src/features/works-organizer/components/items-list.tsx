@@ -19,9 +19,22 @@ import {
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Link2, Plus, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+  updateDoc
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { useStorageAssetSrc } from '@/hooks/use-storage-asset-src';
@@ -29,6 +42,7 @@ import { cn } from '@/lib/utils';
 import type { MediaSetItem, Media } from '@/types/mediaset';
 import AssignMediaDialogV2 from './assign-media-dialog-v2';
 import MediaLinkDialog from './media-link-dialog';
+import MediaPickerDialog, { type MediaDoc } from '@/components/media-picker-dialog';
 
 interface MediaItemWithData extends MediaSetItem {
   media?: Media;
@@ -40,15 +54,36 @@ interface Props {
   items: MediaItemWithData[];
 }
 
+const getSortedMediaEntries = (item: MediaSetItem) => {
+  if (!Array.isArray(item.mediaItems) || item.mediaItems.length === 0) {
+    return [];
+  }
+  return [...item.mediaItems].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+};
+
+const getItemMediaIds = (item: MediaSetItem) => {
+  const fromArray = getSortedMediaEntries(item)
+    .map((entry) => entry.mediaId)
+    .filter((mediaId): mediaId is string => Boolean(mediaId));
+  if (fromArray.length > 0) return fromArray;
+  return item.mediaId ? [item.mediaId] : [];
+};
+
 function MediaItemCard({
   item,
-  mediasetId
+  mediasetId,
+  category
 }: {
   item: MediaItemWithData;
   mediasetId: string;
+  category: 'home' | 'caves' | 'landscapes';
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [editCarouselOpen, setEditCarouselOpen] = useState(false);
+  const [assignedMediaIds, setAssignedMediaIds] = useState<Set<string>>(
+    new Set()
+  );
   const [localLink, setLocalLink] = useState<Media['link']>(
     item.media?.link ?? null
   );
@@ -72,6 +107,8 @@ function MediaItemCard({
     thumbnailPath ? { storagePath: thumbnailPath } : null,
     { preferDirect: false }
   );
+  const isCarousel = (item.mediaItems?.length ?? 0) > 1;
+  const initialCarouselIds = getItemMediaIds(item);
   const hasActiveProvider = Boolean(
     localLink?.provider && localLink?.url?.trim()
   );
@@ -81,6 +118,60 @@ function MediaItemCard({
     setLocalLink(item.media?.link ?? null);
   }, [item.media?.link]);
 
+  useEffect(() => {
+    if (!editCarouselOpen || !isCarousel) return;
+
+    let isMounted = true;
+
+    const loadAssignedMedia = async () => {
+      try {
+        const mediasetsQuery = query(
+          collection(db, 'mediasets'),
+          orderBy('ordering', 'asc')
+        );
+        const mediasetsSnapshot = await getDocs(mediasetsQuery);
+
+        const categoryMediasets = mediasetsSnapshot.docs
+          .map((d) => ({ id: d.id, ...d.data() }))
+          .filter((ms: any) => ms.category === category && !ms.deletedAt);
+
+        const assignedIds = new Set<string>();
+
+        for (const mediaset of categoryMediasets) {
+          const itemsSnapshot = await getDocs(
+            collection(db, 'mediasets', mediaset.id, 'items')
+          );
+          itemsSnapshot.docs.forEach((itemDoc) => {
+            const itemData = itemDoc.data();
+            if (itemData.mediaId) {
+              assignedIds.add(itemData.mediaId);
+            }
+            if (Array.isArray(itemData.mediaItems)) {
+              itemData.mediaItems.forEach(
+                (entry: { mediaId?: string; order?: number }) => {
+                  if (entry?.mediaId) assignedIds.add(entry.mediaId);
+                }
+              );
+            }
+          });
+        }
+
+        initialCarouselIds.forEach((mediaId) => assignedIds.delete(mediaId));
+
+        if (isMounted) setAssignedMediaIds(assignedIds);
+      } catch (error) {
+        console.error('[ItemsList] load assigned media error', error);
+        if (isMounted) setAssignedMediaIds(new Set());
+      }
+    };
+
+    loadAssignedMedia();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [editCarouselOpen, isCarousel, category, initialCarouselIds.join('|')]);
+
   async function handleRemove(e: React.MouseEvent) {
     e.stopPropagation();
     try {
@@ -89,6 +180,38 @@ function MediaItemCard({
     } catch (error) {
       console.error('Error removing media:', error);
       toast.error('Error al remover media');
+    }
+  }
+
+  async function handleSaveCarousel(selectedMedia: MediaDoc[]) {
+    if (selectedMedia.length < 2) {
+      toast.error('Seleccioná al menos 2 medios para el carousel.');
+      return false;
+    }
+
+    try {
+      const orderedRefs = selectedMedia.map((media, index) => ({
+        mediaId: media.id,
+        order: index
+      }));
+
+      const primaryMediaId = orderedRefs[0]?.mediaId;
+      if (!primaryMediaId) {
+        toast.error('No se pudo determinar el medio principal.');
+        return false;
+      }
+
+      await updateDoc(doc(db, 'mediasets', mediasetId, 'items', item.id), {
+        mediaId: primaryMediaId,
+        mediaItems: orderedRefs
+      });
+
+      toast.success('Carousel actualizado');
+      return true;
+    } catch (error) {
+      console.error('[ItemsList] update carousel error', error);
+      toast.error('No se pudo actualizar el carousel.');
+      return false;
     }
   }
 
@@ -122,7 +245,7 @@ function MediaItemCard({
           <GripVertical className='text-muted-foreground h-4 w-4' />
         </button>
         <p className='text-xs font-medium'>
-          {item.media.type === 'image' ? 'Imagen' : 'Video'}
+          {isCarousel ? 'Carousel' : item.media.type === 'image' ? 'Imagen' : 'Video'}
         </p>
         {hasActiveProvider ? (
           <a
@@ -166,22 +289,53 @@ function MediaItemCard({
             onError={() => setImageLoaded(false)}
           />
         )}
-        <button
-          type='button'
-          onClick={(event) => {
-            event.stopPropagation();
-            setLinkDialogOpen(true);
-          }}
+        {isCarousel ? (
+          <span
+            className='bg-background/90 text-foreground pointer-events-none absolute right-2 bottom-2 z-20 inline-flex h-6 w-6 items-center justify-center rounded-full border shadow-sm'
+            aria-hidden='true'
+          >
+            <span className='text-[11px] leading-none'>⧉</span>
+          </span>
+        ) : null}
+        <div
           className={cn(
-            'bg-background/90 hover:bg-background absolute top-1/2 left-1/2 z-20 inline-flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border shadow-sm transition-all duration-200',
-            'opacity-0 scale-90 group-hover:scale-100 group-hover:opacity-100 focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none',
-            'text-foreground'
+            'absolute top-1/2 left-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 transition-all duration-200',
+            'scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100'
           )}
-          title='Editar link'
-          aria-label='Editar link de media'
         >
-          <Link2 className='h-4 w-4' />
-        </button>
+          <button
+            type='button'
+            onClick={(event) => {
+              event.stopPropagation();
+              setLinkDialogOpen(true);
+            }}
+            className={cn(
+              'bg-background/90 hover:bg-background inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border shadow-sm',
+              'focus-visible:ring-ring/50 text-foreground focus-visible:ring-2 focus-visible:outline-none'
+            )}
+            title='Editar link'
+            aria-label='Editar link de media'
+          >
+            <Link2 className='h-4 w-4' />
+          </button>
+          {isCarousel ? (
+            <button
+              type='button'
+              onClick={(event) => {
+                event.stopPropagation();
+                setEditCarouselOpen(true);
+              }}
+              className={cn(
+                'bg-background/90 hover:bg-background inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border shadow-sm',
+                'focus-visible:ring-ring/50 text-foreground focus-visible:ring-2 focus-visible:outline-none'
+              )}
+              title='Editar carousel'
+              aria-label='Editar carousel'
+            >
+              <span className='text-[15px] leading-none'>⧉</span>
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <MediaLinkDialog
@@ -193,12 +347,28 @@ function MediaItemCard({
           setLocalLink(nextLink);
         }}
       />
+      {isCarousel ? (
+        <MediaPickerDialog
+          open={editCarouselOpen}
+          onOpenChange={setEditCarouselOpen}
+          title='Editar Carousel'
+          description='Reordená la selección del carousel. El orden define la reproducción.'
+          confirmLabel='Guardar'
+          selectionMode='multiple'
+          selectedIds={initialCarouselIds}
+          maxSelection={10}
+          filterPredicate={(media) => !assignedMediaIds.has(media.id)}
+          onConfirm={handleSaveCarousel}
+        />
+      ) : null}
     </div>
   );
 }
 
 export default function ItemsList({ mediasetId, category, items }: Props) {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [addModeMenuOpen, setAddModeMenuOpen] = useState(false);
+  const [assignMode, setAssignMode] = useState<'single' | 'carousel'>('single');
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -236,29 +406,46 @@ export default function ItemsList({ mediasetId, category, items }: Props) {
     setAssignDialogOpen(false);
   }
 
+  function handleSelectMode(mode: 'single' | 'carousel') {
+    setAssignMode(mode);
+    setAddModeMenuOpen(false);
+    setAssignDialogOpen(true);
+  }
+
   if (items.length === 0) {
     return (
       <>
         <div className='grid grid-cols-4 gap-3'>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setAssignDialogOpen(true);
-            }}
-            className='border-muted-foreground/25 hover:border-muted-foreground/40 hover:bg-muted/20 flex h-full min-h-[200px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-3 transition-colors'
-          >
-            <Plus className='text-muted-foreground h-8 w-8' />
-            <span className='text-muted-foreground text-sm font-medium'>
-              Agregar Media
-            </span>
-          </button>
+          <DropdownMenu open={addModeMenuOpen} onOpenChange={setAddModeMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                className='border-muted-foreground/25 hover:border-muted-foreground/40 hover:bg-muted/20 flex h-full min-h-[200px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-3 transition-colors'
+              >
+                <Plus className='text-muted-foreground h-8 w-8' />
+                <span className='text-muted-foreground text-sm font-medium'>
+                  Agregar Medios
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='start' sideOffset={8} className='w-64'>
+              <DropdownMenuItem onSelect={() => handleSelectMode('single')}>
+                Agregar imagen o video
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleSelectMode('carousel')}>
+                Agregar carousel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <AssignMediaDialogV2
           open={assignDialogOpen}
           onOpenChange={setAssignDialogOpen}
           mediasetId={mediasetId}
           category={category}
-          currentItemsCount={items.length}
+          mode={assignMode}
           onSuccess={handleAssignComplete}
         />
       </>
@@ -282,21 +469,38 @@ export default function ItemsList({ mediasetId, category, items }: Props) {
                 key={item.id}
                 item={item}
                 mediasetId={mediasetId}
+                category={category}
               />
             ))}
             {items.length < 4 && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAssignDialogOpen(true);
-                }}
-                className='border-muted-foreground/25 hover:border-muted-foreground/40 hover:bg-muted/20 flex h-full min-h-[200px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-3 transition-colors'
+              <DropdownMenu
+                open={addModeMenuOpen}
+                onOpenChange={setAddModeMenuOpen}
               >
-                <Plus className='text-muted-foreground h-8 w-8' />
-                <span className='text-muted-foreground text-sm font-medium'>
-                  Agregar Media
-                </span>
-              </button>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className='border-muted-foreground/25 hover:border-muted-foreground/40 hover:bg-muted/20 flex h-full min-h-[200px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-3 transition-colors'
+                  >
+                    <Plus className='text-muted-foreground h-8 w-8' />
+                    <span className='text-muted-foreground text-sm font-medium'>
+                      Agregar Medios
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align='start' sideOffset={8} className='w-64'>
+                  <DropdownMenuItem onSelect={() => handleSelectMode('single')}>
+                    Agregar imagen o video
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => handleSelectMode('carousel')}
+                  >
+                    Agregar carousel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </SortableContext>
@@ -307,7 +511,7 @@ export default function ItemsList({ mediasetId, category, items }: Props) {
         onOpenChange={setAssignDialogOpen}
         mediasetId={mediasetId}
         category={category}
-        currentItemsCount={items.length}
+        mode={assignMode}
         onSuccess={handleAssignComplete}
       />
     </div>

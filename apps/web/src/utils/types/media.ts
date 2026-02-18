@@ -52,4 +52,7 @@ export interface Media {
   order?: number; // position within mediaset
   flex?: number; // grid flex size (1-4)
   link?: MediaLink | null;
+  itemId?: string;
+  isCarouselItem?: boolean;
+  carouselMedia?: Media[];
 }
