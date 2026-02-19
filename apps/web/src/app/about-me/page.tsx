@@ -86,6 +86,10 @@ export default function AboutMe() {
           px={{ xs: '1.1rem', sm: '2rem' }}
           py={{ xs: '1.7rem', sm: '2rem' }}
           width="100%"
+          sx={{
+            maxWidth: '2200px',
+            alignSelf: 'start',
+          }}
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -174,7 +178,7 @@ export default function AboutMe() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          style={{ width: '100%' }}
+          style={{ width: '100vw', marginTop: 'auto' }}
         >
           <Footer />
         </motion.div>

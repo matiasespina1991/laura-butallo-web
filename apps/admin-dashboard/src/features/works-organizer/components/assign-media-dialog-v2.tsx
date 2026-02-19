@@ -124,7 +124,9 @@ export default function AssignMediaDialogV2({
           return false;
         }
 
-        const newItemRef = doc(collection(db, 'mediasets', mediasetId, 'items'));
+        const newItemRef = doc(
+          collection(db, 'mediasets', mediasetId, 'items')
+        );
         batch.set(newItemRef, {
           mediaId: primaryMediaId,
           mediaItems: carouselRefs,
@@ -169,11 +171,13 @@ export default function AssignMediaDialogV2({
 
   const maxSelection = mode === 'carousel' ? 10 : 1;
   const title =
-    mode === 'carousel' ? 'Agregar Carousel a la Fila' : 'Agregar Medio a la Fila';
+    mode === 'carousel'
+      ? 'Agregar Carousel a la Fila'
+      : 'Agregar Medio a la Fila';
   const description =
     mode === 'carousel'
-      ? `Mostrando solo medios no asignados a ${category}. Seleccioná entre 2 y 10 para el carousel.`
-      : `Mostrando solo medios no asignados a ${category}. Seleccioná un elemento para agregar.`;
+      ? `Seleccioná entre 2 y 10 para el carousel. Se muestran solo medios aún no asignados a ${category}.`
+      : `Seleccioná un elemento para agregar. Se muestran solo medios aún no asignados a ${category}.`;
 
   return (
     <MediaPickerDialog

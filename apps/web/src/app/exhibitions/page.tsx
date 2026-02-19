@@ -971,7 +971,7 @@ export default function Exhibitions() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          style={{ width: '100%', marginTop: 'auto' }}
+          style={{ width: '100vw', marginTop: 'auto' }}
         >
           <Footer />
         </motion.div>

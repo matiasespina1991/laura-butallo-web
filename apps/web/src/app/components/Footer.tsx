@@ -5,7 +5,7 @@ import { isMobile } from 'react-device-detect';
 
 export default function Footer() {
   return (
-    <Box mt="3.5rem" width="100%">
+    <Box mt="3.5rem" width="100vw">
       <footer
         style={{
           display: 'flex',

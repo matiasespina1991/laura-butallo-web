@@ -42,7 +42,9 @@ import { cn } from '@/lib/utils';
 import type { MediaSetItem, Media } from '@/types/mediaset';
 import AssignMediaDialogV2 from './assign-media-dialog-v2';
 import MediaLinkDialog from './media-link-dialog';
-import MediaPickerDialog, { type MediaDoc } from '@/components/media-picker-dialog';
+import MediaPickerDialog, {
+  type MediaDoc
+} from '@/components/media-picker-dialog';
 
 interface MediaItemWithData extends MediaSetItem {
   media?: Media;
@@ -245,7 +247,11 @@ function MediaItemCard({
           <GripVertical className='text-muted-foreground h-4 w-4' />
         </button>
         <p className='text-xs font-medium'>
-          {isCarousel ? 'Carousel' : item.media.type === 'image' ? 'Imagen' : 'Video'}
+          {isCarousel
+            ? 'Carousel'
+            : item.media.type === 'image'
+              ? 'Imagen'
+              : 'Video'}
         </p>
         {hasActiveProvider ? (
           <a
@@ -416,7 +422,10 @@ export default function ItemsList({ mediasetId, category, items }: Props) {
     return (
       <>
         <div className='grid grid-cols-4 gap-3'>
-          <DropdownMenu open={addModeMenuOpen} onOpenChange={setAddModeMenuOpen}>
+          <DropdownMenu
+            open={addModeMenuOpen}
+            onOpenChange={setAddModeMenuOpen}
+          >
             <DropdownMenuTrigger asChild>
               <button
                 onClick={(e) => {
@@ -430,11 +439,17 @@ export default function ItemsList({ mediasetId, category, items }: Props) {
                 </span>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align='start' sideOffset={8} className='w-64'>
-              <DropdownMenuItem onSelect={() => handleSelectMode('single')}>
+            <DropdownMenuContent align='center' sideOffset={0} className='w-64'>
+              <DropdownMenuItem
+                className='cursor-pointer'
+                onSelect={() => handleSelectMode('single')}
+              >
                 Agregar imagen o video
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleSelectMode('carousel')}>
+              <DropdownMenuItem
+                className='cursor-pointer'
+                onSelect={() => handleSelectMode('carousel')}
+              >
                 Agregar carousel
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -490,11 +505,19 @@ export default function ItemsList({ mediasetId, category, items }: Props) {
                     </span>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align='start' sideOffset={8} className='w-64'>
-                  <DropdownMenuItem onSelect={() => handleSelectMode('single')}>
+                <DropdownMenuContent
+                  align='start'
+                  sideOffset={8}
+                  className='w-64'
+                >
+                  <DropdownMenuItem
+                    className='cursor-pointer'
+                    onSelect={() => handleSelectMode('single')}
+                  >
                     Agregar imagen o video
                   </DropdownMenuItem>
                   <DropdownMenuItem
+                    className='cursor-pointer'
                     onSelect={() => handleSelectMode('carousel')}
                   >
                     Agregar carousel

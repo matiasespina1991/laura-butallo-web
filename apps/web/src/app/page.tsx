@@ -746,6 +746,7 @@ export default function Home() {
           px={{ xs: '1.2rem', sm: '2rem' }}
           pb={{ xs: '0rem', sm: '6rem' }}
           width="100%"
+          maxWidth="1400px"
         >
           {isLoading || !allImagesLoaded ? (
             <motion.div
