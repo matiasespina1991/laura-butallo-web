@@ -185,7 +185,6 @@ export default function ZoomeableImage({
     justifyContent: 'center',
     overflow: 'hidden',
     maxHeight,
-    width: '100%',
     touchAction: 'none',
     overscrollBehavior: 'contain',
   };

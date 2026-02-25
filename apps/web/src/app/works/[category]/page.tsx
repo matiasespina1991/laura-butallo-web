@@ -74,6 +74,10 @@ const getItemCarouselMedia = (media: Media) => {
   return items.length > 1 ? items : null;
 };
 
+const LIGHTBOX_MEDIA_MAX_HEIGHT = '87vh';
+const LIGHTBOX_MAIN_HEIGHT = `calc(${LIGHTBOX_MEDIA_MAX_HEIGHT} * 0.75)`;
+const LIGHTBOX_THUMBNAILS_HEIGHT = `calc(${LIGHTBOX_MEDIA_MAX_HEIGHT} * 0.25)`;
+
 function MediaLinkAnchor({
   link,
   setSize,
@@ -520,7 +524,7 @@ function LightboxImageContent({
       highSrc={highImage.src || undefined}
       alt="Fullscreen Image"
       zoomScale={2.5}
-      maxHeight={'87vh'}
+      maxHeight={LIGHTBOX_MAIN_HEIGHT}
       onLowSrcError={lowImage.handleError}
       onHighSrcError={highImage.handleError}
     />
@@ -547,13 +551,84 @@ function LightboxVideoContent({
       highSrc={highVideo.src || undefined}
       poster={posterSource.src || undefined}
       zoomScale={isMobileDevice ? 2 : 3}
-      maxHeight={'87vh'}
+      maxHeight={LIGHTBOX_MAIN_HEIGHT}
       autoPlay={true}
       muted={true}
       loop={true}
       onLowSrcError={lowVideo.handleError}
       onHighSrcError={highVideo.handleError}
     />
+  );
+}
+
+function CarouselThumbnail({
+  media,
+  isActive,
+  isMobileDevice,
+  onSelect,
+}: {
+  media: Media;
+  isActive: boolean;
+  isMobileDevice: boolean;
+  onSelect: () => void;
+}) {
+  const thumbAsset = useMemo(() => {
+    if (media.type === 'image') {
+      const derivatives = media.paths?.derivatives ?? {};
+      return (
+        derivatives['webp_thumb'] ??
+        derivatives['webp_small'] ??
+        derivatives['webp_360'] ??
+        media.paths?.original
+      );
+    }
+
+    const videoAssets = selectVideoAssets(media, isMobileDevice);
+    return videoAssets.poster;
+  }, [media, isMobileDevice]);
+
+  const thumbSrc = useStorageAssetSrc(thumbAsset);
+
+  return (
+    <Box
+      component="button"
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect();
+      }}
+      aria-label="Select carousel media"
+      sx={{
+        padding: 0,
+        border: isActive
+          ? '1px solid rgba(255,255,255,0.85)'
+          : '1px solid rgba(255,255,255,0.28)',
+        borderRadius: '10px',
+        overflow: 'hidden',
+        background: 'transparent',
+        height: '100%',
+        aspectRatio: '1 / 1',
+        flex: '0 0 auto',
+        cursor: 'pointer',
+        opacity: isActive ? 1 : 0.75,
+        transition: 'opacity 200ms ease, border-color 200ms ease',
+      }}
+    >
+      {thumbSrc.src ? (
+        <img
+          src={thumbSrc.src}
+          alt=""
+          aria-hidden="true"
+          onError={thumbSrc.handleError}
+          style={{
+            display: 'block',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+        />
+      ) : null}
+    </Box>
   );
 }
 
@@ -829,6 +904,52 @@ export default function WorksCategoryPage({
     mediaSetsWithMedia,
   ]);
 
+  const handlePreviousBaseMedia = useCallback(() => {
+    if (activeMediaIndex === null || activeMediaSetIndex === null) return;
+    const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
+    if (!currentSet || currentSet.media.length === 0) return;
+
+    if (activeMediaIndex > 0) {
+      setActiveMediaIndex(activeMediaIndex - 1);
+      setActiveCarouselIndex(0);
+      return;
+    }
+
+    const prevSetIndex =
+      activeMediaSetIndex > 0
+        ? activeMediaSetIndex - 1
+        : mediaSetsWithMedia.length - 1;
+    const prevSet = mediaSetsWithMedia[prevSetIndex];
+    if (!prevSet || prevSet.media.length === 0) return;
+
+    setActiveMediaSetIndex(prevSetIndex);
+    setActiveMediaIndex(prevSet.media.length - 1);
+    setActiveCarouselIndex(0);
+  }, [activeMediaIndex, activeMediaSetIndex, mediaSetsWithMedia]);
+
+  const handleNextBaseMedia = useCallback(() => {
+    if (activeMediaIndex === null || activeMediaSetIndex === null) return;
+    const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
+    if (!currentSet || currentSet.media.length === 0) return;
+
+    if (activeMediaIndex < currentSet.media.length - 1) {
+      setActiveMediaIndex(activeMediaIndex + 1);
+      setActiveCarouselIndex(0);
+      return;
+    }
+
+    const nextSetIndex =
+      activeMediaSetIndex < mediaSetsWithMedia.length - 1
+        ? activeMediaSetIndex + 1
+        : 0;
+    const nextSet = mediaSetsWithMedia[nextSetIndex];
+    if (!nextSet || nextSet.media.length === 0) return;
+
+    setActiveMediaSetIndex(nextSetIndex);
+    setActiveMediaIndex(0);
+    setActiveCarouselIndex(0);
+  }, [activeMediaIndex, activeMediaSetIndex, mediaSetsWithMedia]);
+
   useEffect(() => {
     if (lightboxOpen) {
       document.body.classList.add('no-scroll');
@@ -1091,7 +1212,7 @@ export default function WorksCategoryPage({
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handlePreviousMedia();
+                        handlePreviousBaseMedia();
                       }}
                     >
                       <MinimalLeftArrowIcon />
@@ -1196,83 +1317,204 @@ export default function WorksCategoryPage({
                                 sx={{
                                   position: 'relative',
                                   display: 'flex',
+                                  flexDirection: 'column',
                                   alignItems: 'center',
                                   justifyContent: 'center',
+                                  height: LIGHTBOX_MEDIA_MAX_HEIGHT,
+                                  width: '100%',
                                 }}
                               >
-                                {hasActiveCarousel ? (
-                                  <IconButton
-                                    sx={{
-                                      position: 'absolute',
-                                      left: { xs: '0.15rem', sm: '0.4rem' },
-                                      top: '50%',
-                                      transform: 'translateY(-50%)',
-                                      color: 'white',
-                                      zIndex: 2000,
-                                      width: '3rem',
-                                      height: '3rem',
-                                      backgroundColor: 'rgba(0, 0, 0, 0.45)',
-                                      border: '1px solid rgba(255,255,255,0.3)',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                                      },
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handlePreviousMedia();
-                                    }}
-                                  >
-                                    <MinimalLeftArrowIcon />
-                                  </IconButton>
-                                ) : null}
-                                {(() => {
-                                  if (!activeLightboxMedia) return null;
-                                  const mediaLink =
-                                    getMediaLink(activeLightboxMedia);
-                                  const setSize =
-                                    mediaSetsWithMedia[activeMediaSetIndex]
-                                      .media.length;
-                                  return (
-                                    <>
-                                      <SingleLightboxMediaContent
-                                        media={activeLightboxMedia}
-                                        isMobileQuery={isMobileQuery}
-                                        isMobileDevice={isMobile}
-                                      />
-                                      {mediaLink ? (
-                                        <MediaLinkAnchor
-                                          link={mediaLink}
-                                          setSize={setSize}
-                                          alwaysVisible
+                                <Box
+                                  sx={{
+                                    position: 'relative',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '100%',
+                                    height: LIGHTBOX_MAIN_HEIGHT,
+                                    flex: '0 0 auto',
+                                  }}
+                                >
+                                  {hasActiveCarousel ? (
+                                    <IconButton
+                                      aria-label="Previous carousel media"
+                                      sx={{
+                                        position: 'absolute',
+                                        left: { xs: '0.5rem', sm: '0.9rem' },
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: 'white',
+                                        zIndex: 2000,
+                                        width: { xs: '2.75rem', sm: '3rem' },
+                                        height: { xs: '2.75rem', sm: '3rem' },
+                                        borderRadius: '999px',
+                                        backgroundColor: 'rgba(14, 14, 14, 0.56)',
+                                        border: '1px solid rgba(255,255,255,0.3)',
+                                        boxShadow: '0 8px 20px rgba(0,0,0,0.28)',
+                                        backdropFilter: 'blur(3px)',
+                                        transition:
+                                          'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                                        '&:hover': {
+                                          backgroundColor: 'rgba(14, 14, 14, 0.74)',
+                                          borderColor: 'rgba(255,255,255,0.45)',
+                                          boxShadow: '0 10px 24px rgba(0,0,0,0.34)',
+                                        },
+                                        '&:focus-visible': {
+                                          outline: '2px solid rgba(255,255,255,0.95)',
+                                          outlineOffset: '2px',
+                                        },
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePreviousMedia();
+                                      }}
+                                    >
+                                      <Box
+                                        component="span"
+                                        aria-hidden="true"
+                                        sx={{
+                                          fontSize: { xs: '1.8rem', sm: '2rem' },
+                                          lineHeight: 1,
+                                          fontWeight: 300,
+                                          paddingBottom: '0.3rem',
+                                          transform: 'translateX(-1px)',
+                                          display: 'inline-block',
+                                        }}
+                                      >
+                                        ‹
+                                      </Box>
+                                    </IconButton>
+                                  ) : null}
+
+                                  {(() => {
+                                    if (!activeLightboxMedia) return null;
+                                    const mediaLink =
+                                      getMediaLink(activeLightboxMedia);
+                                    const setSize =
+                                      mediaSetsWithMedia[activeMediaSetIndex]
+                                        .media.length;
+                                    return (
+                                      <>
+                                        <SingleLightboxMediaContent
+                                          media={activeLightboxMedia}
+                                          isMobileQuery={isMobileQuery}
+                                          isMobileDevice={isMobile}
                                         />
-                                      ) : null}
-                                    </>
-                                  );
-                                })()}
-                                {hasActiveCarousel ? (
-                                  <IconButton
+                                        {mediaLink ? (
+                                          <MediaLinkAnchor
+                                            link={mediaLink}
+                                            setSize={setSize}
+                                            alwaysVisible
+                                          />
+                                        ) : null}
+                                      </>
+                                    );
+                                  })()}
+
+                                  {hasActiveCarousel ? (
+                                    <IconButton
+                                      aria-label="Next carousel media"
+                                      sx={{
+                                        position: 'absolute',
+                                        right: { xs: '0.5rem', sm: '0.9rem' },
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        color: 'white',
+                                        zIndex: 2000,
+                                        width: { xs: '2.75rem', sm: '3rem' },
+                                        height: { xs: '2.75rem', sm: '3rem' },
+                                        borderRadius: '999px',
+                                        backgroundColor: 'rgba(14, 14, 14, 0.56)',
+                                        border: '1px solid rgba(255,255,255,0.3)',
+                                        boxShadow: '0 8px 20px rgba(0,0,0,0.28)',
+                                        backdropFilter: 'blur(3px)',
+                                        transition:
+                                          'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                                        '&:hover': {
+                                          backgroundColor: 'rgba(14, 14, 14, 0.74)',
+                                          borderColor: 'rgba(255,255,255,0.45)',
+                                          boxShadow: '0 10px 24px rgba(0,0,0,0.34)',
+                                        },
+                                        '&:focus-visible': {
+                                          outline: '2px solid rgba(255,255,255,0.95)',
+                                          outlineOffset: '2px',
+                                        },
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleNextMedia();
+                                      }}
+                                    >
+                                      <Box
+                                        component="span"
+                                        aria-hidden="true"
+                                        sx={{
+                                          fontSize: { xs: '1.8rem', sm: '2rem' },
+                                          lineHeight: 1,
+                                          fontWeight: 300,
+                                          paddingBottom: '0.3rem',
+                                          transform: 'translateX(1px)',
+                                          display: 'inline-block',
+                                        }}
+                                      >
+                                        ›
+                                      </Box>
+                                    </IconButton>
+                                  ) : null}
+                                </Box>
+
+                                {hasActiveCarousel && activeCarouselItems ? (
+                                  <Box
+                                    onClick={(e) => e.stopPropagation()}
                                     sx={{
-                                      position: 'absolute',
-                                      right: { xs: '0.15rem', sm: '0.4rem' },
-                                      top: '50%',
-                                      transform: 'translateY(-50%)',
-                                      color: 'white',
-                                      zIndex: 2000,
-                                      width: '3rem',
-                                      height: '3rem',
-                                      backgroundColor: 'rgba(0, 0, 0, 0.45)',
-                                      border: '1px solid rgba(255,255,255,0.3)',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                      width: '100%',
+                                      height: LIGHTBOX_THUMBNAILS_HEIGHT,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      flex: '0 0 auto',
+                                      paddingInline: {
+                                        xs: '0.75rem',
+                                        sm: '1rem',
+                                      },
+                                      paddingBottom: {
+                                        xs: '0.25rem',
+                                        sm: '0.35rem',
                                       },
                                     }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleNextMedia();
-                                    }}
                                   >
-                                    <MinimalRightArrowIcon />
-                                  </IconButton>
+                                    <Box
+                                      sx={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: { xs: '0.5rem', sm: '0.65rem' },
+                                        overflowX: 'auto',
+                                        overflowY: 'hidden',
+                                        WebkitOverflowScrolling: 'touch',
+                                        touchAction: 'pan-x',
+                                        overscrollBehaviorX: 'contain',
+                                        paddingBlock: '0.35rem',
+                                      }}
+                                    >
+                                      {activeCarouselItems.map(
+                                        (item, thumbIndex) => (
+                                          <CarouselThumbnail
+                                            key={`carousel-thumb-${item.id}`}
+                                            media={item}
+                                            isActive={
+                                              thumbIndex === activeCarouselIndex
+                                            }
+                                            isMobileDevice={isMobile}
+                                            onSelect={() =>
+                                              setActiveCarouselIndex(thumbIndex)
+                                            }
+                                          />
+                                        )
+                                      )}
+                                    </Box>
+                                  </Box>
                                 ) : null}
                               </Box>
                             </Box>
@@ -1293,7 +1535,7 @@ export default function WorksCategoryPage({
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleNextMedia();
+                        handleNextBaseMedia();
                       }}
                     >
                       <MinimalRightArrowIcon />

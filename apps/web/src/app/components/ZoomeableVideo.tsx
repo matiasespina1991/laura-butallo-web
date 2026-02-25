@@ -276,7 +276,6 @@ export default function ZoomeableVideo({
     justifyContent: 'center',
     overflow: 'hidden',
     maxHeight,
-    width: '100%',
     touchAction: 'none',
     overscrollBehavior: 'contain',
   };
