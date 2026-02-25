@@ -509,6 +509,39 @@ export default function Home() {
   const loaderGlowSoft = isDarkMode
     ? 'rgba(255,255,255,0.015)'
     : 'rgba(0,0,0,0.012)';
+  const firstNavigablePosition = useMemo(() => {
+    for (let setIndex = 0; setIndex < mediaSetsWithMedia.length; setIndex += 1) {
+      if (mediaSetsWithMedia[setIndex]?.media.length) {
+        return { setIndex, mediaIndex: 0 };
+      }
+    }
+    return null;
+  }, [mediaSetsWithMedia]);
+  const lastNavigablePosition = useMemo(() => {
+    for (
+      let setIndex = mediaSetsWithMedia.length - 1;
+      setIndex >= 0;
+      setIndex -= 1
+    ) {
+      const setLength = mediaSetsWithMedia[setIndex]?.media.length ?? 0;
+      if (setLength > 0) {
+        return { setIndex, mediaIndex: setLength - 1 };
+      }
+    }
+    return null;
+  }, [mediaSetsWithMedia]);
+  const isAtLightboxStart =
+    activeMediaSetIndex !== null &&
+    activeMediaIndex !== null &&
+    firstNavigablePosition !== null &&
+    activeMediaSetIndex === firstNavigablePosition.setIndex &&
+    activeMediaIndex === firstNavigablePosition.mediaIndex;
+  const isAtLightboxEnd =
+    activeMediaSetIndex !== null &&
+    activeMediaIndex !== null &&
+    lastNavigablePosition !== null &&
+    activeMediaSetIndex === lastNavigablePosition.setIndex &&
+    activeMediaIndex === lastNavigablePosition.mediaIndex;
 
   const getGridColumns = (length: number) => {
     switch (length) {
@@ -671,18 +704,16 @@ export default function Home() {
 
   const handlePreviousMedia = useCallback(() => {
     if (activeMediaIndex !== null && activeMediaSetIndex !== null) {
-      const currentSet = mediaSetsWithMedia[activeMediaSetIndex];
       if (activeMediaIndex > 0) {
         setActiveMediaIndex(activeMediaIndex - 1);
       } else {
-        const prevSetIndex =
-          activeMediaSetIndex > 0
-            ? activeMediaSetIndex - 1
-            : mediaSetsWithMedia.length - 1;
-        const prevSet = mediaSetsWithMedia[prevSetIndex];
-        if (prevSet.media.length > 0) {
-          setActiveMediaSetIndex(prevSetIndex);
-          setActiveMediaIndex(prevSet.media.length - 1);
+        for (let setIndex = activeMediaSetIndex - 1; setIndex >= 0; setIndex -= 1) {
+          const prevSet = mediaSetsWithMedia[setIndex];
+          if (prevSet?.media.length) {
+            setActiveMediaSetIndex(setIndex);
+            setActiveMediaIndex(prevSet.media.length - 1);
+            return;
+          }
         }
       }
     }
@@ -694,14 +725,17 @@ export default function Home() {
       if (activeMediaIndex < currentSet.media.length - 1) {
         setActiveMediaIndex(activeMediaIndex + 1);
       } else {
-        const nextSetIndex =
-          activeMediaSetIndex < mediaSetsWithMedia.length - 1
-            ? activeMediaSetIndex + 1
-            : 0;
-        const nextSet = mediaSetsWithMedia[nextSetIndex];
-        if (nextSet.media.length > 0) {
-          setActiveMediaSetIndex(nextSetIndex);
-          setActiveMediaIndex(0);
+        for (
+          let setIndex = activeMediaSetIndex + 1;
+          setIndex < mediaSetsWithMedia.length;
+          setIndex += 1
+        ) {
+          const nextSet = mediaSetsWithMedia[setIndex];
+          if (nextSet?.media.length) {
+            setActiveMediaSetIndex(setIndex);
+            setActiveMediaIndex(0);
+            return;
+          }
         }
       }
     }
@@ -1156,6 +1190,7 @@ export default function Home() {
                     }}
                   />
                   <IconButton
+                    disabled={isAtLightboxStart}
                     sx={{
                       position: 'absolute',
                       left: '1rem',
@@ -1164,9 +1199,14 @@ export default function Home() {
                       transform: 'scale(1.5)',
                       opacity: lightboxImageIsDragging ? 0 : 1,
                       transition: 'opacity 0.3s',
+                      '&.Mui-disabled': {
+                        color: 'rgba(255,255,255,0.38)',
+                        opacity: lightboxImageIsDragging ? 0 : 0.45,
+                      },
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (isAtLightboxStart) return;
                       handlePreviousMedia();
                     }}
                   >
@@ -1289,6 +1329,7 @@ export default function Home() {
                   </Box>
 
                   <IconButton
+                    disabled={isAtLightboxEnd}
                     sx={{
                       position: 'absolute',
                       right: '1rem',
@@ -1297,9 +1338,14 @@ export default function Home() {
                       opacity: lightboxImageIsDragging ? 0 : 1,
                       transition: 'opacity 0.3s',
                       transform: 'scale(1.5)',
+                      '&.Mui-disabled': {
+                        color: 'rgba(255,255,255,0.38)',
+                        opacity: lightboxImageIsDragging ? 0 : 0.45,
+                      },
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (isAtLightboxEnd) return;
                       handleNextMedia();
                     }}
                   >

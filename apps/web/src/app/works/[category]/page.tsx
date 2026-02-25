@@ -705,6 +705,11 @@ export default function WorksCategoryPage({
     activeCarouselItems?.[activeCarouselIndex] ?? activeBaseMedia;
   const hasActiveCarousel =
     Boolean(activeCarouselItems) && (activeCarouselItems?.length ?? 0) > 1;
+  const isAtCarouselStart =
+    !activeCarouselItems || activeCarouselIndex <= 0;
+  const isAtCarouselEnd =
+    !activeCarouselItems ||
+    activeCarouselIndex >= activeCarouselItems.length - 1;
 
   const stopCarouselAutoplay = useCallback(() => {
     setCarouselAutoplayStopped(true);
@@ -912,8 +917,10 @@ export default function WorksCategoryPage({
 
     const currentMedia = currentSet.media[activeMediaIndex];
     const currentCarousel = getItemCarouselMedia(currentMedia);
-    if (currentCarousel && activeCarouselIndex > 0) {
-      setActiveCarouselIndex((prev) => prev - 1);
+    if (currentCarousel) {
+      if (activeCarouselIndex > 0) {
+        setActiveCarouselIndex((prev) => prev - 1);
+      }
       return;
     }
 
@@ -950,8 +957,10 @@ export default function WorksCategoryPage({
 
     const currentMedia = currentSet.media[activeMediaIndex];
     const currentCarousel = getItemCarouselMedia(currentMedia);
-    if (currentCarousel && activeCarouselIndex < currentCarousel.length - 1) {
-      setActiveCarouselIndex((prev) => prev + 1);
+    if (currentCarousel) {
+      if (activeCarouselIndex < currentCarousel.length - 1) {
+        setActiveCarouselIndex((prev) => prev + 1);
+      }
       return;
     }
 
@@ -1494,6 +1503,7 @@ export default function WorksCategoryPage({
                                   {hasActiveCarousel ? (
                                     <IconButton
                                       aria-label="Previous carousel media"
+                                      disabled={isAtCarouselStart}
                                       sx={{
                                         position: 'absolute',
                                         left: { xs: '0.5rem', sm: '0.9rem' },
@@ -1522,9 +1532,20 @@ export default function WorksCategoryPage({
                                           outline: '2px solid rgba(255,255,255,0.95)',
                                           outlineOffset: '2px',
                                         },
+                                        '&.Mui-disabled': {
+                                          color: 'rgba(255,255,255,0.45)',
+                                          backgroundColor:
+                                            'rgba(120, 120, 120, 0.12)',
+                                          border:
+                                            '1px solid rgba(255,255,255,0.12)',
+                                          boxShadow: 'none',
+                                          backdropFilter: 'blur(4px)',
+                                          WebkitBackdropFilter: 'blur(4px)',
+                                        },
                                       }}
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        if (isAtCarouselStart) return;
                                         stopCarouselAutoplay();
                                         handlePreviousMedia();
                                       }}
@@ -1575,6 +1596,7 @@ export default function WorksCategoryPage({
                                   {hasActiveCarousel ? (
                                     <IconButton
                                       aria-label="Next carousel media"
+                                      disabled={isAtCarouselEnd}
                                       sx={{
                                         position: 'absolute',
                                         right: { xs: '0.5rem', sm: '0.9rem' },
@@ -1603,9 +1625,20 @@ export default function WorksCategoryPage({
                                           outline: '2px solid rgba(255,255,255,0.95)',
                                           outlineOffset: '2px',
                                         },
+                                        '&.Mui-disabled': {
+                                          color: 'rgba(255,255,255,0.45)',
+                                          backgroundColor:
+                                            'rgba(120, 120, 120, 0.12)',
+                                          border:
+                                            '1px solid rgba(255,255,255,0.12)',
+                                          boxShadow: 'none',
+                                          backdropFilter: 'blur(4px)',
+                                          WebkitBackdropFilter: 'blur(4px)',
+                                        },
                                       }}
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        if (isAtCarouselEnd) return;
                                         stopCarouselAutoplay();
                                         handleNextMedia();
                                       }}
