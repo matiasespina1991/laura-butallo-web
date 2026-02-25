@@ -8,6 +8,7 @@ import ScrollContainer from 'react-indiana-drag-scroll';
 import { AnimatePresence, motion } from 'framer-motion';
 import NextImage from 'next/image';
 import { Box, Grid, IconButton, Theme, useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { isMobile } from 'react-device-detect';
 import { fetchCategoryMedia } from '@/utils/functions/fetchCategoryMedia';
 import { MinimalLeftArrowIcon } from '../../components/MinimalLeftArrowIcon';
@@ -668,6 +669,7 @@ export default function WorksCategoryPage({
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
+  const [showCenteredLoader, setShowCenteredLoader] = useState(true);
   const loadedFlagsRef = useRef<Record<string, boolean[]>>({});
   const [maxVisibleBySet, setMaxVisibleBySet] = useState<
     Record<string, number>
@@ -681,6 +683,15 @@ export default function WorksCategoryPage({
   const isMobileQuery = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
   );
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
+  const loaderTextColor = isDarkMode ? '#ffffff' : '#000000';
+  const loaderGlowStrong = isDarkMode
+    ? 'rgba(255,255,255,0.07)'
+    : 'rgba(0,0,0,0.055)';
+  const loaderGlowSoft = isDarkMode
+    ? 'rgba(255,255,255,0.015)'
+    : 'rgba(0,0,0,0.012)';
   const activeBaseMedia =
     activeMediaSetIndex !== null && activeMediaIndex !== null
       ? (mediaSetsWithMedia[activeMediaSetIndex]?.media[activeMediaIndex] ??
@@ -803,6 +814,20 @@ export default function WorksCategoryPage({
     }, 3000);
     return () => window.clearTimeout(timeout);
   }, [allImagesLoaded]);
+
+  useEffect(() => {
+    const shouldShowLoader = isLoading || !allImagesLoaded;
+    if (shouldShowLoader) {
+      setShowCenteredLoader(true);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setShowCenteredLoader(false);
+    }, 4000);
+
+    return () => window.clearTimeout(timeout);
+  }, [isLoading, allImagesLoaded]);
 
   useEffect(() => {
     if (!activeCarouselItems) {
@@ -1050,6 +1075,75 @@ export default function WorksCategoryPage({
 
   return (
     <>
+      <AnimatePresence>
+        {showCenteredLoader ? (
+          <motion.div
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7, ease: 'easeInOut' }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 1200,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'transparent',
+              pointerEvents: 'none',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.3rem',
+              }}
+            >
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                aria-hidden="true"
+                style={{
+                  width: isMobileQuery ? '7.2rem' : '9rem',
+                  height: isMobileQuery ? '7.2rem' : '9rem',
+                  objectFit: 'contain',
+                }}
+              >
+                <source
+                  src="/assets/system/loader/loader_cueva.webm"
+                  type="video/webm"
+                />
+              </video>
+              <motion.span
+                aria-hidden="true"
+                animate={{
+                  opacity: [0.45, 1, 0.45],
+                  textShadow: [
+                    `0 0 6px ${loaderGlowSoft}`,
+                    `0 0 16px ${loaderGlowStrong}`,
+                    `0 0 6px ${loaderGlowSoft}`,
+                  ],
+                }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  fontSize: isMobileQuery ? '0.85rem' : '0.95rem',
+                  letterSpacing: '0.08em',
+                  textTransform: 'none',
+                  color: loaderTextColor,
+                  fontWeight: 500,
+                }}
+              >
+                Loading...
+              </motion.span>
+            </Box>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
       {' '}
       <main className={`${styles.main} ${styles.worksPage}`}>
         <Box
