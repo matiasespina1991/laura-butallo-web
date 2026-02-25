@@ -462,16 +462,17 @@ function VideoGridItem({
             right: '0.55rem',
             bottom: '0.55rem',
             zIndex: 3,
-            width: isMobileDevice ? '1.5rem' : '1.75rem',
-            height: isMobileDevice ? '1.5rem' : '1.75rem',
+            width: isMobileDevice ? '1.5rem' : '3.05rem',
+            height: isMobileDevice ? '1.5rem' : '3.05rem',
             borderRadius: '999px',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
+            paddingTop: isMobileDevice ? '0px' : '0.3rem',
             backgroundColor: 'rgba(0,0,0,0.52)',
             border: '1px solid rgba(255,255,255,0.34)',
             color: '#ffffff',
-            fontSize: isMobileDevice ? '0.75rem' : '0.88rem',
+            fontSize: isMobileDevice ? '0.75rem' : '1.98rem',
             lineHeight: 1,
             pointerEvents: 'none',
           }}
@@ -888,6 +889,7 @@ export default function WorksCategoryPage({
         />
         <Box
           sx={{
+            width: '100%',
             maxWidth: '1400px',
           }}
         >

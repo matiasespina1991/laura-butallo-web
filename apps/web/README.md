@@ -17,3 +17,7 @@ npm run dev
 - `npm run format`
 
 For Firebase Functions deploys, run the script from the repository root (`npm run deploy:functions`).
+
+## TODOS
+
+- El Lightbox de caroussel deberia tener miniatura de imagenes o videos presentes.
