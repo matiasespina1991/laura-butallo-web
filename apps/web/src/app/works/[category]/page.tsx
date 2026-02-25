@@ -284,25 +284,29 @@ function ImageGridItem({
         <Box
           sx={{
             position: 'absolute',
-            right: '0.55rem',
-            bottom: '0.55rem',
+            right: '1.08rem',
+            top: '1.08rem',
             zIndex: 3,
-            width: isMobileDevice ? '1.5rem' : '1.75rem',
-            height: isMobileDevice ? '1.5rem' : '1.75rem',
-            borderRadius: '999px',
+            width: isMobileDevice ? '1.1664rem' : '1.3608rem',
+            height: isMobileDevice ? '1.1664rem' : '1.3608rem',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(0,0,0,0.52)',
-            border: '1px solid rgba(255,255,255,0.34)',
-            color: '#ffffff',
-            fontSize: isMobileDevice ? '0.75rem' : '0.88rem',
-            lineHeight: 1,
             pointerEvents: 'none',
           }}
           aria-hidden="true"
         >
-          ⧉
+          <img
+            src="/assets/system/icons/multi-post-icon.webp"
+            alt=""
+            aria-hidden="true"
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'block',
+              objectFit: 'contain',
+            }}
+          />
         </Box>
       ) : null}
       {mediaLink ? (
@@ -463,26 +467,29 @@ function VideoGridItem({
         <Box
           sx={{
             position: 'absolute',
-            right: '0.55rem',
-            bottom: '0.55rem',
+            right: '1.08rem',
+            top: '1.08rem',
             zIndex: 3,
-            width: isMobileDevice ? '1.5rem' : '3.05rem',
-            height: isMobileDevice ? '1.5rem' : '3.05rem',
-            borderRadius: '999px',
+            width: isMobileDevice ? '1.1664rem' : '1.3608rem',
+            height: isMobileDevice ? '1.1664rem' : '1.3608rem',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            paddingTop: isMobileDevice ? '0px' : '0.3rem',
-            backgroundColor: 'rgba(0,0,0,0.52)',
-            border: '1px solid rgba(255,255,255,0.34)',
-            color: '#ffffff',
-            fontSize: isMobileDevice ? '0.75rem' : '1.98rem',
-            lineHeight: 1,
             pointerEvents: 'none',
           }}
           aria-hidden="true"
         >
-          ⧉
+          <img
+            src="/assets/system/icons/multi-post-icon.webp"
+            alt=""
+            aria-hidden="true"
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'block',
+              objectFit: 'contain',
+            }}
+          />
         </Box>
       ) : null}
       {mediaLink ? (
@@ -496,6 +503,7 @@ type LightboxMediaProps = {
   media: Media;
   isMobileQuery: boolean;
   isMobileDevice: boolean;
+  onUserZoom: () => void;
 };
 
 function SingleLightboxMediaContent(props: LightboxMediaProps) {
@@ -509,6 +517,7 @@ function LightboxImageContent({
   media,
   isMobileQuery,
   isMobileDevice,
+  onUserZoom,
 }: LightboxMediaProps) {
   const sources = useMemo(
     () => selectImageAssets(media, isMobileDevice),
@@ -527,6 +536,9 @@ function LightboxImageContent({
       maxHeight={LIGHTBOX_MAIN_HEIGHT}
       onLowSrcError={lowImage.handleError}
       onHighSrcError={highImage.handleError}
+      onZoomChange={(zoomed) => {
+        if (zoomed) onUserZoom();
+      }}
     />
   );
 }
@@ -535,6 +547,7 @@ function LightboxVideoContent({
   media,
   isMobileQuery,
   isMobileDevice,
+  onUserZoom,
 }: LightboxMediaProps) {
   const sources = useMemo(
     () => selectVideoAssets(media, isMobileDevice),
@@ -557,6 +570,9 @@ function LightboxVideoContent({
       loop={true}
       onLowSrcError={lowVideo.handleError}
       onHighSrcError={highVideo.handleError}
+      onZoomChange={(zoomed) => {
+        if (zoomed) onUserZoom();
+      }}
     />
   );
 }
@@ -645,6 +661,8 @@ export default function WorksCategoryPage({
     null
   );
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
+  const [carouselAutoplayStopped, setCarouselAutoplayStopped] =
+    useState(false);
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [lightboxImageIsDragging, setLightboxImageIsDragging] =
     useState<boolean>(false);
@@ -676,6 +694,10 @@ export default function WorksCategoryPage({
     activeCarouselItems?.[activeCarouselIndex] ?? activeBaseMedia;
   const hasActiveCarousel =
     Boolean(activeCarouselItems) && (activeCarouselItems?.length ?? 0) > 1;
+
+  const stopCarouselAutoplay = useCallback(() => {
+    setCarouselAutoplayStopped(true);
+  }, []);
 
   const getGridColumns = (length: number) => {
     switch (length) {
@@ -791,6 +813,32 @@ export default function WorksCategoryPage({
       setActiveCarouselIndex(0);
     }
   }, [activeCarouselItems, activeCarouselIndex]);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    setCarouselAutoplayStopped(false);
+  }, [lightboxOpen, activeBaseMedia?.id]);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    if (!hasActiveCarousel || !activeCarouselItems) return;
+    if (carouselAutoplayStopped) return;
+
+    const interval = window.setInterval(() => {
+      setActiveCarouselIndex((prev) => {
+        const length = activeCarouselItems.length;
+        if (length <= 1) return prev;
+        return (prev + 1) % length;
+      });
+    }, 4000);
+
+    return () => window.clearInterval(interval);
+  }, [
+    lightboxOpen,
+    hasActiveCarousel,
+    activeCarouselItems,
+    carouselAutoplayStopped,
+  ]);
 
   const handleMediaLoaded = useCallback(
     (setId: string, index: number, total: number) => {
@@ -980,18 +1028,25 @@ export default function WorksCategoryPage({
     setActiveMediaIndex(null);
     setActiveMediaSetIndex(null);
     setActiveCarouselIndex(0);
+    setCarouselAutoplayStopped(false);
   };
 
   useEffect(() => {
     if (lightboxOpen) {
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'ArrowRight') handleNextMedia();
-        if (e.key === 'ArrowLeft') handlePreviousMedia();
+        if (e.key === 'ArrowRight') {
+          stopCarouselAutoplay();
+          handleNextMedia();
+        }
+        if (e.key === 'ArrowLeft') {
+          stopCarouselAutoplay();
+          handlePreviousMedia();
+        }
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [lightboxOpen, handleNextMedia, handlePreviousMedia]);
+  }, [lightboxOpen, handleNextMedia, handlePreviousMedia, stopCarouselAutoplay]);
 
   return (
     <>
@@ -1348,16 +1403,19 @@ export default function WorksCategoryPage({
                                         width: { xs: '2.75rem', sm: '3rem' },
                                         height: { xs: '2.75rem', sm: '3rem' },
                                         borderRadius: '999px',
-                                        backgroundColor: 'rgba(14, 14, 14, 0.56)',
-                                        border: '1px solid rgba(255,255,255,0.3)',
-                                        boxShadow: '0 8px 20px rgba(0,0,0,0.28)',
-                                        backdropFilter: 'blur(3px)',
+                                        backgroundColor:
+                                          'rgba(120, 120, 120, 0.26)',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
+                                        backdropFilter: 'blur(8px)',
+                                        WebkitBackdropFilter: 'blur(8px)',
                                         transition:
                                           'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
                                         '&:hover': {
-                                          backgroundColor: 'rgba(14, 14, 14, 0.74)',
-                                          borderColor: 'rgba(255,255,255,0.45)',
-                                          boxShadow: '0 10px 24px rgba(0,0,0,0.34)',
+                                          backgroundColor:
+                                            'rgba(120, 120, 120, 0.34)',
+                                          borderColor: 'rgba(255,255,255,0.28)',
+                                          boxShadow: '0 8px 20px rgba(0,0,0,0.24)',
                                         },
                                         '&:focus-visible': {
                                           outline: '2px solid rgba(255,255,255,0.95)',
@@ -1366,6 +1424,7 @@ export default function WorksCategoryPage({
                                       }}
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        stopCarouselAutoplay();
                                         handlePreviousMedia();
                                       }}
                                     >
@@ -1399,6 +1458,7 @@ export default function WorksCategoryPage({
                                           media={activeLightboxMedia}
                                           isMobileQuery={isMobileQuery}
                                           isMobileDevice={isMobile}
+                                          onUserZoom={stopCarouselAutoplay}
                                         />
                                         {mediaLink ? (
                                           <MediaLinkAnchor
@@ -1424,16 +1484,19 @@ export default function WorksCategoryPage({
                                         width: { xs: '2.75rem', sm: '3rem' },
                                         height: { xs: '2.75rem', sm: '3rem' },
                                         borderRadius: '999px',
-                                        backgroundColor: 'rgba(14, 14, 14, 0.56)',
-                                        border: '1px solid rgba(255,255,255,0.3)',
-                                        boxShadow: '0 8px 20px rgba(0,0,0,0.28)',
-                                        backdropFilter: 'blur(3px)',
+                                        backgroundColor:
+                                          'rgba(120, 120, 120, 0.26)',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
+                                        backdropFilter: 'blur(8px)',
+                                        WebkitBackdropFilter: 'blur(8px)',
                                         transition:
                                           'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
                                         '&:hover': {
-                                          backgroundColor: 'rgba(14, 14, 14, 0.74)',
-                                          borderColor: 'rgba(255,255,255,0.45)',
-                                          boxShadow: '0 10px 24px rgba(0,0,0,0.34)',
+                                          backgroundColor:
+                                            'rgba(120, 120, 120, 0.34)',
+                                          borderColor: 'rgba(255,255,255,0.28)',
+                                          boxShadow: '0 8px 20px rgba(0,0,0,0.24)',
                                         },
                                         '&:focus-visible': {
                                           outline: '2px solid rgba(255,255,255,0.95)',
@@ -1442,6 +1505,7 @@ export default function WorksCategoryPage({
                                       }}
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        stopCarouselAutoplay();
                                         handleNextMedia();
                                       }}
                                     >
@@ -1460,6 +1524,64 @@ export default function WorksCategoryPage({
                                         ›
                                       </Box>
                                     </IconButton>
+                                  ) : null}
+
+                                  {hasActiveCarousel && activeCarouselItems ? (
+                                    <Box
+                                      onClick={(e) => e.stopPropagation()}
+                                      sx={{
+                                        position: 'absolute',
+                                        left: '50%',
+                                        bottom: { xs: '0.5rem', sm: '0.75rem' },
+                                        transform: 'translateX(-50%)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: { xs: '0.45rem', sm: '0.55rem' },
+                                        paddingInline: '0.05rem',
+                                        paddingBlock: '0.05rem',
+                                        zIndex: 2100,
+                                      }}
+                                      aria-label="Carousel position indicators"
+                                    >
+                                      {activeCarouselItems.map((item, dotIndex) => {
+                                        const isActive =
+                                          dotIndex === activeCarouselIndex;
+                                        return (
+                                          <Box
+                                            key={`carousel-dot-${item.id}`}
+                                            sx={{
+                                              width: {
+                                                xs: '0.48rem',
+                                                sm: '0.54rem',
+                                              },
+                                              height: {
+                                                xs: '0.48rem',
+                                                sm: '0.54rem',
+                                              },
+                                              borderRadius: '999px',
+                                              backgroundColor: isActive
+                                                ? 'rgba(0,0,0,0.58)'
+                                                : 'rgba(230,230,230,0.16)',
+                                              border: isActive
+                                                ? '1px solid rgba(0,0,0,0)'
+                                                : '1.2px solid rgba(0,0,0,0.15)',
+                                              boxShadow:
+                                                '0 0 4px rgba(0,0,0,0.08)',
+                                              backdropFilter:
+                                                'blur(6px) saturate(140%)',
+                                              WebkitBackdropFilter:
+                                                'blur(6px) saturate(140%)',
+                                              opacity: 1,
+                                              transition:
+                                                'background-color 180ms ease, border-color 180ms ease, transform 180ms ease, width 180ms ease, height 180ms ease, box-shadow 180ms ease',
+                                              transform: 'scale(1)',
+                                            }}
+                                            aria-hidden="true"
+                                          />
+                                        );
+                                      })}
+                                    </Box>
                                   ) : null}
                                 </Box>
 
@@ -1507,15 +1629,17 @@ export default function WorksCategoryPage({
                                               thumbIndex === activeCarouselIndex
                                             }
                                             isMobileDevice={isMobile}
-                                            onSelect={() =>
-                                              setActiveCarouselIndex(thumbIndex)
-                                            }
+                                            onSelect={() => {
+                                              stopCarouselAutoplay();
+                                              setActiveCarouselIndex(thumbIndex);
+                                            }}
                                           />
                                         )
                                       )}
                                     </Box>
                                   </Box>
                                 ) : null}
+
                               </Box>
                             </Box>
                           </Box>

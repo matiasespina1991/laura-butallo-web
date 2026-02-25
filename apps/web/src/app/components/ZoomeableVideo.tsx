@@ -15,6 +15,7 @@ type Props = {
   switchToHighOnZoom?: boolean;
   onLowSrcError?: () => void;
   onHighSrcError?: () => void;
+  onZoomChange?: (zoomed: boolean) => void;
 };
 
 export default function ZoomeableVideo({
@@ -30,6 +31,7 @@ export default function ZoomeableVideo({
   switchToHighOnZoom = true,
   onLowSrcError,
   onHighSrcError,
+  onZoomChange,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -40,6 +42,7 @@ export default function ZoomeableVideo({
     y: 50,
   });
   const [hover, setHover] = useState(false);
+  const [isLowReady, setIsLowReady] = useState(false);
 
   const coordsFromEvent = useCallback((clientX: number, clientY: number) => {
     const el = videoRef.current;
@@ -136,6 +139,17 @@ export default function ZoomeableVideo({
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
+
+    if (!lowSrc) {
+      try {
+        vid.removeAttribute('src');
+        vid.load();
+      } catch {}
+      setIsLowReady(false);
+      return;
+    }
+
+    setIsLowReady(false);
 
     // init to lowSrc if not set
     if (!vid.src || (lowSrc && !vid.currentSrc?.includes(lowSrc))) {
@@ -250,6 +264,10 @@ export default function ZoomeableVideo({
     };
   }, [zoomed, highSrc, lowSrc, switchToHighOnZoom]);
 
+  useEffect(() => {
+    onZoomChange?.(zoomed);
+  }, [zoomed, onZoomChange]);
+
   const videoStyle: React.CSSProperties = {
     display: 'block',
     width: 'auto',
@@ -266,9 +284,11 @@ export default function ZoomeableVideo({
     touchAction: 'none',
     margin: '0 auto',
     zIndex: 1000,
+    opacity: isLowReady ? 1 : 0,
   };
 
   const containerStyle: React.CSSProperties = {
+    position: 'relative',
     padding: '2rem 0',
     boxSizing: 'border-box',
     display: 'flex',
@@ -291,20 +311,44 @@ export default function ZoomeableVideo({
       style={containerStyle}
       className={className}
     >
+      {!isLowReady ? (
+        <img
+          src="/assets/system/loader/loader.webp"
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '4rem',
+            height: '4rem',
+            transform: 'translate(-50%, -50%)',
+            objectFit: 'contain',
+            pointerEvents: 'none',
+            zIndex: 1200,
+          }}
+        />
+      ) : null}
       <video
         ref={videoRef}
+        src={lowSrc || undefined}
         poster={poster}
         playsInline
         autoPlay={autoPlay}
         muted={muted}
         loop={loop}
         preload="metadata"
+        onLoadedData={() => setIsLowReady(true)}
         onClick={handleClick}
         onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onDragStart={(e) => e.preventDefault()}
-        onError={handleVideoError}
+        onError={() => {
+          setIsLowReady(false);
+          handleVideoError();
+        }}
         style={videoStyle}
       />
     </div>

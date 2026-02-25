@@ -12,6 +12,7 @@ type Props = {
   switchToHighOnZoom?: boolean;
   onLowSrcError?: () => void;
   onHighSrcError?: () => void;
+  onZoomChange?: (zoomed: boolean) => void;
 };
 
 export default function ZoomeableImage({
@@ -24,6 +25,7 @@ export default function ZoomeableImage({
   switchToHighOnZoom = true,
   onLowSrcError,
   onHighSrcError,
+  onZoomChange,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -34,6 +36,7 @@ export default function ZoomeableImage({
     y: 50,
   });
   const [hover, setHover] = useState(false);
+  const [isLowReady, setIsLowReady] = useState(false);
 
   const coordsFromEvent = useCallback((clientX: number, clientY: number) => {
     const el = imgRef.current;
@@ -116,7 +119,13 @@ export default function ZoomeableImage({
   useEffect(() => {
     const img = imgRef.current;
     if (!img) return;
+    if (!lowSrc) {
+      img.removeAttribute('src');
+      setIsLowReady(false);
+      return;
+    }
     if (img.src && img.src.includes(lowSrc)) return;
+    setIsLowReady(false);
     img.src = lowSrc;
   }, [lowSrc]);
 
@@ -158,6 +167,10 @@ export default function ZoomeableImage({
     };
   }, [zoomed, highSrc, lowSrc, switchToHighOnZoom, onHighSrcError]);
 
+  useEffect(() => {
+    onZoomChange?.(zoomed);
+  }, [zoomed, onZoomChange]);
+
   const imgStyle: React.CSSProperties = {
     display: 'block',
     width: 'auto',
@@ -175,9 +188,11 @@ export default function ZoomeableImage({
     touchAction: 'none',
     margin: '0 auto',
     zIndex: 1000,
+    opacity: isLowReady ? 1 : 0,
   };
 
   const containerStyle: React.CSSProperties = {
+    position: 'relative',
     padding: '2rem 0',
     boxSizing: 'border-box',
     display: 'flex',
@@ -200,17 +215,41 @@ export default function ZoomeableImage({
       style={containerStyle}
       className={className}
     >
+      {!isLowReady ? (
+        <img
+          src="/assets/system/loader/loader.webp"
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '4rem',
+            height: '4rem',
+            transform: 'translate(-50%, -50%)',
+            objectFit: 'contain',
+            pointerEvents: 'none',
+            zIndex: 1200,
+          }}
+        />
+      ) : null}
       <img
         ref={imgRef}
         alt={alt}
         draggable={false}
+        src={lowSrc || undefined}
         onClick={handleClick}
         onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
+        onLoad={() => setIsLowReady(true)}
         style={imgStyle}
         onDragStart={(e) => e.preventDefault()}
-        onError={onLowSrcError}
+        onError={() => {
+          setIsLowReady(false);
+          onLowSrcError?.();
+        }}
       />
     </div>
   );
