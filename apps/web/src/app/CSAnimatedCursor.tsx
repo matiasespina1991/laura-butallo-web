@@ -82,11 +82,11 @@ export default function CSAnimatedCursor() {
             backgroundColor: 'white',
             filter: 'opacity(0.9)',
             backdropFilter: 'invert(1)',
-            zIndex: 1000,
+            zIndex: 1301,
           }}
           outerStyle={{
             backdropFilter: 'invert(1)',
-            zIndex: 1000,
+            zIndex: 1301,
           }}
         />
       </Box>

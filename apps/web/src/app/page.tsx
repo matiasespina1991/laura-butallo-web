@@ -759,9 +759,16 @@ export default function Home() {
         {showCenteredLoader ? (
           <motion.div
             initial={{ opacity: 1 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.7, ease: 'easeInOut' }}
+            animate={{ opacity: 1, filter: 'blur(0px)' }}
+            exit={{
+              opacity: 0,
+              filter: ['blur(0px)', 'blur(0.4px)', 'blur(2px)'],
+            }}
+            transition={{
+              duration: 2.7,
+              ease: [0.2, 0.9, 0.3, 1],
+              filter: { duration: 2.7, times: [0, 0.82, 1], ease: 'easeIn' },
+            }}
             style={{
               position: 'fixed',
               inset: 0,
