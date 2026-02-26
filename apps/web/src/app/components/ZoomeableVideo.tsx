@@ -6,6 +6,7 @@ type Props = {
   lowSrc: string;
   highSrc?: string;
   poster?: string;
+  fillWidth?: boolean;
   zoomScale?: number;
   maxHeight?: string;
   className?: string;
@@ -13,6 +14,7 @@ type Props = {
   muted?: boolean;
   autoPlay?: boolean;
   switchToHighOnZoom?: boolean;
+  showLoader?: boolean;
   onLowSrcError?: () => void;
   onHighSrcError?: () => void;
   onZoomChange?: (zoomed: boolean) => void;
@@ -22,6 +24,7 @@ export default function ZoomeableVideo({
   lowSrc,
   highSrc,
   poster,
+  fillWidth = false,
   zoomScale = 2.2,
   maxHeight = '80vh',
   className,
@@ -29,23 +32,57 @@ export default function ZoomeableVideo({
   muted = true,
   autoPlay = true,
   switchToHighOnZoom = true,
+  showLoader = true,
   onLowSrcError,
   onHighSrcError,
   onZoomChange,
 }: Props) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const lowVideoRef = useRef<HTMLVideoElement | null>(null);
+  const highVideoRef = useRef<HTMLVideoElement | null>(null);
   const touchDeviceRef = useRef(false);
+  const pinchStartDistanceRef = useRef<number | null>(null);
+  const pinchStartScaleRef = useRef(1);
+  const dragStartRef = useRef<{
+    x: number;
+    y: number;
+    panX: number;
+    panY: number;
+  } | null>(null);
   const [zoomed, setZoomed] = useState(false);
+  const [touchScale, setTouchScale] = useState(1);
+  const [isTouchInput, setIsTouchInput] = useState(false);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
   const [origin, setOrigin] = useState<{ x: number; y: number }>({
     x: 50,
     y: 50,
   });
   const [hover, setHover] = useState(false);
   const [isLowReady, setIsLowReady] = useState(false);
+  const [isHighReady, setIsHighReady] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const coarsePointer =
+      window.matchMedia('(pointer: coarse)').matches ||
+      window.navigator.maxTouchPoints > 0;
+    if (coarsePointer) setIsTouchInput(true);
+  }, []);
+
+  const clampScale = useCallback(
+    (value: number) => Math.min(zoomScale, Math.max(1, value)),
+    [zoomScale]
+  );
+
+  const resetZoom = useCallback(() => {
+    setZoomed(false);
+    setTouchScale(1);
+    setPan({ x: 0, y: 0 });
+    setOrigin({ x: 50, y: 50 });
+    dragStartRef.current = null;
+  }, []);
 
   const coordsFromEvent = useCallback((clientX: number, clientY: number) => {
-    const el = videoRef.current;
+    const el = lowVideoRef.current;
     if (!el) return { x: 50, y: 50 };
     const rect = el.getBoundingClientRect();
     const px = Math.max(0, Math.min(rect.width, clientX - rect.left));
@@ -53,248 +90,273 @@ export default function ZoomeableVideo({
     return { x: (px / rect.width) * 100, y: (py / rect.height) * 100 };
   }, []);
 
+  const clampPan = useCallback((x: number, y: number, scale: number) => {
+    const el = lowVideoRef.current;
+    if (!el || scale <= 1) return { x: 0, y: 0 };
+    const rect = el.getBoundingClientRect();
+    const maxX = Math.max(0, ((scale - 1) * rect.width) / 2);
+    const maxY = Math.max(0, ((scale - 1) * rect.height) / 2);
+    return {
+      x: Math.max(-maxX, Math.min(maxX, x)),
+      y: Math.max(-maxY, Math.min(maxY, y)),
+    };
+  }, []);
+
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
-      if (e.touches.length !== 1) return;
-      e.stopPropagation();
-      e.preventDefault(); // ✅ AÑADE ESTO
       touchDeviceRef.current = true;
-      const t = e.touches[0];
-      const { x, y } = coordsFromEvent(t.clientX, t.clientY);
-      touchStartRef.current = { x: t.clientX, y: t.clientY, t: Date.now() };
-      setOrigin({ x, y });
-      setZoomed(true);
+      setIsTouchInput(true);
+      if (e.touches.length !== 2) {
+        if (e.touches.length === 1 && touchScale > 1.01) {
+          const t = e.touches[0];
+          dragStartRef.current = {
+            x: t.clientX,
+            y: t.clientY,
+            panX: pan.x,
+            panY: pan.y,
+          };
+          e.stopPropagation();
+          e.preventDefault();
+        }
+        return;
+      }
+
+      e.stopPropagation();
+      e.preventDefault();
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const distance = Math.hypot(
+        t2.clientX - t1.clientX,
+        t2.clientY - t1.clientY
+      );
+      dragStartRef.current = null;
+      pinchStartDistanceRef.current = distance > 0 ? distance : 1;
+      pinchStartScaleRef.current = touchScale;
+      if (touchScale <= 1.01) setZoomed(true);
     },
-    [coordsFromEvent]
+    [pan.x, pan.y, touchScale]
   );
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
-      if (!zoomed || e.touches.length !== 1) return;
-      e.stopPropagation();
-      e.preventDefault(); // ✅ AÑADE ESTO
+      if (e.touches.length === 2 && pinchStartDistanceRef.current) {
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const distance = Math.hypot(
+          t2.clientX - t1.clientX,
+          t2.clientY - t1.clientY
+        );
+        const nextScale = clampScale(
+          pinchStartScaleRef.current *
+            ((distance > 0 ? distance : 1) / pinchStartDistanceRef.current)
+        );
+        setTouchScale(nextScale);
+        setZoomed(nextScale > 1.01);
+        setPan((prev) => clampPan(prev.x, prev.y, nextScale));
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+      }
+
+      if (!zoomed || e.touches.length !== 1 || touchScale <= 1.01) return;
       const t = e.touches[0];
-      const { x, y } = coordsFromEvent(t.clientX, t.clientY);
-      setOrigin({ x, y });
+      const dragStart = dragStartRef.current;
+      if (!dragStart) return;
+      const nextX = dragStart.panX + (t.clientX - dragStart.x);
+      const nextY = dragStart.panY + (t.clientY - dragStart.y);
+      setPan(clampPan(nextX, nextY, touchScale));
+      e.stopPropagation();
+      e.preventDefault();
     },
-    [coordsFromEvent, zoomed]
+    [clampPan, clampScale, touchScale, zoomed]
   );
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
-      e.stopPropagation(); // ✅ AÑADE ESTO
-      e.preventDefault(); // ✅ AÑADE ESTO
-      touchStartRef.current = null;
-      if (zoomed) {
-        setZoomed(false);
-        setOrigin({ x: 50, y: 50 });
+      if (e.touches.length < 2) {
+        pinchStartDistanceRef.current = null;
+        pinchStartScaleRef.current = touchScale;
       }
+      if (e.touches.length === 1 && touchScale > 1.01) {
+        const t = e.touches[0];
+        dragStartRef.current = {
+          x: t.clientX,
+          y: t.clientY,
+          panX: pan.x,
+          panY: pan.y,
+        };
+      }
+      if (e.touches.length === 0 && touchScale <= 1.01) {
+        resetZoom();
+      }
+      if (e.touches.length === 0) {
+        dragStartRef.current = null;
+      }
+      e.stopPropagation();
     },
-    [zoomed]
+    [pan.x, pan.y, resetZoom, touchScale]
   );
 
-  // En el useEffect, SINCRONIZA stopPropagation en React handlers
+  const handleTouchCancel = useCallback(() => {
+    pinchStartDistanceRef.current = null;
+    dragStartRef.current = null;
+    if (touchScale <= 1.01) {
+      resetZoom();
+    }
+  }, [resetZoom, touchScale]);
+
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
-      if (touchDeviceRef.current) return;
+      if (touchDeviceRef.current || isTouchInput) return;
       e.stopPropagation();
       const { x, y } = coordsFromEvent(e.clientX, e.clientY);
       setOrigin({ x, y });
       setZoomed((z) => !z);
     },
-    [coordsFromEvent]
+    [coordsFromEvent, isTouchInput]
   );
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!zoomed) return;
+      if (isTouchInput || !zoomed) return;
       e.stopPropagation();
       const { x, y } = coordsFromEvent(e.clientX, e.clientY);
       setOrigin({ x, y });
     },
-    [coordsFromEvent, zoomed]
+    [coordsFromEvent, isTouchInput, zoomed]
   );
 
   const handleMouseEnter = useCallback(() => setHover(true), []);
+
   const handleMouseLeave = useCallback(() => {
+    if (isTouchInput) return;
     setHover(false);
-  }, []);
+  }, [isTouchInput]);
 
   const handlePointerLeave = useCallback(() => {
+    if (isTouchInput) return;
     setHover(false);
-  }, []);
-
-  const handleVideoError = useCallback(() => {
-    if (zoomed) {
-      onHighSrcError?.();
-    } else {
-      onLowSrcError?.();
-    }
-  }, [zoomed, onHighSrcError, onLowSrcError]);
-
-  const touchStartRef = useRef<{ x: number; y: number; t: number } | null>(
-    null
-  );
+  }, [isTouchInput]);
 
   useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid) return;
+    setIsHighReady(false);
+  }, [highSrc, lowSrc]);
 
+  useEffect(() => {
+    const low = lowVideoRef.current;
+    if (!low) return;
     if (!lowSrc) {
       try {
-        vid.removeAttribute('src');
-        vid.load();
+        low.removeAttribute('src');
+        low.load();
       } catch {}
       setIsLowReady(false);
       return;
     }
-
     setIsLowReady(false);
+    resetZoom();
+  }, [lowSrc, resetZoom]);
 
-    // init to lowSrc if not set
-    if (!vid.src || (lowSrc && !vid.currentSrc?.includes(lowSrc))) {
-      try {
-        vid.src = lowSrc;
-      } catch {}
-    }
-
-    let startX = 0;
-    let startY = 0;
-    let startTime = 0;
-    let moved = false;
-
-    const nativeTouchStart = (ev: TouchEvent) => {
-      if (!ev || ev.touches.length !== 1) return;
-      // must be non-passive so preventDefault can be called if needed
-      const t = ev.touches[0];
-      startX = t.clientX;
-      startY = t.clientY;
-      startTime = Date.now();
-      moved = false;
-      // Prevent default here to hinder the browser long-press menu.
-      // We'll synthesize click on touchend if it's a short tap (so taps still work).
-      ev.preventDefault();
-    };
-
-    const nativeTouchMove = (ev: TouchEvent) => {
-      if (!ev || ev.touches.length !== 1) return;
-      const t = ev.touches[0];
-      const dx = Math.abs(t.clientX - startX);
-      const dy = Math.abs(t.clientY - startY);
-      if (dx > 10 || dy > 10) moved = true;
-      // if zoomed, prevent scrolling
-      if (zoomed) {
-        ev.preventDefault();
-      }
-    };
-
-    const nativeTouchEnd = (ev: TouchEvent) => {
-      const duration = Date.now() - startTime;
-      // short tap (no movement, short time) => synthesize click so React handlers still run
-      if (!moved && duration < 250) {
-        const clickEvent = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-        });
-        // dispatch click on the video element
-        vid.dispatchEvent(clickEvent);
-      }
-    };
-
-    const onContextMenu = (ev: Event) => {
-      ev.preventDefault();
-    };
-
-    // add native listeners with passive: false where we call preventDefault
-    vid.addEventListener('touchstart', nativeTouchStart, { passive: false });
-    vid.addEventListener('touchmove', nativeTouchMove, { passive: false });
-    vid.addEventListener('touchend', nativeTouchEnd);
-    vid.addEventListener('contextmenu', onContextMenu);
-
-    return () => {
-      try {
-        vid.removeEventListener('touchstart', nativeTouchStart as any);
-        vid.removeEventListener('touchmove', nativeTouchMove as any);
-        vid.removeEventListener('touchend', nativeTouchEnd as any);
-        vid.removeEventListener('contextmenu', onContextMenu as any);
-      } catch {}
-    };
-  }, [lowSrc, zoomed]);
-
-  // Cambiar fuente al activar zoom (preserva tiempo y estado de reproducción)
   useEffect(() => {
-    if (!switchToHighOnZoom) return;
-    const vid = videoRef.current;
-    if (!vid) return;
-    // Importante: evitamos volver a lowSrc al des-zoomear para no recargar el video
-    // (eso suele causar flicker y puede disparar mouseleave/pointerleave en desktop).
-    const choose = zoomed ? highSrc : undefined;
-    if (!choose) return;
-    if (vid.currentSrc && choose && vid.currentSrc.includes(choose)) return;
+    if (!zoomed || !switchToHighOnZoom || !highSrc || !isHighReady) return;
+    const low = lowVideoRef.current;
+    const high = highVideoRef.current;
+    if (!low || !high) return;
 
-    const prevTime = Math.max(0, vid.currentTime || 0);
-    const wasPlaying = !vid.paused && !vid.ended;
-
-    try {
-      vid.pause();
-    } catch {}
-    vid.src = choose;
-    vid.load();
-
-    const onLoaded = () => {
+    const syncAndPlay = () => {
       try {
-        if (!Number.isFinite(prevTime) || isNaN(prevTime)) {
-          vid.currentTime = 0;
-        } else {
-          const dur = vid.duration || Infinity;
-          vid.currentTime = Math.min(prevTime, dur - 0.1);
+        if (Math.abs(high.currentTime - low.currentTime) > 0.15) {
+          high.currentTime = low.currentTime;
         }
       } catch {}
-      if (wasPlaying) {
-        vid.play().catch(() => {});
+      if (!low.paused && high.paused) {
+        high.play().catch(() => {});
       }
-      vid.removeEventListener('loadedmetadata', onLoaded);
     };
-    vid.addEventListener('loadedmetadata', onLoaded);
-    return () => {
-      try {
-        vid.removeEventListener('loadedmetadata', onLoaded);
-      } catch {}
-    };
-  }, [zoomed, highSrc, lowSrc, switchToHighOnZoom]);
+
+    syncAndPlay();
+    const interval = window.setInterval(syncAndPlay, 220);
+    return () => window.clearInterval(interval);
+  }, [zoomed, switchToHighOnZoom, highSrc, isHighReady]);
+
+  useEffect(() => {
+    if (zoomed) return;
+    const high = highVideoRef.current;
+    if (!high) return;
+    try {
+      high.pause();
+    } catch {}
+  }, [zoomed]);
 
   useEffect(() => {
     onZoomChange?.(zoomed);
   }, [zoomed, onZoomChange]);
 
-  const videoStyle: React.CSSProperties = {
+  useEffect(() => {
+    if (!isTouchInput) return;
+    setPan((prev) => clampPan(prev.x, prev.y, touchScale));
+  }, [clampPan, isTouchInput, touchScale]);
+
+  const effectiveScale = isTouchInput ? touchScale : zoomed ? zoomScale : 1;
+  const fullWidthMode = fillWidth || isTouchInput;
+  const transformTransition = isTouchInput
+    ? 'transform 0s'
+    : zoomed
+      ? 'transform 0.08s linear'
+      : 'transform 240ms ease';
+  const showHighLayer =
+    Boolean(highSrc) && switchToHighOnZoom && isHighReady && zoomed;
+
+  const mediaStyleBase: React.CSSProperties = {
+    gridArea: '1 / 1',
     display: 'block',
-    width: 'auto',
-    maxWidth: '99vw',
+    width: fullWidthMode ? '100%' : 'auto',
+    maxWidth: fullWidthMode ? '100%' : '99vw',
     maxHeight,
     borderRadius: '8px',
     height: 'auto',
     objectFit: 'contain',
-    transformOrigin: `${origin.x}% ${origin.y}%`,
-    transform: zoomed ? `scale(${zoomScale})` : 'scale(1)',
-    transition: zoomed ? 'transform 0.08s linear' : 'transform 240ms ease',
-    cursor: zoomed ? 'zoom-out' : hover ? 'zoom-in' : 'default',
+    transformOrigin: isTouchInput ? '50% 50%' : `${origin.x}% ${origin.y}%`,
+    transform: isTouchInput
+      ? `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${effectiveScale})`
+      : `scale(${effectiveScale})`,
+    transition: `${transformTransition}, opacity 240ms ease`,
     userSelect: 'none',
     touchAction: 'none',
     margin: '0 auto',
+    willChange: 'transform, opacity',
+  };
+
+  const lowVideoStyle: React.CSSProperties = {
+    ...mediaStyleBase,
+    cursor: isTouchInput
+      ? 'default'
+      : zoomed
+        ? 'zoom-out'
+        : hover
+          ? 'zoom-in'
+          : 'default',
     zIndex: 1000,
     opacity: isLowReady ? 1 : 0,
   };
 
+  const highVideoStyle: React.CSSProperties = {
+    ...mediaStyleBase,
+    cursor: 'default',
+    pointerEvents: 'none',
+    zIndex: 1001,
+    opacity: showHighLayer ? 1 : 0,
+  };
+
   const containerStyle: React.CSSProperties = {
     position: 'relative',
-    padding: '2rem 0',
+    width: '100%',
+    maxWidth: '100%',
+    padding: 0,
     boxSizing: 'border-box',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
+    display: 'grid',
+    placeItems: 'center',
+    overflow: 'visible',
     maxHeight,
     touchAction: 'none',
     overscrollBehavior: 'contain',
@@ -302,16 +364,16 @@ export default function ZoomeableVideo({
 
   return (
     <div
-      ref={containerRef}
       onClick={(e) => e.stopPropagation()}
       onPointerLeave={handlePointerLeave}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
       style={containerStyle}
       className={className}
     >
-      {!isLowReady ? (
+      {!isLowReady && showLoader ? (
         <img
           src="/assets/system/loader/loader.webp"
           alt=""
@@ -321,8 +383,8 @@ export default function ZoomeableVideo({
             position: 'absolute',
             top: '50%',
             left: '50%',
-            width: '4rem',
-            height: '4rem',
+            width: '2.4rem',
+            height: '2.4rem',
             transform: 'translate(-50%, -50%)',
             objectFit: 'contain',
             pointerEvents: 'none',
@@ -331,7 +393,7 @@ export default function ZoomeableVideo({
         />
       ) : null}
       <video
-        ref={videoRef}
+        ref={lowVideoRef}
         src={lowSrc || undefined}
         poster={poster}
         playsInline
@@ -344,13 +406,43 @@ export default function ZoomeableVideo({
         onMouseMove={handleMouseMove}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
         onDragStart={(e) => e.preventDefault()}
         onError={() => {
           setIsLowReady(false);
-          handleVideoError();
+          onLowSrcError?.();
         }}
-        style={videoStyle}
+        style={lowVideoStyle}
       />
+      {switchToHighOnZoom && highSrc ? (
+        <video
+          ref={highVideoRef}
+          src={highSrc}
+          playsInline
+          autoPlay={autoPlay}
+          muted={muted}
+          loop={loop}
+          preload="metadata"
+          onLoadedData={() => {
+            setIsHighReady(true);
+            const low = lowVideoRef.current;
+            const high = highVideoRef.current;
+            if (!low || !high) return;
+            try {
+              high.currentTime = low.currentTime;
+            } catch {}
+            if (!low.paused) {
+              high.play().catch(() => {});
+            }
+          }}
+          onError={() => {
+            setIsHighReady(false);
+            onHighSrcError?.();
+          }}
+          style={highVideoStyle}
+        />
+      ) : null}
     </div>
   );
 }

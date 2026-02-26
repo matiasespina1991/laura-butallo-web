@@ -22,6 +22,10 @@
   min-height: 100vh;
 }
 
+.main.exhibitionsPage {
+  min-height: 100vh;
+}
+
 .lightboxOpen {
   pointer-events: none;
 }

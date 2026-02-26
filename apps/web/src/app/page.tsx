@@ -9,12 +9,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import NextImage from 'next/image';
 import { Box, Grid, IconButton, Theme, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { isMobile } from 'react-device-detect';
 
 import { useSwipeable } from 'react-swipeable';
 import { fetchMediaSetsWithMedia } from '@/utils/functions/fetchMediaSetsWithMedia';
-import { MinimalLeftArrowIcon } from './components/MinimalLeftArrowIcon';
-import { MinimalRightArrowIcon } from './components/MinimalRightArrowIcon';
 import ZoomableImage from './components/ZoomeableImage';
 import ZoomeableVideo from './components/ZoomeableVideo';
 import {
@@ -42,6 +39,7 @@ type MediaWithHandlers = {
   ) => void;
   mediaArray: Media[];
   setSize: number;
+  isMobileDevice: boolean;
 };
 
 function MediaItem(props: MediaWithHandlers) {
@@ -65,9 +63,9 @@ function ImageGridItem({
   openLightbox,
   mediaArray,
   setSize,
+  isMobileDevice,
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
-  const isMobileDevice = isMobile;
   const imageRef = useRef<HTMLImageElement | null>(null);
   const hasNotifiedRef = useRef(false);
   const canReveal = isVisible && loaded;
@@ -241,9 +239,9 @@ function VideoGridItem({
   openLightbox,
   mediaArray,
   setSize,
+  isMobileDevice,
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
-  const isMobileDevice = isMobile;
   const hasNotifiedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canReveal = isVisible && loaded;
@@ -410,6 +408,10 @@ type LightboxMediaProps = {
   isMobileDevice: boolean;
 };
 
+const LIGHTBOX_MEDIA_MAX_HEIGHT = '87vh';
+const LIGHTBOX_MAIN_HEIGHT = `calc(${LIGHTBOX_MEDIA_MAX_HEIGHT} * 0.75)`;
+const LIGHTBOX_MAIN_HEIGHT_MOBILE = `calc(${LIGHTBOX_MEDIA_MAX_HEIGHT} * 0.82)`;
+
 function LightboxMediaContent(props: LightboxMediaProps) {
   if (props.media.type === 'image') {
     return <LightboxImageContent {...props} />;
@@ -435,10 +437,13 @@ function LightboxImageContent({
       lowSrc={lowImage.src || ''}
       highSrc={highImage.src || undefined}
       alt="Fullscreen Image"
-      zoomScale={2.5}
-      maxHeight={'87vh'}
+      zoomScale={5}
+      maxHeight={
+        isMobileQuery ? LIGHTBOX_MAIN_HEIGHT_MOBILE : LIGHTBOX_MAIN_HEIGHT
+      }
       onLowSrcError={lowImage.handleError}
       onHighSrcError={highImage.handleError}
+      showLoader={false}
     />
   );
 }
@@ -452,7 +457,11 @@ function LightboxVideoContent({
     () => selectVideoAssets(media, isMobileDevice),
     [media, isMobileDevice]
   );
-  const lowVideo = useStorageAssetSrc(sources.low, { preferDirect: false });
+  const mobileMediumVideo = media.paths?.derivatives?.['webm_720'];
+  const lightboxLowAsset = isMobileDevice
+    ? mobileMediumVideo ?? sources.high ?? sources.low
+    : sources.low;
+  const lowVideo = useStorageAssetSrc(lightboxLowAsset, { preferDirect: false });
   const highVideo = useStorageAssetSrc(sources.high, { preferDirect: false });
   const posterSource = useStorageAssetSrc(sources.poster);
 
@@ -461,14 +470,18 @@ function LightboxVideoContent({
       className="auto-cursor"
       lowSrc={lowVideo.src || ''}
       highSrc={highVideo.src || undefined}
-      poster={posterSource.src || undefined}
-      zoomScale={isMobileDevice ? 2 : 3}
-      maxHeight={'87vh'}
+      poster={isMobileDevice ? undefined : posterSource.src || undefined}
+      fillWidth={isMobileQuery || isMobileDevice}
+      zoomScale={isMobileDevice ? 4 : 6}
+      maxHeight={
+        isMobileQuery ? LIGHTBOX_MAIN_HEIGHT_MOBILE : LIGHTBOX_MAIN_HEIGHT
+      }
       autoPlay={true}
       muted={true}
       loop={true}
       onLowSrcError={lowVideo.handleError}
       onHighSrcError={highVideo.handleError}
+      showLoader={false}
     />
   );
 }
@@ -482,8 +495,6 @@ export default function Home() {
     null
   );
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
-  const [lightboxImageIsDragging, setLightboxImageIsDragging] =
-    useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
   const [showCenteredLoader, setShowCenteredLoader] = useState(true);
@@ -497,9 +508,11 @@ export default function Home() {
   const firstSetId = mediaSetsWithMedia[0]?.mediaset.id;
   const firstSetTotal = mediaSetsWithMedia[0]?.media.length ?? 0;
 
-  const isMobileQuery = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm')
+  const isMobileQuery = useMediaQuery(
+    (theme: Theme) => theme.breakpoints.down('sm'),
+    { noSsr: true }
   );
+  const isMobileViewport = isMobileQuery;
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const loaderTextColor = isDarkMode ? '#ffffff' : '#000000';
@@ -566,6 +579,32 @@ export default function Home() {
     }
   };
 
+  const getColumnsForSetLength = useCallback(
+    (length: number) =>
+      isMobileQuery && length === 4 ? 2 : getGridColumns(length),
+    [isMobileQuery]
+  );
+
+  const getFirstRowVisibleLimit = useCallback(
+    (total: number) => {
+      if (total <= 0) return 0;
+      const columns = getColumnsForSetLength(total);
+      return Math.min(columns - 1, total - 1);
+    },
+    [getColumnsForSetLength]
+  );
+
+  const getRowEndIndex = useCallback(
+    (index: number, total: number) => {
+      if (total <= 0) return 0;
+      const columns = getColumnsForSetLength(total);
+      const safeIndex = Math.max(0, index);
+      const rowStart = Math.floor(safeIndex / columns) * columns;
+      return Math.min(rowStart + columns - 1, total - 1);
+    },
+    [getColumnsForSetLength]
+  );
+
   useEffect(() => {
     async function loadMediaSets() {
       const cacheKey = 'home_mediaSets_cache';
@@ -613,9 +652,15 @@ export default function Home() {
         mediaSetsWithMedia.map((setWithMedia) => {
           const setId = setWithMedia.mediaset.id;
           const total = setWithMedia.media.length;
-          const prevLimit = prev[setId] ?? 0;
           const maxIndex = Math.max(total - 1, 0);
-          return [setId, Math.min(prevLimit, maxIndex)];
+          const firstRowLimit = getFirstRowVisibleLimit(total);
+          const prevLimit = allImagesLoaded ? prev[setId] : undefined;
+          const baseLimit =
+            typeof prevLimit === 'number' ? prevLimit : firstRowLimit;
+          return [
+            setId,
+            Math.min(Math.max(baseLimit, firstRowLimit), maxIndex),
+          ];
         })
       )
     );
@@ -624,7 +669,7 @@ export default function Home() {
       setFirstSetReady(false);
       setSequenceVersion((prev) => prev + 1);
     }
-  }, [mediaSetsWithMedia, allImagesLoaded]);
+  }, [mediaSetsWithMedia, allImagesLoaded, getFirstRowVisibleLimit]);
 
   useEffect(() => {
     if (!firstSetId) {
@@ -649,7 +694,7 @@ export default function Home() {
   }, [allImagesLoaded]);
 
   useEffect(() => {
-    const shouldShowLoader = isLoading || !allImagesLoaded;
+    const shouldShowLoader = !isMobileViewport && (isLoading || !allImagesLoaded);
     if (shouldShowLoader) {
       setShowCenteredLoader(true);
       return;
@@ -660,7 +705,7 @@ export default function Home() {
     }, 4000);
 
     return () => window.clearTimeout(timeout);
-  }, [isLoading, allImagesLoaded]);
+  }, [isLoading, allImagesLoaded, isMobileViewport]);
 
   const handleMediaLoaded = useCallback(
     (setId: string, index: number, total: number) => {
@@ -687,7 +732,10 @@ export default function Home() {
         }
       }
 
-      const nextVisible = Math.min(contiguous + 1, total - 1);
+      const nextVisible =
+        contiguous >= total - 1
+          ? total - 1
+          : getRowEndIndex(contiguous + 1, total);
       setMaxVisibleBySet((prev) => {
         if (prev[setId] === nextVisible) return prev;
         return { ...prev, [setId]: nextVisible };
@@ -699,7 +747,7 @@ export default function Home() {
         if (allLoaded) setFirstSetReady(true);
       }
     },
-    [firstSetId, firstSetTotal]
+    [firstSetId, firstSetTotal, getRowEndIndex]
   );
 
   const handlePreviousMedia = useCallback(() => {
@@ -790,7 +838,7 @@ export default function Home() {
   return (
     <>
       <AnimatePresence>
-        {showCenteredLoader ? (
+        {showCenteredLoader && !isMobileViewport ? (
           <motion.div
             initial={{ opacity: 1 }}
             animate={{ opacity: 1, filter: 'blur(0px)' }}
@@ -884,12 +932,7 @@ export default function Home() {
           maxWidth="1400px"
         >
           {isLoading || !allImagesLoaded ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.5, delay: 0.5 }}
-            >
+            <Box>
               <Box
                 display="flex"
                 flexDirection="column"
@@ -1076,7 +1119,7 @@ export default function Home() {
                   ))}
                 </Box>
               </Box>
-            </motion.div>
+            </Box>
           ) : null}
 
           {mediaSetsWithMedia.length > 0 && (
@@ -1085,15 +1128,16 @@ export default function Home() {
               animate={{ opacity: allImagesLoaded ? 1 : 0 }}
               transition={{ duration: 1.2 }}
             >
-              <ScrollContainer draggable={false} className={styles.carousel}>
+                <ScrollContainer draggable={false} className={styles.carousel}>
                 {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
                   if (setIndex > 0 && !firstSetReady) return null;
-                  const columns =
-                    isMobileQuery && setWithMedia.media.length === 4
-                      ? 2
-                      : getGridColumns(setWithMedia.media.length);
+                  const columns = getColumnsForSetLength(
+                    setWithMedia.media.length
+                  );
                   const setId = setWithMedia.mediaset.id;
-                  const visibleLimit = maxVisibleBySet[setId] ?? 0;
+                  const visibleLimit =
+                    maxVisibleBySet[setId] ??
+                    getFirstRowVisibleLimit(setWithMedia.media.length);
 
                   return (
                     <motion.div
@@ -1135,6 +1179,7 @@ export default function Home() {
                                     showPostSkeleton={postSkeletonVisible}
                                     openLightbox={openLightbox}
                                     mediaArray={setWithMedia.media}
+                                    isMobileDevice={isMobileViewport}
                                   />
                                 </Box>
                               );
@@ -1189,30 +1234,6 @@ export default function Home() {
                       pointerEvents: 'auto',
                     }}
                   />
-                  <IconButton
-                    disabled={isAtLightboxStart}
-                    sx={{
-                      position: 'absolute',
-                      left: '1rem',
-                      color: 'white',
-                      zIndex: 1000,
-                      transform: 'scale(1.5)',
-                      opacity: lightboxImageIsDragging ? 0 : 1,
-                      transition: 'opacity 0.3s',
-                      '&.Mui-disabled': {
-                        color: 'rgba(255,255,255,0.38)',
-                        opacity: lightboxImageIsDragging ? 0 : 0.45,
-                      },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isAtLightboxStart) return;
-                      handlePreviousMedia();
-                    }}
-                  >
-                    <MinimalLeftArrowIcon />
-                  </IconButton>
-
                   <Box
                     sx={{
                       position: 'relative',
@@ -1227,15 +1248,10 @@ export default function Home() {
                   >
                     <AnimatePresence>
                       <motion.div
-                        key={
-                          mediaSetsWithMedia[activeMediaSetIndex].media[
-                            activeMediaIndex
-                          ].id
-                        }
-                        initial={{ opacity: 0 }}
+                        initial={{ opacity: 1 }}
                         animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        exit={{ opacity: 1 }}
+                        transition={{ duration: 0 }}
                         // {...swipeHandlers}
                         style={{
                           gridArea: '1 / 1',
@@ -1257,6 +1273,7 @@ export default function Home() {
                             display: 'block',
                             userSelect: 'none',
                             pointerEvents: 'auto',
+                            width: isMobileViewport ? '99vw' : 'auto',
                             maxWidth: '99vw',
                             maxHeight: '80vh',
                             margin: '0 auto',
@@ -1265,7 +1282,7 @@ export default function Home() {
                           <Box
                             sx={{
                               borderRadius: '6px',
-                              overflow: 'hidden',
+                              overflow: 'visible',
                             }}
                           >
                             <IconButton
@@ -1275,38 +1292,83 @@ export default function Home() {
                                 right: '1rem',
                                 color: 'white',
                                 zIndex: 9999,
-                                opacity: lightboxImageIsDragging ? 0 : 1,
-                                transition: 'opacity 0.3s',
-                                transform: 'scale(1.3)',
+                                transition:
+                                  'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                                width: { xs: '2.75rem', sm: 'auto' },
+                                height: { xs: '2.75rem', sm: 'auto' },
+                                borderRadius: { xs: '999px', sm: '0' },
+                                backgroundColor: {
+                                  xs: 'rgba(120, 120, 120, 0.26)',
+                                  sm: 'transparent',
+                                },
+                                border: {
+                                  xs: '1px solid rgba(255,255,255,0.2)',
+                                  sm: 'none',
+                                },
+                                boxShadow: {
+                                  xs: '0 6px 18px rgba(0,0,0,0.2)',
+                                  sm: 'none',
+                                },
+                                backdropFilter: {
+                                  xs: 'blur(8px)',
+                                  sm: 'none',
+                                },
+                                WebkitBackdropFilter: {
+                                  xs: 'blur(8px)',
+                                  sm: 'none',
+                                },
+                                transform: { xs: 'none', sm: 'scale(1.3)' },
+                                '&:hover': {
+                                  backgroundColor: {
+                                    xs: 'rgba(120, 120, 120, 0.34)',
+                                    sm: 'transparent',
+                                  },
+                                },
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 closeLightbox();
                               }}
                             >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                width="35px"
-                                height="35px"
-                              >
-                                <line
-                                  x1="6"
-                                  y1="6"
-                                  x2="18"
-                                  y2="18"
-                                  stroke="currentColor"
-                                  strokeWidth="0.6"
-                                />
-                                <line
-                                  x1="18"
-                                  y1="6"
-                                  x2="6"
-                                  y2="18"
-                                  stroke="currentColor"
-                                  strokeWidth="0.6"
-                                />
-                              </svg>
+                              {isMobileViewport ? (
+                                <Box
+                                  component="span"
+                                  aria-hidden="true"
+                                  sx={{
+                                    fontSize: '1.44rem',
+                                    lineHeight: 1,
+                                    fontWeight: 300,
+                                    transform: 'translateY(-1px)',
+                                    display: 'inline-block',
+                                  }}
+                                >
+                                  ×
+                                </Box>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24"
+                                  width="35px"
+                                  height="35px"
+                                >
+                                  <line
+                                    x1="6"
+                                    y1="6"
+                                    x2="18"
+                                    y2="18"
+                                    stroke="currentColor"
+                                    strokeWidth="0.6"
+                                  />
+                                  <line
+                                    x1="18"
+                                    y1="6"
+                                    x2="6"
+                                    y2="18"
+                                    stroke="currentColor"
+                                    strokeWidth="0.6"
+                                  />
+                                </svg>
+                              )}
                             </IconButton>
 
                             {(() => {
@@ -1315,11 +1377,150 @@ export default function Home() {
                                   activeMediaIndex
                                 ];
                               return (
-                                <LightboxMediaContent
-                                  media={media}
-                                  isMobileQuery={isMobileQuery}
-                                  isMobileDevice={isMobile}
-                                />
+                                <Box
+                                  sx={{
+                                    position: 'relative',
+                                    display: 'grid',
+                                    placeItems: 'center',
+                                  }}
+                                >
+                                  <IconButton
+                                    aria-label="Previous media"
+                                    sx={{
+                                      position: 'absolute',
+                                      left: { xs: '0.5rem', sm: '0.9rem' },
+                                      top: '50%',
+                                      transform: 'translateY(-50%)',
+                                      color: 'white',
+                                      zIndex: 2100,
+                                      width: { xs: '2.75rem', sm: '3rem' },
+                                      height: { xs: '2.75rem', sm: '3rem' },
+                                      borderRadius: '999px',
+                                      backgroundColor:
+                                        'rgba(120, 120, 120, 0.26)',
+                                      border: '1px solid rgba(255,255,255,0.2)',
+                                      boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
+                                      backdropFilter: 'blur(8px)',
+                                      WebkitBackdropFilter: 'blur(8px)',
+                                      transition:
+                                        'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                                      '&:hover': {
+                                        backgroundColor:
+                                          'rgba(120, 120, 120, 0.34)',
+                                        borderColor: 'rgba(255,255,255,0.28)',
+                                        boxShadow:
+                                          '0 8px 20px rgba(0,0,0,0.24)',
+                                      },
+                                      '&:focus-visible': {
+                                        outline:
+                                          '2px solid rgba(255,255,255,0.95)',
+                                        outlineOffset: '2px',
+                                      },
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (isAtLightboxStart) return;
+                                      handlePreviousMedia();
+                                    }}
+                                  >
+                                    <Box
+                                      component="span"
+                                      aria-hidden="true"
+                                      sx={{
+                                        fontSize: { xs: '1.8rem', sm: '2rem' },
+                                        lineHeight: 1,
+                                        fontWeight: 300,
+                                        paddingBottom: '0.3rem',
+                                        transform: 'translateX(-1px)',
+                                        display: 'inline-block',
+                                      }}
+                                    >
+                                      ‹
+                                    </Box>
+                                  </IconButton>
+                                  <AnimatePresence
+                                    initial={false}
+                                    mode="sync"
+                                  >
+                                    <motion.div
+                                      key={media.id}
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      exit={{ opacity: 0 }}
+                                      transition={{
+                                        duration: 0.32,
+                                        ease: 'easeInOut',
+                                      }}
+                                      style={{
+                                        gridArea: '1 / 1',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        willChange: 'opacity',
+                                      }}
+                                    >
+                                      <LightboxMediaContent
+                                        media={media}
+                                        isMobileQuery={isMobileQuery}
+                                        isMobileDevice={isMobileViewport}
+                                      />
+                                    </motion.div>
+                                  </AnimatePresence>
+                                  <IconButton
+                                    aria-label="Next media"
+                                    sx={{
+                                      position: 'absolute',
+                                      right: { xs: '0.5rem', sm: '0.9rem' },
+                                      top: '50%',
+                                      transform: 'translateY(-50%)',
+                                      color: 'white',
+                                      zIndex: 2100,
+                                      width: { xs: '2.75rem', sm: '3rem' },
+                                      height: { xs: '2.75rem', sm: '3rem' },
+                                      borderRadius: '999px',
+                                      backgroundColor:
+                                        'rgba(120, 120, 120, 0.26)',
+                                      border: '1px solid rgba(255,255,255,0.2)',
+                                      boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
+                                      backdropFilter: 'blur(8px)',
+                                      WebkitBackdropFilter: 'blur(8px)',
+                                      transition:
+                                        'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                                      '&:hover': {
+                                        backgroundColor:
+                                          'rgba(120, 120, 120, 0.34)',
+                                        borderColor: 'rgba(255,255,255,0.28)',
+                                        boxShadow:
+                                          '0 8px 20px rgba(0,0,0,0.24)',
+                                      },
+                                      '&:focus-visible': {
+                                        outline:
+                                          '2px solid rgba(255,255,255,0.95)',
+                                        outlineOffset: '2px',
+                                      },
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (isAtLightboxEnd) return;
+                                      handleNextMedia();
+                                    }}
+                                  >
+                                    <Box
+                                      component="span"
+                                      aria-hidden="true"
+                                      sx={{
+                                        fontSize: { xs: '1.8rem', sm: '2rem' },
+                                        lineHeight: 1,
+                                        fontWeight: 300,
+                                        paddingBottom: '0.3rem',
+                                        transform: 'translateX(1px)',
+                                        display: 'inline-block',
+                                      }}
+                                    >
+                                      ›
+                                    </Box>
+                                  </IconButton>
+                                </Box>
                               );
                             })()}
                           </Box>
@@ -1327,30 +1528,6 @@ export default function Home() {
                       </motion.div>
                     </AnimatePresence>
                   </Box>
-
-                  <IconButton
-                    disabled={isAtLightboxEnd}
-                    sx={{
-                      position: 'absolute',
-                      right: '1rem',
-                      color: 'white',
-                      zIndex: 1000,
-                      opacity: lightboxImageIsDragging ? 0 : 1,
-                      transition: 'opacity 0.3s',
-                      transform: 'scale(1.5)',
-                      '&.Mui-disabled': {
-                        color: 'rgba(255,255,255,0.38)',
-                        opacity: lightboxImageIsDragging ? 0 : 0.45,
-                      },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isAtLightboxEnd) return;
-                      handleNextMedia();
-                    }}
-                  >
-                    <MinimalRightArrowIcon />
-                  </IconButton>
                 </motion.div>
               )}
           </AnimatePresence>

@@ -9,7 +9,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import NextImage from 'next/image';
 import { Box, Grid, IconButton, Theme, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { isMobile } from 'react-device-detect';
 import { fetchCategoryMedia } from '@/utils/functions/fetchCategoryMedia';
 import { MinimalLeftArrowIcon } from '../../components/MinimalLeftArrowIcon';
 import { MinimalRightArrowIcon } from '../../components/MinimalRightArrowIcon';
@@ -40,6 +39,7 @@ type MediaWithHandlers = {
   ) => void;
   mediaArray: Media[];
   setSize: number;
+  isMobileDevice: boolean;
 };
 
 const DEFAULT_MEDIA_LINK_COLOR = '#ffffff';
@@ -78,6 +78,8 @@ const getItemCarouselMedia = (media: Media) => {
 const LIGHTBOX_MEDIA_MAX_HEIGHT = '87vh';
 const LIGHTBOX_MAIN_HEIGHT = `calc(${LIGHTBOX_MEDIA_MAX_HEIGHT} * 0.75)`;
 const LIGHTBOX_THUMBNAILS_HEIGHT = `calc(${LIGHTBOX_MEDIA_MAX_HEIGHT} * 0.25)`;
+const LIGHTBOX_MAIN_HEIGHT_MOBILE = `calc(${LIGHTBOX_MEDIA_MAX_HEIGHT} * 0.82)`;
+const LIGHTBOX_THUMBNAILS_HEIGHT_MOBILE = `calc(${LIGHTBOX_MEDIA_MAX_HEIGHT} * 0.12)`;
 
 function MediaLinkAnchor({
   link,
@@ -88,9 +90,20 @@ function MediaLinkAnchor({
   setSize: number;
   alwaysVisible?: boolean;
 }) {
+  const isMobileQuery = useMediaQuery(
+    (theme: Theme) => theme.breakpoints.down('sm'),
+    { noSsr: true }
+  );
   const textSize = setSize === 1 ? '4rem' : setSize === 2 ? '3rem' : '2rem';
   const zoraLogoSize =
     setSize === 1 ? '2.5rem' : setSize === 2 ? '2rem' : '1.5rem';
+  const lightboxTextSize = 'clamp(1.25rem, 4.2vw, 2rem)';
+  const lightboxZoraLogoSize = 'clamp(1rem, 3vw, 1.35rem)';
+  const lightboxBottomOffset = isMobileQuery ? '0.95rem' : '0.60rem';
+  const lightboxMaxWidth = isMobileQuery
+    ? 'calc(100% - 0.45rem)'
+    : 'calc(100% - 0.9rem)';
+  const mobileLightboxScale = alwaysVisible && isMobileQuery ? 1.5 : 1;
   const arrowFilter =
     link.fontColor.toLowerCase() === '#000000' ? 'invert(0)' : 'invert(1)';
 
@@ -103,9 +116,18 @@ function MediaLinkAnchor({
       onClick={(event) => event.stopPropagation()}
       onMouseDown={(event) => event.stopPropagation()}
       style={{
-        fontSize: textSize,
+        fontSize: alwaysVisible ? lightboxTextSize : textSize,
         color: link.fontColor,
         opacity: alwaysVisible ? 1 : undefined,
+        zIndex: alwaysVisible ? 2200 : undefined,
+        bottom: alwaysVisible ? lightboxBottomOffset : undefined,
+        left: alwaysVisible ? '0.95rem' : undefined,
+        maxWidth: alwaysVisible ? lightboxMaxWidth : undefined,
+        transform:
+          mobileLightboxScale !== 1
+            ? `scale(${mobileLightboxScale})`
+            : undefined,
+        transformOrigin: mobileLightboxScale !== 1 ? 'left bottom' : undefined,
       }}
     >
       {`see in ${link.provider}`}
@@ -114,7 +136,9 @@ function MediaLinkAnchor({
           src="/images/logos/zora/zora_logo.svg"
           alt=""
           aria-hidden="true"
-          style={{ width: zoraLogoSize }}
+          style={{
+            width: alwaysVisible ? lightboxZoraLogoSize : zoraLogoSize,
+          }}
         />
       ) : null}
       <img
@@ -149,9 +173,9 @@ function ImageGridItem({
   openLightbox,
   mediaArray,
   setSize,
+  isMobileDevice,
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
-  const isMobileDevice = isMobile;
   const imageRef = useRef<HTMLImageElement | null>(null);
   const hasNotifiedRef = useRef(false);
   const canReveal = isVisible && loaded;
@@ -285,11 +309,11 @@ function ImageGridItem({
         <Box
           sx={{
             position: 'absolute',
-            right: '1.08rem',
-            top: '1.08rem',
+            right: isMobileDevice ? '0.52rem' : '1.08rem',
+            top: isMobileDevice ? '0.52rem' : '1.08rem',
             zIndex: 3,
-            width: isMobileDevice ? '1.1664rem' : '1.3608rem',
-            height: isMobileDevice ? '1.1664rem' : '1.3608rem',
+            width: isMobileDevice ? '1rem' : '1.3608rem',
+            height: isMobileDevice ? '1rem' : '1.3608rem',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -310,7 +334,7 @@ function ImageGridItem({
           />
         </Box>
       ) : null}
-      {mediaLink ? (
+      {mediaLink && !isMobileDevice ? (
         <MediaLinkAnchor link={mediaLink} setSize={setSize} />
       ) : null}
     </motion.div>
@@ -331,9 +355,9 @@ function VideoGridItem({
   openLightbox,
   mediaArray,
   setSize,
+  isMobileDevice,
 }: MediaWithHandlers) {
   const [loaded, setLoaded] = useState(false);
-  const isMobileDevice = isMobile;
   const hasNotifiedRef = useRef(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canReveal = isVisible && loaded;
@@ -493,7 +517,7 @@ function VideoGridItem({
           />
         </Box>
       ) : null}
-      {mediaLink ? (
+      {mediaLink && !isMobileDevice ? (
         <MediaLinkAnchor link={mediaLink} setSize={setSize} />
       ) : null}
     </motion.div>
@@ -533,10 +557,13 @@ function LightboxImageContent({
       lowSrc={lowImage.src || ''}
       highSrc={highImage.src || undefined}
       alt="Fullscreen Image"
-      zoomScale={2.5}
-      maxHeight={LIGHTBOX_MAIN_HEIGHT}
+      zoomScale={5}
+      maxHeight={
+        isMobileQuery ? LIGHTBOX_MAIN_HEIGHT_MOBILE : LIGHTBOX_MAIN_HEIGHT
+      }
       onLowSrcError={lowImage.handleError}
       onHighSrcError={highImage.handleError}
+      showLoader={false}
       onZoomChange={(zoomed) => {
         if (zoomed) onUserZoom();
       }}
@@ -554,7 +581,13 @@ function LightboxVideoContent({
     () => selectVideoAssets(media, isMobileDevice),
     [media, isMobileDevice]
   );
-  const lowVideo = useStorageAssetSrc(sources.low, { preferDirect: false });
+  const mobileMediumVideo = media.paths?.derivatives?.['webm_720'];
+  const lightboxLowAsset = isMobileDevice
+    ? (mobileMediumVideo ?? sources.high ?? sources.low)
+    : sources.low;
+  const lowVideo = useStorageAssetSrc(lightboxLowAsset, {
+    preferDirect: false,
+  });
   const highVideo = useStorageAssetSrc(sources.high, { preferDirect: false });
   const posterSource = useStorageAssetSrc(sources.poster);
 
@@ -563,14 +596,18 @@ function LightboxVideoContent({
       className="auto-cursor"
       lowSrc={lowVideo.src || ''}
       highSrc={highVideo.src || undefined}
-      poster={posterSource.src || undefined}
-      zoomScale={isMobileDevice ? 2 : 3}
-      maxHeight={LIGHTBOX_MAIN_HEIGHT}
+      poster={isMobileDevice ? undefined : posterSource.src || undefined}
+      fillWidth={isMobileQuery || isMobileDevice}
+      zoomScale={isMobileDevice ? 4 : 6}
+      maxHeight={
+        isMobileQuery ? LIGHTBOX_MAIN_HEIGHT_MOBILE : LIGHTBOX_MAIN_HEIGHT
+      }
       autoPlay={true}
       muted={true}
       loop={true}
       onLowSrcError={lowVideo.handleError}
       onHighSrcError={highVideo.handleError}
+      showLoader={false}
       onZoomChange={(zoomed) => {
         if (zoomed) onUserZoom();
       }}
@@ -620,14 +657,16 @@ function CarouselThumbnail({
         border: isActive
           ? '1px solid rgba(255,255,255,0.85)'
           : '1px solid rgba(255,255,255,0.28)',
-        borderRadius: '10px',
+        borderRadius: isMobileDevice ? '8px' : '10px',
         overflow: 'hidden',
         background: 'transparent',
-        height: '100%',
+        height: isMobileDevice ? '4.2rem' : '100%',
+        width: isMobileDevice ? '4.2rem' : 'auto',
+        minWidth: isMobileDevice ? '4.2rem' : 'auto',
         aspectRatio: '1 / 1',
         flex: '0 0 auto',
         cursor: 'pointer',
-        opacity: isActive ? 1 : 0.75,
+        opacity: isActive ? 1 : 0.8,
         transition: 'opacity 200ms ease, border-color 200ms ease',
       }}
     >
@@ -662,11 +701,8 @@ export default function WorksCategoryPage({
     null
   );
   const [activeCarouselIndex, setActiveCarouselIndex] = useState(0);
-  const [carouselAutoplayStopped, setCarouselAutoplayStopped] =
-    useState(false);
+  const [carouselAutoplayStopped, setCarouselAutoplayStopped] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
-  const [lightboxImageIsDragging, setLightboxImageIsDragging] =
-    useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
   const [showCenteredLoader, setShowCenteredLoader] = useState(true);
@@ -680,9 +716,11 @@ export default function WorksCategoryPage({
   const firstSetId = mediaSetsWithMedia[0]?.mediaset.id;
   const firstSetTotal = mediaSetsWithMedia[0]?.media.length ?? 0;
 
-  const isMobileQuery = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm')
+  const isMobileQuery = useMediaQuery(
+    (theme: Theme) => theme.breakpoints.down('sm'),
+    { noSsr: true }
   );
+  const isMobileViewport = isMobileQuery;
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const loaderTextColor = isDarkMode ? '#ffffff' : '#000000';
@@ -705,11 +743,6 @@ export default function WorksCategoryPage({
     activeCarouselItems?.[activeCarouselIndex] ?? activeBaseMedia;
   const hasActiveCarousel =
     Boolean(activeCarouselItems) && (activeCarouselItems?.length ?? 0) > 1;
-  const isAtCarouselStart =
-    !activeCarouselItems || activeCarouselIndex <= 0;
-  const isAtCarouselEnd =
-    !activeCarouselItems ||
-    activeCarouselIndex >= activeCarouselItems.length - 1;
 
   const stopCarouselAutoplay = useCallback(() => {
     setCarouselAutoplayStopped(true);
@@ -737,6 +770,32 @@ export default function WorksCategoryPage({
         return 1;
     }
   };
+
+  const getColumnsForSetLength = useCallback(
+    (length: number) =>
+      isMobileQuery && length === 4 ? 2 : getGridColumns(length),
+    [isMobileQuery]
+  );
+
+  const getFirstRowVisibleLimit = useCallback(
+    (total: number) => {
+      if (total <= 0) return 0;
+      const columns = getColumnsForSetLength(total);
+      return Math.min(columns - 1, total - 1);
+    },
+    [getColumnsForSetLength]
+  );
+
+  const getRowEndIndex = useCallback(
+    (index: number, total: number) => {
+      if (total <= 0) return 0;
+      const columns = getColumnsForSetLength(total);
+      const safeIndex = Math.max(0, index);
+      const rowStart = Math.floor(safeIndex / columns) * columns;
+      return Math.min(rowStart + columns - 1, total - 1);
+    },
+    [getColumnsForSetLength]
+  );
 
   useEffect(() => {
     async function loadMediaSets() {
@@ -785,9 +844,15 @@ export default function WorksCategoryPage({
         mediaSetsWithMedia.map((setWithMedia) => {
           const setId = setWithMedia.mediaset.id;
           const total = setWithMedia.media.length;
-          const prevLimit = prev[setId] ?? 0;
           const maxIndex = Math.max(total - 1, 0);
-          return [setId, Math.min(prevLimit, maxIndex)];
+          const firstRowLimit = getFirstRowVisibleLimit(total);
+          const prevLimit = allImagesLoaded ? prev[setId] : undefined;
+          const baseLimit =
+            typeof prevLimit === 'number' ? prevLimit : firstRowLimit;
+          return [
+            setId,
+            Math.min(Math.max(baseLimit, firstRowLimit), maxIndex),
+          ];
         })
       )
     );
@@ -796,7 +861,7 @@ export default function WorksCategoryPage({
       setFirstSetReady(false);
       setSequenceVersion((prev) => prev + 1);
     }
-  }, [mediaSetsWithMedia, allImagesLoaded]);
+  }, [mediaSetsWithMedia, allImagesLoaded, getFirstRowVisibleLimit]);
 
   useEffect(() => {
     if (!firstSetId) {
@@ -821,7 +886,8 @@ export default function WorksCategoryPage({
   }, [allImagesLoaded]);
 
   useEffect(() => {
-    const shouldShowLoader = isLoading || !allImagesLoaded;
+    const shouldShowLoader =
+      !isMobileViewport && (isLoading || !allImagesLoaded);
     if (shouldShowLoader) {
       setShowCenteredLoader(true);
       return;
@@ -832,7 +898,7 @@ export default function WorksCategoryPage({
     }, 4000);
 
     return () => window.clearTimeout(timeout);
-  }, [isLoading, allImagesLoaded]);
+  }, [isLoading, allImagesLoaded, isMobileViewport]);
 
   useEffect(() => {
     if (!activeCarouselItems) {
@@ -895,7 +961,10 @@ export default function WorksCategoryPage({
         }
       }
 
-      const nextVisible = Math.min(contiguous + 1, total - 1);
+      const nextVisible =
+        contiguous >= total - 1
+          ? total - 1
+          : getRowEndIndex(contiguous + 1, total);
       setMaxVisibleBySet((prev) => {
         if (prev[setId] === nextVisible) return prev;
         return { ...prev, [setId]: nextVisible };
@@ -907,7 +976,7 @@ export default function WorksCategoryPage({
         if (allLoaded) setFirstSetReady(true);
       }
     },
-    [firstSetId, firstSetTotal]
+    [firstSetId, firstSetTotal, getRowEndIndex]
   );
 
   const handlePreviousMedia = useCallback(() => {
@@ -917,10 +986,8 @@ export default function WorksCategoryPage({
 
     const currentMedia = currentSet.media[activeMediaIndex];
     const currentCarousel = getItemCarouselMedia(currentMedia);
-    if (currentCarousel) {
-      if (activeCarouselIndex > 0) {
-        setActiveCarouselIndex((prev) => prev - 1);
-      }
+    if (currentCarousel && activeCarouselIndex > 0) {
+      setActiveCarouselIndex((prev) => prev - 1);
       return;
     }
 
@@ -957,10 +1024,8 @@ export default function WorksCategoryPage({
 
     const currentMedia = currentSet.media[activeMediaIndex];
     const currentCarousel = getItemCarouselMedia(currentMedia);
-    if (currentCarousel) {
-      if (activeCarouselIndex < currentCarousel.length - 1) {
-        setActiveCarouselIndex((prev) => prev + 1);
-      }
+    if (currentCarousel && activeCarouselIndex < currentCarousel.length - 1) {
+      setActiveCarouselIndex((prev) => prev + 1);
       return;
     }
 
@@ -1080,12 +1145,17 @@ export default function WorksCategoryPage({
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
     }
-  }, [lightboxOpen, handleNextMedia, handlePreviousMedia, stopCarouselAutoplay]);
+  }, [
+    lightboxOpen,
+    handleNextMedia,
+    handlePreviousMedia,
+    stopCarouselAutoplay,
+  ]);
 
   return (
     <>
       <AnimatePresence>
-        {showCenteredLoader ? (
+        {showCenteredLoader && !isMobileViewport ? (
           <motion.div
             initial={{ opacity: 1 }}
             animate={{ opacity: 1, filter: 'blur(0px)' }}
@@ -1145,7 +1215,11 @@ export default function WorksCategoryPage({
                     `0 0 6px ${loaderGlowSoft}`,
                   ],
                 }}
-                transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                transition={{
+                  duration: 1.6,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
                 style={{
                   fontSize: isMobileQuery ? '0.85rem' : '0.95rem',
                   letterSpacing: '0.08em',
@@ -1159,8 +1233,7 @@ export default function WorksCategoryPage({
             </Box>
           </motion.div>
         ) : null}
-      </AnimatePresence>
-      {' '}
+      </AnimatePresence>{' '}
       <main className={`${styles.main} ${styles.worksPage}`}>
         <Box
           sx={{
@@ -1183,7 +1256,7 @@ export default function WorksCategoryPage({
             sx={{
               width: '100%',
               display: 'flex',
-              paddingInline: isMobile ? '1.4rem' : '2.1rem',
+              paddingInline: isMobileViewport ? '1.4rem' : '2.1rem',
             }}
           >
             <motion.h1
@@ -1199,7 +1272,7 @@ export default function WorksCategoryPage({
             >
               WORKS{' '}
               <span className="breadcrumb-divider">
-                {isMobile ? '•' : '﹥'}
+                {isMobileViewport ? '•' : '﹥'}
               </span>{' '}
               {params.category.replace(/-/g, ' ').toUpperCase()}
             </motion.h1>
@@ -1211,12 +1284,7 @@ export default function WorksCategoryPage({
             width="100%"
           >
             {isLoading || !allImagesLoaded ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.5, delay: 0.5 }}
-              >
+              <Box>
                 <Box
                   display="flex"
                   flexDirection="column"
@@ -1252,7 +1320,7 @@ export default function WorksCategoryPage({
                     </Box>
                   ))}
                 </Box>
-              </motion.div>
+              </Box>
             ) : null}
 
             {mediaSetsWithMedia.length > 0 && (
@@ -1264,12 +1332,13 @@ export default function WorksCategoryPage({
                 <ScrollContainer draggable={false} className={styles.carousel}>
                   {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
                     if (setIndex > 0 && !firstSetReady) return null;
-                    const columns =
-                      isMobileQuery && setWithMedia.media.length === 4
-                        ? 2
-                        : getGridColumns(setWithMedia.media.length);
+                    const columns = getColumnsForSetLength(
+                      setWithMedia.media.length
+                    );
                     const setId = setWithMedia.mediaset.id;
-                    const visibleLimit = maxVisibleBySet[setId] ?? 0;
+                    const visibleLimit =
+                      maxVisibleBySet[setId] ??
+                      getFirstRowVisibleLimit(setWithMedia.media.length);
 
                     return (
                       <motion.div
@@ -1311,6 +1380,7 @@ export default function WorksCategoryPage({
                                       showPostSkeleton={postSkeletonVisible}
                                       openLightbox={openLightbox}
                                       mediaArray={setWithMedia.media}
+                                      isMobileDevice={isMobileViewport}
                                     />
                                   </Box>
                                 );
@@ -1370,10 +1440,9 @@ export default function WorksCategoryPage({
                         position: 'absolute',
                         left: '1rem',
                         color: 'white',
+                        display: { xs: 'none', sm: 'flex' },
                         zIndex: 1000,
                         transform: 'scale(1.5)',
-                        opacity: lightboxImageIsDragging ? 0 : 1,
-                        transition: 'opacity 0.3s',
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1397,15 +1466,10 @@ export default function WorksCategoryPage({
                     >
                       <AnimatePresence>
                         <motion.div
-                          key={
-                            activeLightboxMedia
-                              ? `${activeLightboxMedia.id}-${activeCarouselIndex}`
-                              : 'lightbox-media'
-                          }
-                          initial={{ opacity: 0 }}
+                          initial={{ opacity: 1 }}
                           animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.6, ease: 'easeOut' }}
+                          exit={{ opacity: 1 }}
+                          transition={{ duration: 0 }}
                           style={{
                             gridArea: '1 / 1',
                             width: '100%',
@@ -1426,6 +1490,7 @@ export default function WorksCategoryPage({
                               display: 'block',
                               userSelect: 'none',
                               pointerEvents: 'auto',
+                              width: isMobileViewport ? '99vw' : 'auto',
                               maxWidth: '99vw',
                               maxHeight: '80vh',
                               margin: '0 auto',
@@ -1434,7 +1499,7 @@ export default function WorksCategoryPage({
                             <Box
                               sx={{
                                 borderRadius: '6px',
-                                overflow: 'hidden',
+                                overflow: 'visible',
                               }}
                             >
                               <IconButton
@@ -1444,38 +1509,83 @@ export default function WorksCategoryPage({
                                   right: '1rem',
                                   color: 'white',
                                   zIndex: 9999,
-                                  opacity: lightboxImageIsDragging ? 0 : 1,
-                                  transition: 'opacity 0.3s',
-                                  transform: 'scale(1.3)',
+                                  transition:
+                                    'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                                  width: { xs: '2.75rem', sm: 'auto' },
+                                  height: { xs: '2.75rem', sm: 'auto' },
+                                  borderRadius: { xs: '999px', sm: '0' },
+                                  backgroundColor: {
+                                    xs: 'rgba(120, 120, 120, 0.26)',
+                                    sm: 'transparent',
+                                  },
+                                  border: {
+                                    xs: '1px solid rgba(255,255,255,0.2)',
+                                    sm: 'none',
+                                  },
+                                  boxShadow: {
+                                    xs: '0 6px 18px rgba(0,0,0,0.2)',
+                                    sm: 'none',
+                                  },
+                                  backdropFilter: {
+                                    xs: 'blur(8px)',
+                                    sm: 'none',
+                                  },
+                                  WebkitBackdropFilter: {
+                                    xs: 'blur(8px)',
+                                    sm: 'none',
+                                  },
+                                  transform: { xs: 'none', sm: 'scale(1.3)' },
+                                  '&:hover': {
+                                    backgroundColor: {
+                                      xs: 'rgba(120, 120, 120, 0.34)',
+                                      sm: 'transparent',
+                                    },
+                                  },
                                 }}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   closeLightbox();
                                 }}
                               >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                  width="35px"
-                                  height="35px"
-                                >
-                                  <line
-                                    x1="6"
-                                    y1="6"
-                                    x2="18"
-                                    y2="18"
-                                    stroke="currentColor"
-                                    strokeWidth="0.6"
-                                  />
-                                  <line
-                                    x1="18"
-                                    y1="6"
-                                    x2="6"
-                                    y2="18"
-                                    stroke="currentColor"
-                                    strokeWidth="0.6"
-                                  />
-                                </svg>
+                                {isMobileViewport ? (
+                                  <Box
+                                    component="span"
+                                    aria-hidden="true"
+                                    sx={{
+                                      fontSize: '1.44rem',
+                                      lineHeight: 1,
+                                      fontWeight: 300,
+                                      transform: 'translateY(-1px)',
+                                      display: 'inline-block',
+                                    }}
+                                  >
+                                    ×
+                                  </Box>
+                                ) : (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    width="35px"
+                                    height="35px"
+                                  >
+                                    <line
+                                      x1="6"
+                                      y1="6"
+                                      x2="18"
+                                      y2="18"
+                                      stroke="currentColor"
+                                      strokeWidth="0.6"
+                                    />
+                                    <line
+                                      x1="18"
+                                      y1="6"
+                                      x2="6"
+                                      y2="18"
+                                      stroke="currentColor"
+                                      strokeWidth="0.6"
+                                    />
+                                  </svg>
+                                )}
                               </IconButton>
 
                               <Box
@@ -1500,10 +1610,9 @@ export default function WorksCategoryPage({
                                     flex: '0 0 auto',
                                   }}
                                 >
-                                  {hasActiveCarousel ? (
+                                  {hasActiveCarousel || isMobileViewport ? (
                                     <IconButton
-                                      aria-label="Previous carousel media"
-                                      disabled={isAtCarouselStart}
+                                      aria-label="Previous media"
                                       sx={{
                                         position: 'absolute',
                                         left: { xs: '0.5rem', sm: '0.9rem' },
@@ -1516,7 +1625,8 @@ export default function WorksCategoryPage({
                                         borderRadius: '999px',
                                         backgroundColor:
                                           'rgba(120, 120, 120, 0.26)',
-                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        border:
+                                          '1px solid rgba(255,255,255,0.2)',
                                         boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
                                         backdropFilter: 'blur(8px)',
                                         WebkitBackdropFilter: 'blur(8px)',
@@ -1526,26 +1636,17 @@ export default function WorksCategoryPage({
                                           backgroundColor:
                                             'rgba(120, 120, 120, 0.34)',
                                           borderColor: 'rgba(255,255,255,0.28)',
-                                          boxShadow: '0 8px 20px rgba(0,0,0,0.24)',
+                                          boxShadow:
+                                            '0 8px 20px rgba(0,0,0,0.24)',
                                         },
                                         '&:focus-visible': {
-                                          outline: '2px solid rgba(255,255,255,0.95)',
+                                          outline:
+                                            '2px solid rgba(255,255,255,0.95)',
                                           outlineOffset: '2px',
-                                        },
-                                        '&.Mui-disabled': {
-                                          color: 'rgba(255,255,255,0.45)',
-                                          backgroundColor:
-                                            'rgba(120, 120, 120, 0.12)',
-                                          border:
-                                            '1px solid rgba(255,255,255,0.12)',
-                                          boxShadow: 'none',
-                                          backdropFilter: 'blur(4px)',
-                                          WebkitBackdropFilter: 'blur(4px)',
                                         },
                                       }}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        if (isAtCarouselStart) return;
                                         stopCarouselAutoplay();
                                         handlePreviousMedia();
                                       }}
@@ -1554,7 +1655,10 @@ export default function WorksCategoryPage({
                                         component="span"
                                         aria-hidden="true"
                                         sx={{
-                                          fontSize: { xs: '1.8rem', sm: '2rem' },
+                                          fontSize: {
+                                            xs: '1.8rem',
+                                            sm: '2rem',
+                                          },
                                           lineHeight: 1,
                                           fontWeight: 300,
                                           paddingBottom: '0.3rem',
@@ -1575,13 +1679,42 @@ export default function WorksCategoryPage({
                                       mediaSetsWithMedia[activeMediaSetIndex]
                                         .media.length;
                                     return (
-                                      <>
-                                        <SingleLightboxMediaContent
-                                          media={activeLightboxMedia}
-                                          isMobileQuery={isMobileQuery}
-                                          isMobileDevice={isMobile}
-                                          onUserZoom={stopCarouselAutoplay}
-                                        />
+                                      <Box
+                                        sx={{
+                                          position: 'relative',
+                                          display: 'grid',
+                                          placeItems: 'center',
+                                        }}
+                                      >
+                                        <AnimatePresence
+                                          initial={false}
+                                          mode="sync"
+                                        >
+                                          <motion.div
+                                            key={`${activeLightboxMedia.id}-${activeCarouselIndex}`}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{
+                                              duration: 0.32,
+                                              ease: 'easeInOut',
+                                            }}
+                                            style={{
+                                              gridArea: '1 / 1',
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              willChange: 'opacity',
+                                            }}
+                                          >
+                                            <SingleLightboxMediaContent
+                                              media={activeLightboxMedia}
+                                              isMobileQuery={isMobileQuery}
+                                              isMobileDevice={isMobileViewport}
+                                              onUserZoom={stopCarouselAutoplay}
+                                            />
+                                          </motion.div>
+                                        </AnimatePresence>
                                         {mediaLink ? (
                                           <MediaLinkAnchor
                                             link={mediaLink}
@@ -1589,14 +1722,87 @@ export default function WorksCategoryPage({
                                             alwaysVisible
                                           />
                                         ) : null}
-                                      </>
+                                        {hasActiveCarousel &&
+                                        activeCarouselItems ? (
+                                          <Box
+                                            onClick={(e) => e.stopPropagation()}
+                                            sx={{
+                                              position: 'absolute',
+                                              left: '50%',
+                                              bottom: '0.55rem',
+                                              transform: 'translateX(-50%)',
+                                              display: {
+                                                xs: 'flex',
+                                                sm: 'none',
+                                              },
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              gap: '0.45rem',
+                                              paddingInline: '0.05rem',
+                                              paddingBlock: '0.05rem',
+                                              zIndex: 2100,
+                                            }}
+                                            aria-label="Carousel position indicators"
+                                          >
+                                            {activeCarouselItems.map(
+                                              (item, dotIndex) => {
+                                                const isActive =
+                                                  dotIndex ===
+                                                  activeCarouselIndex;
+                                                return (
+                                                  <Box
+                                                    key={`carousel-dot-mobile-${item.id}`}
+                                                    sx={{
+                                                      width: '0.48rem',
+                                                      height: '0.48rem',
+                                                      borderRadius: '999px',
+                                                      position: 'relative',
+                                                      display: 'inline-flex',
+                                                      alignItems: 'center',
+                                                      justifyContent: 'center',
+                                                      backgroundColor:
+                                                        'rgba(255,255,255,0.40)',
+                                                      border: isActive
+                                                        ? '1px solid rgba(0,0,0,0)'
+                                                        : '1.2px solid rgba(0,0,0,0.15)',
+                                                      boxShadow:
+                                                        '0 0 4px rgba(0,0,0,0.08)',
+                                                      backdropFilter:
+                                                        'blur(6px) saturate(140%)',
+                                                      WebkitBackdropFilter:
+                                                        'blur(6px) saturate(140%)',
+                                                      opacity: 1,
+                                                      transition:
+                                                        'background-color 180ms ease, border-color 180ms ease, transform 180ms ease, width 180ms ease, height 180ms ease, box-shadow 180ms ease',
+                                                      transform: 'scale(1)',
+                                                    }}
+                                                    aria-hidden="true"
+                                                  >
+                                                    {isActive ? (
+                                                      <Box
+                                                        component="span"
+                                                        sx={{
+                                                          width: '90%',
+                                                          height: '90%',
+                                                          borderRadius: '999px',
+                                                          backgroundColor:
+                                                            'rgba(0,0,0,0.70)',
+                                                        }}
+                                                      />
+                                                    ) : null}
+                                                  </Box>
+                                                );
+                                              }
+                                            )}
+                                          </Box>
+                                        ) : null}
+                                      </Box>
                                     );
                                   })()}
 
-                                  {hasActiveCarousel ? (
+                                  {hasActiveCarousel || isMobileViewport ? (
                                     <IconButton
-                                      aria-label="Next carousel media"
-                                      disabled={isAtCarouselEnd}
+                                      aria-label="Next media"
                                       sx={{
                                         position: 'absolute',
                                         right: { xs: '0.5rem', sm: '0.9rem' },
@@ -1609,7 +1815,8 @@ export default function WorksCategoryPage({
                                         borderRadius: '999px',
                                         backgroundColor:
                                           'rgba(120, 120, 120, 0.26)',
-                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        border:
+                                          '1px solid rgba(255,255,255,0.2)',
                                         boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
                                         backdropFilter: 'blur(8px)',
                                         WebkitBackdropFilter: 'blur(8px)',
@@ -1619,26 +1826,17 @@ export default function WorksCategoryPage({
                                           backgroundColor:
                                             'rgba(120, 120, 120, 0.34)',
                                           borderColor: 'rgba(255,255,255,0.28)',
-                                          boxShadow: '0 8px 20px rgba(0,0,0,0.24)',
+                                          boxShadow:
+                                            '0 8px 20px rgba(0,0,0,0.24)',
                                         },
                                         '&:focus-visible': {
-                                          outline: '2px solid rgba(255,255,255,0.95)',
+                                          outline:
+                                            '2px solid rgba(255,255,255,0.95)',
                                           outlineOffset: '2px',
-                                        },
-                                        '&.Mui-disabled': {
-                                          color: 'rgba(255,255,255,0.45)',
-                                          backgroundColor:
-                                            'rgba(120, 120, 120, 0.12)',
-                                          border:
-                                            '1px solid rgba(255,255,255,0.12)',
-                                          boxShadow: 'none',
-                                          backdropFilter: 'blur(4px)',
-                                          WebkitBackdropFilter: 'blur(4px)',
                                         },
                                       }}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        if (isAtCarouselEnd) return;
                                         stopCarouselAutoplay();
                                         handleNextMedia();
                                       }}
@@ -1647,7 +1845,10 @@ export default function WorksCategoryPage({
                                         component="span"
                                         aria-hidden="true"
                                         sx={{
-                                          fontSize: { xs: '1.8rem', sm: '2rem' },
+                                          fontSize: {
+                                            xs: '1.8rem',
+                                            sm: '2rem',
+                                          },
                                           lineHeight: 1,
                                           fontWeight: 300,
                                           paddingBottom: '0.3rem',
@@ -1668,7 +1869,7 @@ export default function WorksCategoryPage({
                                         left: '50%',
                                         bottom: { xs: '0.5rem', sm: '0.75rem' },
                                         transform: 'translateX(-50%)',
-                                        display: 'flex',
+                                        display: { xs: 'none', sm: 'flex' },
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         gap: { xs: '0.45rem', sm: '0.55rem' },
@@ -1678,43 +1879,69 @@ export default function WorksCategoryPage({
                                       }}
                                       aria-label="Carousel position indicators"
                                     >
-                                      {activeCarouselItems.map((item, dotIndex) => {
-                                        const isActive =
-                                          dotIndex === activeCarouselIndex;
-                                        return (
-                                          <Box
-                                            key={`carousel-dot-${item.id}`}
-                                            sx={{
-                                              width: {
-                                                xs: '0.48rem',
-                                                sm: '0.54rem',
-                                              },
-                                              height: {
-                                                xs: '0.48rem',
-                                                sm: '0.54rem',
-                                              },
-                                              borderRadius: '999px',
-                                              backgroundColor: isActive
-                                                ? 'rgba(0,0,0,0.58)'
-                                                : 'rgba(230,230,230,0.16)',
-                                              border: isActive
-                                                ? '1px solid rgba(0,0,0,0)'
-                                                : '1.2px solid rgba(0,0,0,0.15)',
-                                              boxShadow:
-                                                '0 0 4px rgba(0,0,0,0.08)',
-                                              backdropFilter:
-                                                'blur(6px) saturate(140%)',
-                                              WebkitBackdropFilter:
-                                                'blur(6px) saturate(140%)',
-                                              opacity: 1,
-                                              transition:
-                                                'background-color 180ms ease, border-color 180ms ease, transform 180ms ease, width 180ms ease, height 180ms ease, box-shadow 180ms ease',
-                                              transform: 'scale(1)',
-                                            }}
-                                            aria-hidden="true"
-                                          />
-                                        );
-                                      })}
+                                      {activeCarouselItems.map(
+                                        (item, dotIndex) => {
+                                          const isActive =
+                                            dotIndex === activeCarouselIndex;
+                                          return (
+                                            <Box
+                                              key={`carousel-dot-${item.id}`}
+                                              sx={{
+                                                width: {
+                                                  xs: '0.48rem',
+                                                  sm: '0.54rem',
+                                                },
+                                                height: {
+                                                  xs: '0.48rem',
+                                                  sm: '0.54rem',
+                                                },
+                                                borderRadius: '999px',
+                                                position: 'relative',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: {
+                                                  xs: 'rgba(255,255,255,0.40)',
+                                                  sm: isActive
+                                                    ? 'rgba(0,0,0,0.58)'
+                                                    : 'rgba(230,230,230,0.16)',
+                                                },
+                                                border: isActive
+                                                  ? '1px solid rgba(0,0,0,0)'
+                                                  : '1.2px solid rgba(0,0,0,0.15)',
+                                                boxShadow:
+                                                  '0 0 4px rgba(0,0,0,0.08)',
+                                                backdropFilter:
+                                                  'blur(6px) saturate(140%)',
+                                                WebkitBackdropFilter:
+                                                  'blur(6px) saturate(140%)',
+                                                opacity: 1,
+                                                transition:
+                                                  'background-color 180ms ease, border-color 180ms ease, transform 180ms ease, width 180ms ease, height 180ms ease, box-shadow 180ms ease',
+                                                transform: 'scale(1)',
+                                              }}
+                                              aria-hidden="true"
+                                            >
+                                              {isActive ? (
+                                                <Box
+                                                  component="span"
+                                                  sx={{
+                                                    display: {
+                                                      xs: 'block',
+                                                      sm: 'none',
+                                                    },
+                                                    width: '90%',
+                                                    height: '90%',
+                                                    borderRadius: '999px',
+                                                    backgroundColor:
+                                                      'rgba(0,0,0,0.70)',
+                                                  }}
+                                                />
+                                              ) : null}
+                                            </Box>
+                                          );
+                                        }
+                                      )}
                                     </Box>
                                   ) : null}
                                 </Box>
@@ -1723,35 +1950,51 @@ export default function WorksCategoryPage({
                                   <Box
                                     onClick={(e) => e.stopPropagation()}
                                     sx={{
-                                      width: '100%',
-                                      height: LIGHTBOX_THUMBNAILS_HEIGHT,
+                                      width: { xs: '99vw', sm: '100%' },
+                                      height: {
+                                        xs: LIGHTBOX_THUMBNAILS_HEIGHT_MOBILE,
+                                        sm: LIGHTBOX_THUMBNAILS_HEIGHT,
+                                      },
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
                                       flex: '0 0 auto',
                                       paddingInline: {
-                                        xs: '0.75rem',
+                                        xs: '0.55rem',
                                         sm: '1rem',
                                       },
                                       paddingBottom: {
-                                        xs: '0.25rem',
+                                        xs: '0.05rem',
                                         sm: '0.35rem',
                                       },
+                                      marginTop: { xs: '-0.55rem', sm: 0 },
                                     }}
                                   >
                                     <Box
                                       sx={{
-                                        width: '100%',
+                                        width: {
+                                          xs: 'fit-content',
+                                          sm: '100%',
+                                        },
+                                        maxWidth: { xs: '99vw', sm: '100%' },
                                         height: '100%',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: { xs: '0.5rem', sm: '0.65rem' },
+                                        justifyContent: {
+                                          xs: 'center',
+                                          sm: 'flex-start',
+                                        },
+                                        gap: { xs: '0.35rem', sm: '0.65rem' },
                                         overflowX: 'auto',
                                         overflowY: 'hidden',
                                         WebkitOverflowScrolling: 'touch',
                                         touchAction: 'pan-x',
                                         overscrollBehaviorX: 'contain',
-                                        paddingBlock: '0.35rem',
+                                        paddingBlock: {
+                                          xs: '0.15rem',
+                                          sm: '0.35rem',
+                                        },
+                                        marginInline: 'auto',
                                       }}
                                     >
                                       {activeCarouselItems.map(
@@ -1762,10 +2005,12 @@ export default function WorksCategoryPage({
                                             isActive={
                                               thumbIndex === activeCarouselIndex
                                             }
-                                            isMobileDevice={isMobile}
+                                            isMobileDevice={isMobileViewport}
                                             onSelect={() => {
                                               stopCarouselAutoplay();
-                                              setActiveCarouselIndex(thumbIndex);
+                                              setActiveCarouselIndex(
+                                                thumbIndex
+                                              );
                                             }}
                                           />
                                         )
@@ -1773,7 +2018,6 @@ export default function WorksCategoryPage({
                                     </Box>
                                   </Box>
                                 ) : null}
-
                               </Box>
                             </Box>
                           </Box>
@@ -1786,9 +2030,8 @@ export default function WorksCategoryPage({
                         position: 'absolute',
                         right: '1rem',
                         color: 'white',
+                        display: { xs: 'none', sm: 'flex' },
                         zIndex: 1000,
-                        opacity: lightboxImageIsDragging ? 0 : 1,
-                        transition: 'opacity 0.3s',
                         transform: 'scale(1.5)',
                       }}
                       onClick={(e) => {

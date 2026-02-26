@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import styles from '../page.module.css';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ThemeContext } from '../ThemeRegistry';
 import Footer from '../components/Footer';
 import ZoomableImage from '../components/ZoomeableImage';
@@ -406,7 +406,7 @@ function LightboxImageContent({
       lowSrc={lowImage.src || ''}
       highSrc={highImage.src || undefined}
       alt="Fullscreen Image"
-      zoomScale={2.5}
+      zoomScale={5}
       maxHeight={'87vh'}
       onLowSrcError={lowImage.handleError}
       onHighSrcError={highImage.handleError}
@@ -433,7 +433,7 @@ function LightboxVideoContent({
       lowSrc={lowVideo.src || ''}
       highSrc={highVideo.src || undefined}
       poster={posterSource.src || undefined}
-      zoomScale={isMobileDevice ? 2 : 3}
+      zoomScale={isMobileDevice ? 4 : 6}
       maxHeight={'87vh'}
       autoPlay={true}
       muted={true}
@@ -451,6 +451,7 @@ export default function Exhibitions() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [activeMedia, setActiveMedia] = useState<Media | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const isMobileQuery = useMediaQuery((theme: Theme) =>
     theme.breakpoints.down('sm')
@@ -461,6 +462,26 @@ export default function Exhibitions() {
     // (can be very noticeable on real mobile Safari).
     document.body.classList.remove('no-scroll');
     document.documentElement.classList.remove('no-scroll');
+  }, []);
+
+  useEffect(() => {
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverscroll = document.body.style.overscrollBehaviorY;
+    const prevHtmlOverscroll = document.documentElement.style.overscrollBehaviorY;
+
+    // Keep page scrolling isolated to the exhibitions content container.
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overscrollBehaviorY = 'none';
+    document.documentElement.style.overscrollBehaviorY = 'none';
+
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overscrollBehaviorY = prevBodyOverscroll;
+      document.documentElement.style.overscrollBehaviorY = prevHtmlOverscroll;
+    };
   }, []);
 
   useEffect(() => {
@@ -568,17 +589,36 @@ export default function Exhibitions() {
 
   return (
     <>
-      <main className={`${styles.main} ${styles.exhibitionsPage}`}>
+      <main
+        className={`${styles.main} ${styles.exhibitionsPage}`}
+        style={{
+          height: 'calc(100dvh - 64px)',
+          minHeight: 'calc(100dvh - 64px)',
+          overflow: 'hidden',
+        }}
+      >
         <Box
-          px={{ xs: '1.1rem', sm: '2rem' }}
-          py={{ xs: '2rem', sm: '6rem' }}
-          width="100%"
+          ref={scrollContainerRef}
+          sx={{
+            width: '100%',
+            height: '100%',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehaviorY: 'contain',
+            touchAction: 'pan-y',
+          }}
         >
           <Box
-            className={styles.exhibition_page_container}
-            height="100%"
+            px={{ xs: '1.1rem', sm: '2rem' }}
+            py={{ xs: '2rem', sm: '6rem' }}
             width="100%"
           >
+            <Box
+              className={styles.exhibition_page_container}
+              height="100%"
+              width="100%"
+            >
             <AnimatePresence mode="wait">
               <motion.div
                 initial={{ opacity: 0 }}
@@ -964,17 +1004,18 @@ export default function Exhibitions() {
                 </motion.div>
               )}
             </AnimatePresence>
+            </Box>
           </Box>
-        </Box>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          style={{ width: '100vw', marginTop: 'auto' }}
-        >
-          <Footer />
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+            style={{ width: '100%' }}
+          >
+            <Footer />
+          </motion.div>
+        </Box>
       </main>
     </>
   );
