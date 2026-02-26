@@ -406,6 +406,7 @@ type LightboxMediaProps = {
   media: Media;
   isMobileQuery: boolean;
   isMobileDevice: boolean;
+  onZoomStateChange: (zoomed: boolean) => void;
 };
 
 const LIGHTBOX_MEDIA_MAX_HEIGHT = '87vh';
@@ -423,6 +424,7 @@ function LightboxImageContent({
   media,
   isMobileQuery,
   isMobileDevice,
+  onZoomStateChange,
 }: LightboxMediaProps) {
   const sources = useMemo(
     () => selectImageAssets(media, isMobileDevice),
@@ -437,13 +439,14 @@ function LightboxImageContent({
       lowSrc={lowImage.src || ''}
       highSrc={highImage.src || undefined}
       alt="Fullscreen Image"
-      zoomScale={5}
+      zoomScale={isMobileDevice ? 5 : 3}
       maxHeight={
         isMobileQuery ? LIGHTBOX_MAIN_HEIGHT_MOBILE : LIGHTBOX_MAIN_HEIGHT
       }
       onLowSrcError={lowImage.handleError}
       onHighSrcError={highImage.handleError}
       showLoader={false}
+      onZoomChange={onZoomStateChange}
     />
   );
 }
@@ -452,6 +455,7 @@ function LightboxVideoContent({
   media,
   isMobileQuery,
   isMobileDevice,
+  onZoomStateChange,
 }: LightboxMediaProps) {
   const sources = useMemo(
     () => selectVideoAssets(media, isMobileDevice),
@@ -459,9 +463,11 @@ function LightboxVideoContent({
   );
   const mobileMediumVideo = media.paths?.derivatives?.['webm_720'];
   const lightboxLowAsset = isMobileDevice
-    ? mobileMediumVideo ?? sources.high ?? sources.low
+    ? (mobileMediumVideo ?? sources.high ?? sources.low)
     : sources.low;
-  const lowVideo = useStorageAssetSrc(lightboxLowAsset, { preferDirect: false });
+  const lowVideo = useStorageAssetSrc(lightboxLowAsset, {
+    preferDirect: false,
+  });
   const highVideo = useStorageAssetSrc(sources.high, { preferDirect: false });
   const posterSource = useStorageAssetSrc(sources.poster);
 
@@ -472,7 +478,7 @@ function LightboxVideoContent({
       highSrc={highVideo.src || undefined}
       poster={isMobileDevice ? undefined : posterSource.src || undefined}
       fillWidth={isMobileQuery || isMobileDevice}
-      zoomScale={isMobileDevice ? 4 : 6}
+      zoomScale={isMobileDevice ? 4 : 3}
       maxHeight={
         isMobileQuery ? LIGHTBOX_MAIN_HEIGHT_MOBILE : LIGHTBOX_MAIN_HEIGHT
       }
@@ -482,6 +488,7 @@ function LightboxVideoContent({
       onLowSrcError={lowVideo.handleError}
       onHighSrcError={highVideo.handleError}
       showLoader={false}
+      onZoomChange={onZoomStateChange}
     />
   );
 }
@@ -494,6 +501,7 @@ export default function Home() {
   const [activeMediaSetIndex, setActiveMediaSetIndex] = useState<number | null>(
     null
   );
+  const [isLightboxZoomed, setIsLightboxZoomed] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [allImagesLoaded, setAllImagesLoaded] = useState<boolean>(false);
@@ -523,7 +531,11 @@ export default function Home() {
     ? 'rgba(255,255,255,0.015)'
     : 'rgba(0,0,0,0.012)';
   const firstNavigablePosition = useMemo(() => {
-    for (let setIndex = 0; setIndex < mediaSetsWithMedia.length; setIndex += 1) {
+    for (
+      let setIndex = 0;
+      setIndex < mediaSetsWithMedia.length;
+      setIndex += 1
+    ) {
       if (mediaSetsWithMedia[setIndex]?.media.length) {
         return { setIndex, mediaIndex: 0 };
       }
@@ -694,7 +706,8 @@ export default function Home() {
   }, [allImagesLoaded]);
 
   useEffect(() => {
-    const shouldShowLoader = !isMobileViewport && (isLoading || !allImagesLoaded);
+    const shouldShowLoader =
+      !isMobileViewport && (isLoading || !allImagesLoaded);
     if (shouldShowLoader) {
       setShowCenteredLoader(true);
       return;
@@ -755,7 +768,11 @@ export default function Home() {
       if (activeMediaIndex > 0) {
         setActiveMediaIndex(activeMediaIndex - 1);
       } else {
-        for (let setIndex = activeMediaSetIndex - 1; setIndex >= 0; setIndex -= 1) {
+        for (
+          let setIndex = activeMediaSetIndex - 1;
+          setIndex >= 0;
+          setIndex -= 1
+        ) {
           const prevSet = mediaSetsWithMedia[setIndex];
           if (prevSet?.media.length) {
             setActiveMediaSetIndex(setIndex);
@@ -815,6 +832,7 @@ export default function Home() {
   ) => {
     setActiveMediaIndex(mediaIndex);
     setActiveMediaSetIndex(setIndex);
+    setIsLightboxZoomed(false);
     setLightboxOpen(true);
   };
 
@@ -822,7 +840,16 @@ export default function Home() {
     setLightboxOpen(false);
     setActiveMediaIndex(null);
     setActiveMediaSetIndex(null);
+    setIsLightboxZoomed(false);
   };
+
+  useEffect(() => {
+    if (!lightboxOpen) {
+      setIsLightboxZoomed(false);
+      return;
+    }
+    setIsLightboxZoomed(false);
+  }, [lightboxOpen, activeMediaSetIndex, activeMediaIndex]);
 
   useEffect(() => {
     if (lightboxOpen) {
@@ -898,7 +925,11 @@ export default function Home() {
                     `0 0 6px ${loaderGlowSoft}`,
                   ],
                 }}
-                transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                transition={{
+                  duration: 1.6,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
                 style={{
                   fontSize: isMobileQuery ? '0.85rem' : '0.95rem',
                   letterSpacing: '0.08em',
@@ -1128,7 +1159,7 @@ export default function Home() {
               animate={{ opacity: allImagesLoaded ? 1 : 0 }}
               transition={{ duration: 1.2 }}
             >
-                <ScrollContainer draggable={false} className={styles.carousel}>
+              <ScrollContainer draggable={false} className={styles.carousel}>
                 {mediaSetsWithMedia.map((setWithMedia, setIndex) => {
                   if (setIndex > 0 && !firstSetReady) return null;
                   const columns = getColumnsForSetLength(
@@ -1216,7 +1247,7 @@ export default function Home() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     paddingBottom: isMobileQuery ? '5rem' : '0',
-                    zIndex: 900,
+                    zIndex: 1300,
                     backgroundColor: 'rgba(0, 0, 0, 0.4)',
                     backdropFilter: 'blur(2px) saturate(0)',
                     overscrollBehavior: 'none',
@@ -1294,35 +1325,16 @@ export default function Home() {
                                 zIndex: 9999,
                                 transition:
                                   'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
-                                width: { xs: '2.75rem', sm: 'auto' },
-                                height: { xs: '2.75rem', sm: 'auto' },
-                                borderRadius: { xs: '999px', sm: '0' },
-                                backgroundColor: {
-                                  xs: 'rgba(120, 120, 120, 0.26)',
-                                  sm: 'transparent',
-                                },
-                                border: {
-                                  xs: '1px solid rgba(255,255,255,0.2)',
-                                  sm: 'none',
-                                },
-                                boxShadow: {
-                                  xs: '0 6px 18px rgba(0,0,0,0.2)',
-                                  sm: 'none',
-                                },
-                                backdropFilter: {
-                                  xs: 'blur(8px)',
-                                  sm: 'none',
-                                },
-                                WebkitBackdropFilter: {
-                                  xs: 'blur(8px)',
-                                  sm: 'none',
-                                },
-                                transform: { xs: 'none', sm: 'scale(1.3)' },
+                                width: '2.75rem',
+                                height: '2.75rem',
+                                borderRadius: '999px',
+                                backgroundColor: 'rgba(120, 120, 120, 0.26)',
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
+                                backdropFilter: 'blur(8px)',
+                                WebkitBackdropFilter: 'blur(8px)',
                                 '&:hover': {
-                                  backgroundColor: {
-                                    xs: 'rgba(120, 120, 120, 0.34)',
-                                    sm: 'transparent',
-                                  },
+                                  backgroundColor: 'rgba(120, 120, 120, 0.34)',
                                 },
                               }}
                               onClick={(e) => {
@@ -1330,45 +1342,19 @@ export default function Home() {
                                 closeLightbox();
                               }}
                             >
-                              {isMobileViewport ? (
-                                <Box
-                                  component="span"
-                                  aria-hidden="true"
-                                  sx={{
-                                    fontSize: '1.44rem',
-                                    lineHeight: 1,
-                                    fontWeight: 300,
-                                    transform: 'translateY(-1px)',
-                                    display: 'inline-block',
-                                  }}
-                                >
-                                  ×
-                                </Box>
-                              ) : (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  viewBox="0 0 24 24"
-                                  width="35px"
-                                  height="35px"
-                                >
-                                  <line
-                                    x1="6"
-                                    y1="6"
-                                    x2="18"
-                                    y2="18"
-                                    stroke="currentColor"
-                                    strokeWidth="0.6"
-                                  />
-                                  <line
-                                    x1="18"
-                                    y1="6"
-                                    x2="6"
-                                    y2="18"
-                                    stroke="currentColor"
-                                    strokeWidth="0.6"
-                                  />
-                                </svg>
-                              )}
+                              <Box
+                                component="span"
+                                aria-hidden="true"
+                                sx={{
+                                  fontSize: '1.44rem',
+                                  lineHeight: 1,
+                                  fontWeight: 300,
+                                  transform: 'translateY(-1px)',
+                                  display: 'inline-block',
+                                }}
+                              >
+                                ×
+                              </Box>
                             </IconButton>
 
                             {(() => {
@@ -1380,146 +1366,252 @@ export default function Home() {
                                 <Box
                                   sx={{
                                     position: 'relative',
-                                    display: 'grid',
-                                    placeItems: 'center',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    height: {
+                                      xs: 'auto',
+                                      sm: LIGHTBOX_MEDIA_MAX_HEIGHT,
+                                    },
+                                    width: '100%',
                                   }}
                                 >
-                                  <IconButton
-                                    aria-label="Previous media"
+                                  <Box
                                     sx={{
-                                      position: 'absolute',
-                                      left: { xs: '0.5rem', sm: '0.9rem' },
-                                      top: '50%',
-                                      transform: 'translateY(-50%)',
-                                      color: 'white',
-                                      zIndex: 2100,
-                                      width: { xs: '2.75rem', sm: '3rem' },
-                                      height: { xs: '2.75rem', sm: '3rem' },
-                                      borderRadius: '999px',
-                                      backgroundColor:
-                                        'rgba(120, 120, 120, 0.26)',
-                                      border: '1px solid rgba(255,255,255,0.2)',
-                                      boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
-                                      backdropFilter: 'blur(8px)',
-                                      WebkitBackdropFilter: 'blur(8px)',
-                                      transition:
-                                        'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
-                                      '&:hover': {
-                                        backgroundColor:
-                                          'rgba(120, 120, 120, 0.34)',
-                                        borderColor: 'rgba(255,255,255,0.28)',
-                                        boxShadow:
-                                          '0 8px 20px rgba(0,0,0,0.24)',
+                                      position: 'relative',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      width: '100%',
+                                      height: {
+                                        xs: 'auto',
+                                        sm: LIGHTBOX_MAIN_HEIGHT,
                                       },
-                                      '&:focus-visible': {
-                                        outline:
-                                          '2px solid rgba(255,255,255,0.95)',
-                                        outlineOffset: '2px',
-                                      },
+                                      flex: '0 0 auto',
                                     }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (isAtLightboxStart) return;
-                                      handlePreviousMedia();
-                                    }}
-                                  >
-                                    <Box
-                                      component="span"
-                                      aria-hidden="true"
-                                      sx={{
-                                        fontSize: { xs: '1.8rem', sm: '2rem' },
-                                        lineHeight: 1,
-                                        fontWeight: 300,
-                                        paddingBottom: '0.3rem',
-                                        transform: 'translateX(-1px)',
-                                        display: 'inline-block',
-                                      }}
-                                    >
-                                      ‹
-                                    </Box>
-                                  </IconButton>
-                                  <AnimatePresence
-                                    initial={false}
-                                    mode="sync"
                                   >
                                     <motion.div
-                                      key={media.id}
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: 1 }}
-                                      exit={{ opacity: 0 }}
+                                      initial={false}
+                                      animate={{
+                                        opacity:
+                                          !isMobileViewport && isLightboxZoomed
+                                            ? 0
+                                            : 1,
+                                        filter:
+                                          !isMobileViewport && isLightboxZoomed
+                                            ? 'blur(6px)'
+                                            : 'blur(0px)',
+                                      }}
                                       transition={{
-                                        duration: 0.32,
+                                        duration: 0.22,
                                         ease: 'easeInOut',
                                       }}
-                                      style={{
-                                        gridArea: '1 / 1',
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        willChange: 'opacity',
-                                      }}
+                                    style={{
+                                      position: 'relative',
+                                      zIndex: isMobileViewport ? 2600 : 2100,
+                                      pointerEvents:
+                                        !isMobileViewport && isLightboxZoomed
+                                          ? 'none'
+                                          : 'auto',
+                                    }}
                                     >
-                                      <LightboxMediaContent
-                                        media={media}
-                                        isMobileQuery={isMobileQuery}
-                                        isMobileDevice={isMobileViewport}
-                                      />
+                                      <IconButton
+                                        aria-label="Previous media"
+                                        sx={{
+                                          position: 'absolute',
+                                          left: { xs: '0.5rem', sm: '-4.5rem' },
+                                          top: '50%',
+                                          transform: 'translateY(-50%)',
+                                          color: 'white',
+                                          zIndex: {
+                                            xs: 2600,
+                                            sm: 2100,
+                                          },
+                                          width: { xs: '2.75rem', sm: '3rem' },
+                                          height: {
+                                            xs: '2.75rem',
+                                            sm: '3rem',
+                                          },
+                                          borderRadius: '999px',
+                                          backgroundColor:
+                                            'rgba(120, 120, 120, 0.26)',
+                                          border:
+                                            '1px solid rgba(255,255,255,0.2)',
+                                          boxShadow:
+                                            '0 6px 18px rgba(0,0,0,0.2)',
+                                          backdropFilter: 'blur(3px)',
+                                          WebkitBackdropFilter: 'blur(3px)',
+                                          transition:
+                                            'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                                          '&:hover': {
+                                            backgroundColor:
+                                              'rgba(120, 120, 120, 0.34)',
+                                            borderColor:
+                                              'rgba(255,255,255,0.28)',
+                                            boxShadow:
+                                              '0 8px 20px rgba(0,0,0,0.24)',
+                                          },
+                                          '&:focus-visible': {
+                                            outline:
+                                              '2px solid rgba(255,255,255,0.95)',
+                                            outlineOffset: '2px',
+                                          },
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (isAtLightboxStart) return;
+                                          handlePreviousMedia();
+                                        }}
+                                      >
+                                        <Box
+                                          component="span"
+                                          aria-hidden="true"
+                                          sx={{
+                                            fontSize: {
+                                              xs: '1.8rem',
+                                              sm: '2rem',
+                                            },
+                                            lineHeight: 1,
+                                            fontWeight: 300,
+                                            paddingBottom: '0.3rem',
+                                            transform: 'translateX(-1px)',
+                                            display: 'inline-block',
+                                          }}
+                                        >
+                                          ‹
+                                        </Box>
+                                      </IconButton>
                                     </motion.div>
-                                  </AnimatePresence>
-                                  <IconButton
-                                    aria-label="Next media"
-                                    sx={{
-                                      position: 'absolute',
-                                      right: { xs: '0.5rem', sm: '0.9rem' },
-                                      top: '50%',
-                                      transform: 'translateY(-50%)',
-                                      color: 'white',
-                                      zIndex: 2100,
-                                      width: { xs: '2.75rem', sm: '3rem' },
-                                      height: { xs: '2.75rem', sm: '3rem' },
-                                      borderRadius: '999px',
-                                      backgroundColor:
-                                        'rgba(120, 120, 120, 0.26)',
-                                      border: '1px solid rgba(255,255,255,0.2)',
-                                      boxShadow: '0 6px 18px rgba(0,0,0,0.2)',
-                                      backdropFilter: 'blur(8px)',
-                                      WebkitBackdropFilter: 'blur(8px)',
-                                      transition:
-                                        'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
-                                      '&:hover': {
-                                        backgroundColor:
-                                          'rgba(120, 120, 120, 0.34)',
-                                        borderColor: 'rgba(255,255,255,0.28)',
-                                        boxShadow:
-                                          '0 8px 20px rgba(0,0,0,0.24)',
-                                      },
-                                      '&:focus-visible': {
-                                        outline:
-                                          '2px solid rgba(255,255,255,0.95)',
-                                        outlineOffset: '2px',
-                                      },
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (isAtLightboxEnd) return;
-                                      handleNextMedia();
-                                    }}
-                                  >
                                     <Box
-                                      component="span"
-                                      aria-hidden="true"
                                       sx={{
-                                        fontSize: { xs: '1.8rem', sm: '2rem' },
-                                        lineHeight: 1,
-                                        fontWeight: 300,
-                                        paddingBottom: '0.3rem',
-                                        transform: 'translateX(1px)',
-                                        display: 'inline-block',
+                                        position: 'relative',
+                                        display: 'grid',
+                                        placeItems: 'center',
                                       }}
                                     >
-                                      ›
+                                      <AnimatePresence initial={false} mode="sync">
+                                        <motion.div
+                                          key={media.id}
+                                          initial={{ opacity: 0 }}
+                                          animate={{ opacity: 1 }}
+                                          exit={{ opacity: 0 }}
+                                          transition={{
+                                            duration: 0.32,
+                                            ease: 'easeInOut',
+                                          }}
+                                          style={{
+                                            gridArea: '1 / 1',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            willChange: 'opacity',
+                                          }}
+                                        >
+                                          <LightboxMediaContent
+                                            media={media}
+                                            isMobileQuery={isMobileQuery}
+                                            isMobileDevice={isMobileViewport}
+                                            onZoomStateChange={
+                                              setIsLightboxZoomed
+                                            }
+                                          />
+                                        </motion.div>
+                                      </AnimatePresence>
                                     </Box>
-                                  </IconButton>
+                                    <motion.div
+                                      initial={false}
+                                      animate={{
+                                        opacity:
+                                          !isMobileViewport && isLightboxZoomed
+                                            ? 0
+                                            : 1,
+                                        filter:
+                                          !isMobileViewport && isLightboxZoomed
+                                            ? 'blur(6px)'
+                                            : 'blur(0px)',
+                                      }}
+                                      transition={{
+                                        duration: 0.22,
+                                        ease: 'easeInOut',
+                                      }}
+                                    style={{
+                                      position: 'relative',
+                                      zIndex: isMobileViewport ? 2600 : 2100,
+                                      pointerEvents:
+                                        !isMobileViewport && isLightboxZoomed
+                                          ? 'none'
+                                          : 'auto',
+                                    }}
+                                    >
+                                      <IconButton
+                                        aria-label="Next media"
+                                        sx={{
+                                          position: 'absolute',
+                                          right: { xs: '0.5rem', sm: '-4.5rem' },
+                                          top: '50%',
+                                          transform: 'translateY(-50%)',
+                                          color: 'white',
+                                          zIndex: {
+                                            xs: 2600,
+                                            sm: 2100,
+                                          },
+                                          width: { xs: '2.75rem', sm: '3rem' },
+                                          height: {
+                                            xs: '2.75rem',
+                                            sm: '3rem',
+                                          },
+                                          borderRadius: '999px',
+                                          backgroundColor:
+                                            'rgba(120, 120, 120, 0.26)',
+                                          border:
+                                            '1px solid rgba(255,255,255,0.2)',
+                                          boxShadow:
+                                            '0 6px 18px rgba(0,0,0,0.2)',
+                                          backdropFilter: 'blur(3px)',
+                                          WebkitBackdropFilter: 'blur(3px)',
+                                          transition:
+                                            'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease',
+                                          '&:hover': {
+                                            backgroundColor:
+                                              'rgba(120, 120, 120, 0.34)',
+                                            borderColor:
+                                              'rgba(255,255,255,0.28)',
+                                            boxShadow:
+                                              '0 8px 20px rgba(0,0,0,0.24)',
+                                          },
+                                          '&:focus-visible': {
+                                            outline:
+                                              '2px solid rgba(255,255,255,0.95)',
+                                            outlineOffset: '2px',
+                                          },
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (isAtLightboxEnd) return;
+                                          handleNextMedia();
+                                        }}
+                                      >
+                                        <Box
+                                          component="span"
+                                          aria-hidden="true"
+                                          sx={{
+                                            fontSize: {
+                                              xs: '1.8rem',
+                                              sm: '2rem',
+                                            },
+                                            lineHeight: 1,
+                                            fontWeight: 300,
+                                            paddingBottom: '0.3rem',
+                                            transform: 'translateX(1px)',
+                                            display: 'inline-block',
+                                          }}
+                                        >
+                                          ›
+                                        </Box>
+                                      </IconButton>
+                                    </motion.div>
+                                  </Box>
                                 </Box>
                               );
                             })()}

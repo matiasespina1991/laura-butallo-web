@@ -119,14 +119,12 @@ export default function ZoomeableImage({
   const handleMouseLeave = useCallback(() => {
     if (isTouchInput) return;
     setHover(false);
-    resetZoom();
-  }, [isTouchInput, resetZoom]);
+  }, [isTouchInput]);
 
   const handlePointerLeave = useCallback(() => {
     if (isTouchInput) return;
     setHover(false);
-    resetZoom();
-  }, [isTouchInput, resetZoom]);
+  }, [isTouchInput]);
 
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
