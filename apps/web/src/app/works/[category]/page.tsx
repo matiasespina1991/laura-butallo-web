@@ -9,7 +9,16 @@ import { AnimatePresence, motion } from 'framer-motion';
 import NextImage from 'next/image';
 import { Box, Grid, IconButton, Theme, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { fetchCategoryMedia } from '@/utils/functions/fetchCategoryMedia';
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  where,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
+import db from '@/utils/config/firebase';
 import ZoomableImage from '../../components/ZoomeableImage';
 import ZoomeableVideo from '../../components/ZoomeableVideo';
 import {
@@ -18,6 +27,84 @@ import {
 } from '@/utils/media/assetSelectors';
 import { useStorageAssetSrc } from '@/hooks/useStorageAssetSrc';
 import Footer from '../../components/Footer';
+
+// ---------------------------------------------------------------------------
+// Parallelized fetch — replaces the serial fetchCategoryMedia import
+// ---------------------------------------------------------------------------
+async function fetchCategoryMedia(
+  category: string
+): Promise<{ mediaset: MediaSet; media: Media[] }[]> {
+  // 1. Single query for all mediasets in this category
+  const mediasetsSnap = await getDocs(
+    query(
+      collection(db, 'mediasets'),
+      where('category', '==', category),
+      orderBy('ordering', 'asc')
+    )
+  );
+
+  const mediasets = mediasetsSnap.docs
+    .map((d) => ({ ...d.data(), id: d.id }) as MediaSet)
+    .filter((ms) => !ms.deletedAt);
+
+  // 2. All items subcollections IN PARALLEL
+  const itemsSnaps = await Promise.all(
+    mediasets.map((ms) =>
+      getDocs(
+        query(
+          collection(db, 'mediasets', ms.id, 'items'),
+          orderBy('order', 'asc')
+        )
+      )
+    )
+  );
+
+  // 3. Collect all unique mediaIds
+  const allMediaIds = new Set<string>();
+  itemsSnaps.forEach((snap) => {
+    snap.docs.forEach((d) => {
+      const mediaId = d.data().mediaId;
+      if (mediaId) allMediaIds.add(mediaId);
+    });
+  });
+
+  // 4. All media docs IN PARALLEL (single batch)
+  const mediaDocs = await Promise.all(
+    Array.from(allMediaIds).map((id) => getDoc(doc(db, 'media', id)))
+  );
+
+  // 5. id → Media map for O(1) lookup
+  const mediaMap = new Map<string, Media>();
+  mediaDocs.forEach((d) => {
+    if (d.exists()) {
+      const data = d.data() as Media;
+      if (data.processed && !data.deletedAt) {
+        mediaMap.set(d.id, { ...data, id: d.id });
+      }
+    }
+  });
+
+  // 6. Build result preserving order
+  const result: { mediaset: MediaSet; media: Media[] }[] = [];
+  mediasets.forEach((ms, i) => {
+    const media = itemsSnaps[i].docs
+      .map((itemDoc) => {
+        const itemData = itemDoc.data();
+        if (!itemData.mediaId) return null;
+        const m = mediaMap.get(itemData.mediaId);
+        if (!m) return null;
+        return { ...m, flex: itemData.flex ?? 1 } as Media;
+      })
+      .filter((m): m is Media => m !== null);
+
+    if (media.length > 0) {
+      result.push({ mediaset: ms, media });
+    }
+  });
+
+  return result;
+}
+// ---------------------------------------------------------------------------
 
 type MediaWithHandlers = {
   m: Media;
@@ -821,7 +908,7 @@ export default function WorksCategoryPage({
         console.error('Error loading from cache:', error);
       }
 
-      // Fetch fresh data from database
+      // Fetch fresh data from database (now parallelized)
       setIsLoading(cachedData ? false : true);
       if (!cachedData) {
         setAllImagesLoaded(false);
@@ -1825,12 +1912,18 @@ export default function WorksCategoryPage({
                                       sx={{
                                         position: 'absolute',
                                         left: '50%',
-                                        bottom: { xs: '0.5rem', sm: '0.75rem' },
+                                        bottom: {
+                                          xs: '0.5rem',
+                                          sm: '0.75rem',
+                                        },
                                         transform: 'translateX(-50%)',
                                         display: { xs: 'none', sm: 'flex' },
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: { xs: '0.45rem', sm: '0.55rem' },
+                                        gap: {
+                                          xs: '0.45rem',
+                                          sm: '0.55rem',
+                                        },
                                         paddingInline: '0.05rem',
                                         paddingBlock: '0.05rem',
                                         zIndex: 2100,
