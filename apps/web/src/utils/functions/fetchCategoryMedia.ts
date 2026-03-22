@@ -5,19 +5,20 @@ import {
   where,
   orderBy,
   doc,
-  getDoc
+  getDoc,
 } from 'firebase/firestore';
 import db from '@/utils/config/firebase';
-import type { MediaSet } from '@/types/mediaset';
+import type { MediaSet } from '@/utils/types/mediaset';
 import type { Media } from '@/utils/types/media';
 
 type MediaSetItemDoc = {
   mediaId?: string;
   mediaItems?: Array<{ mediaId?: string; order?: number }>;
   flex?: number;
+  order?: number;
 };
 
-const getOrderedItemMediaIds = (item: MediaSetItemDoc) => {
+const getOrderedItemMediaIds = (item: MediaSetItemDoc): string[] => {
   const fromArray =
     item.mediaItems
       ?.slice()
@@ -32,7 +33,7 @@ const getOrderedItemMediaIds = (item: MediaSetItemDoc) => {
 export async function fetchCategoryMedia(
   category: string
 ): Promise<{ mediaset: MediaSet; media: Media[] }[]> {
-  // Fetch all mediasets for this category
+  // 1. Single query for all mediasets
   const mediasetsSnap = await getDocs(
     query(
       collection(db, 'mediasets'),
@@ -45,41 +46,59 @@ export async function fetchCategoryMedia(
     .map((d) => ({ ...d.data(), id: d.id }) as MediaSet)
     .filter((ms) => !ms.deletedAt);
 
+  // 2. All items subcollections IN PARALLEL
+  const itemsSnaps = await Promise.all(
+    mediasets.map((ms) =>
+      getDocs(
+        query(
+          collection(db, 'mediasets', ms.id, 'items'),
+          orderBy('order', 'asc')
+        )
+      )
+    )
+  );
+
+  // 3. Collect all unique mediaIds across all items (including carousel mediaItems)
+  const allMediaIds = new Set<string>();
+  itemsSnaps.forEach((snap) => {
+    snap.docs.forEach((d) => {
+      const itemData = d.data() as MediaSetItemDoc;
+      getOrderedItemMediaIds(itemData).forEach((id) => allMediaIds.add(id));
+    });
+  });
+
+  // 4. Fetch all media docs IN PARALLEL (single batch)
+  const mediaDocs = await Promise.all(
+    Array.from(allMediaIds).map((id) => getDoc(doc(db, 'media', id)))
+  );
+
+  // 5. id → Media map for O(1) lookup
+  const mediaMap = new Map<string, Media>();
+  mediaDocs.forEach((d) => {
+    if (d.exists()) {
+      const data = d.data() as Media;
+      if (data.processed && !data.deletedAt) {
+        mediaMap.set(d.id, { ...data, id: d.id });
+      }
+    }
+  });
+
+  // 6. Build result preserving order and carousel logic
   const result: { mediaset: MediaSet; media: Media[] }[] = [];
 
-  for (const mediaset of mediasets) {
-    // Fetch items for this mediaset
-    const itemsSnap = await getDocs(
-      query(
-        collection(db, 'mediasets', mediaset.id, 'items'),
-        orderBy('order', 'asc')
-      )
-    );
-
+  mediasets.forEach((mediaset, i) => {
     const media: Media[] = [];
 
-    // Fetch media for each item
-    for (const itemDoc of itemsSnap.docs) {
+    itemsSnaps[i].docs.forEach((itemDoc) => {
       const itemData = itemDoc.data() as MediaSetItemDoc;
       const orderedMediaIds = getOrderedItemMediaIds(itemData);
-      if (orderedMediaIds.length === 0) continue;
-
-      const mediaDocs = await Promise.all(
-        orderedMediaIds.map(async (mediaId) => {
-          const mediaDocRef = doc(db, 'media', mediaId);
-          const mediaDocSnap = await getDoc(mediaDocRef);
-          if (!mediaDocSnap.exists()) return null;
-          const mediaData = mediaDocSnap.data() as Media;
-          if (!mediaData.processed || mediaData.deletedAt) return null;
-          return { ...mediaData, id: mediaDocSnap.id };
-        })
-      );
+      if (orderedMediaIds.length === 0) return;
 
       const orderedMedia = orderedMediaIds
-        .map((mediaId) => mediaDocs.find((mediaDoc) => mediaDoc?.id === mediaId))
-        .filter((mediaDoc): mediaDoc is Media => Boolean(mediaDoc));
+        .map((id) => mediaMap.get(id))
+        .filter((m): m is Media => Boolean(m));
 
-      if (!orderedMedia.length) continue;
+      if (!orderedMedia.length) return;
 
       const primaryMedia = orderedMedia[0];
       media.push({
@@ -87,14 +106,14 @@ export async function fetchCategoryMedia(
         itemId: itemDoc.id,
         flex: itemData.flex ?? 1,
         isCarouselItem: orderedMedia.length > 1,
-        carouselMedia: orderedMedia.length > 1 ? orderedMedia : undefined
+        carouselMedia: orderedMedia.length > 1 ? orderedMedia : undefined,
       });
-    }
+    });
 
     if (media.length > 0) {
       result.push({ mediaset, media });
     }
-  }
+  });
 
   return result;
 }

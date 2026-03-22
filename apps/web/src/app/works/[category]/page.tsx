@@ -29,8 +29,25 @@ import { useStorageAssetSrc } from '@/hooks/useStorageAssetSrc';
 import Footer from '../../components/Footer';
 
 // ---------------------------------------------------------------------------
-// Parallelized fetch — replaces the serial fetchCategoryMedia import
+// Parallelized fetch with carousel support
 // ---------------------------------------------------------------------------
+type MediaSetItemDoc = {
+  mediaId?: string;
+  mediaItems?: Array<{ mediaId?: string; order?: number }>;
+  flex?: number;
+};
+
+const getOrderedItemMediaIds = (item: MediaSetItemDoc): string[] => {
+  const fromArray =
+    item.mediaItems
+      ?.slice()
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map((entry) => entry.mediaId)
+      .filter((id): id is string => Boolean(id)) ?? [];
+  if (fromArray.length > 0) return fromArray;
+  return item.mediaId ? [item.mediaId] : [];
+};
+
 async function fetchCategoryMedia(
   category: string
 ): Promise<{ mediaset: MediaSet; media: Media[] }[]> {
@@ -59,12 +76,13 @@ async function fetchCategoryMedia(
     )
   );
 
-  // 3. Collect all unique mediaIds
+  // 3. Collect all unique mediaIds — including carousel mediaItems
   const allMediaIds = new Set<string>();
   itemsSnaps.forEach((snap) => {
     snap.docs.forEach((d) => {
-      const mediaId = d.data().mediaId;
-      if (mediaId) allMediaIds.add(mediaId);
+      getOrderedItemMediaIds(d.data() as MediaSetItemDoc).forEach((id) =>
+        allMediaIds.add(id)
+      );
     });
   });
 
@@ -84,18 +102,31 @@ async function fetchCategoryMedia(
     }
   });
 
-  // 6. Build result preserving order
+  // 6. Build result preserving order and carousel structure
   const result: { mediaset: MediaSet; media: Media[] }[] = [];
   mediasets.forEach((ms, i) => {
-    const media = itemsSnaps[i].docs
-      .map((itemDoc) => {
-        const itemData = itemDoc.data();
-        if (!itemData.mediaId) return null;
-        const m = mediaMap.get(itemData.mediaId);
-        if (!m) return null;
-        return { ...m, flex: itemData.flex ?? 1 } as Media;
-      })
-      .filter((m): m is Media => m !== null);
+    const media: Media[] = [];
+
+    itemsSnaps[i].docs.forEach((itemDoc) => {
+      const itemData = itemDoc.data() as MediaSetItemDoc;
+      const orderedIds = getOrderedItemMediaIds(itemData);
+      if (orderedIds.length === 0) return;
+
+      const orderedMedia = orderedIds
+        .map((id) => mediaMap.get(id))
+        .filter((m): m is Media => Boolean(m));
+
+      if (!orderedMedia.length) return;
+
+      const primary = orderedMedia[0];
+      media.push({
+        ...primary,
+        itemId: itemDoc.id,
+        flex: itemData.flex ?? 1,
+        isCarouselItem: orderedMedia.length > 1,
+        carouselMedia: orderedMedia.length > 1 ? orderedMedia : undefined,
+      });
+    });
 
     if (media.length > 0) {
       result.push({ mediaset: ms, media });
